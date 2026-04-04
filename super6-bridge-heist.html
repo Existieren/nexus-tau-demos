@@ -35,6 +35,116 @@ body{background:var(--bg);color:var(--txt);font-family:var(--font);line-height:1
 .hero h1 .cyan-text{color:var(--cyan)}
 .hero .subtitle{font-size:clamp(1rem,2vw,1.3rem);color:var(--txt-dim);max-width:700px;margin:0 auto}
 
+/* GLASSMORPHIC CONTENT SECTIONS */
+.glass-section{
+  position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 24px 48px;
+}
+.glass-panel{
+  background:rgba(18,18,26,.85);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:20px;
+  padding:40px 36px;
+  position:relative;
+  overflow:hidden;
+}
+.glass-panel::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);
+}
+.glass-panel h2{
+  font-size:clamp(1.5rem,3vw,2rem);font-weight:900;margin-bottom:8px;line-height:1.2;
+}
+.glass-panel .section-subtitle{
+  font-size:15px;color:var(--txt-dim);margin-bottom:28px;max-width:700px;
+}
+.glass-panel p{font-size:15px;color:var(--txt-dim);line-height:1.8;margin-bottom:16px}
+.glass-panel p:last-child{margin-bottom:0}
+.glass-panel .highlight-text{color:var(--txt);font-weight:600}
+.glass-panel .red-text{color:var(--red);font-weight:700}
+.glass-panel .gold-text{color:var(--gold);font-weight:700}
+.glass-panel .cyan-text{color:var(--cyan);font-weight:600}
+.glass-panel .green-text{color:var(--green);font-weight:600}
+
+/* Exploit timeline in crisis section */
+.exploit-timeline{
+  display:flex;flex-direction:column;gap:0;margin:24px 0;
+  border-left:2px solid var(--red);padding-left:24px;position:relative;
+}
+.exploit-timeline::before{
+  content:'';position:absolute;top:0;left:-6px;width:10px;height:10px;
+  border-radius:50%;background:var(--red);box-shadow:0 0 12px var(--red-glow);
+}
+.exploit-entry{
+  position:relative;padding:10px 0;
+}
+.exploit-entry::before{
+  content:'';position:absolute;left:-29px;top:16px;width:8px;height:8px;
+  border-radius:50%;background:var(--red-dark);border:2px solid var(--red);
+}
+.exploit-entry .exploit-name{
+  font-weight:800;font-size:15px;color:#fff;
+}
+.exploit-entry .exploit-amount-tag{
+  display:inline-block;background:rgba(239,68,68,.15);color:var(--red);
+  font-weight:800;font-size:14px;padding:2px 10px;border-radius:6px;margin-left:8px;
+}
+.exploit-entry .exploit-detail{
+  font-size:13px;color:var(--txt-dim);margin-top:2px;
+}
+
+/* Audit methods grid */
+.audit-methods-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:20px 0;
+}
+.audit-method-card{
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
+  border-radius:12px;padding:20px;
+}
+.audit-method-card h4{font-size:15px;font-weight:800;margin-bottom:8px;color:#fff}
+.audit-method-card .method-type{
+  display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;
+  border-radius:4px;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;
+}
+.audit-method-card .finds{color:var(--green)}
+.audit-method-card .misses{color:var(--red)}
+.audit-method-card p{font-size:13px;margin-bottom:8px}
+.audit-method-card ul{font-size:13px;color:var(--txt-dim);padding-left:18px;line-height:1.8}
+
+/* Tau advantages grid */
+.tau-advantages-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin:24px 0;
+}
+.tau-advantage-card{
+  background:rgba(255,215,0,.03);border:1px solid rgba(255,215,0,.1);
+  border-radius:12px;padding:20px;position:relative;overflow:hidden;
+}
+.tau-advantage-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.4;
+}
+.tau-advantage-card h4{font-size:15px;font-weight:800;color:var(--gold);margin-bottom:8px}
+.tau-advantage-card p{font-size:13px;color:var(--txt-dim);line-height:1.7;margin-bottom:0}
+
+/* Key insight callout */
+.insight-callout{
+  background:linear-gradient(135deg,rgba(239,68,68,.08),rgba(255,215,0,.06));
+  border:1px solid rgba(239,68,68,.2);border-left:4px solid var(--red);
+  border-radius:0 12px 12px 0;padding:20px 24px;margin:24px 0;
+}
+.insight-callout .callout-label{
+  font-size:11px;font-weight:800;color:var(--red);text-transform:uppercase;
+  letter-spacing:1.5px;margin-bottom:6px;
+}
+.insight-callout p{font-size:15px;color:var(--txt);line-height:1.7;margin-bottom:0}
+
+/* Section divider */
+.section-divider{
+  width:80px;height:2px;margin:0 auto 0;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  opacity:.3;
+}
+
 /* BRIDGE SECTION */
 .bridge-section{padding:40px 24px;display:flex;flex-direction:column;align-items:center;gap:32px;position:relative;z-index:1}
 .bridge-visual{position:relative;width:100%;max-width:900px;height:320px;display:flex;align-items:center;justify-content:center;gap:0}
@@ -78,15 +188,15 @@ body{background:var(--bg);color:var(--txt);font-family:var(--font);line-height:1
 
 /* Locks / Toggle Cards */
 .locks-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;width:100%;max-width:1200px;z-index:1}
-.lock-card{background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;transition:all .4s;position:relative;overflow:hidden}
+.lock-card{background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px 16px;display:flex;align-items:flex-start;gap:12px;transition:all .4s;position:relative;overflow:hidden}
 .lock-card.active{border-color:rgba(6,182,212,.3);box-shadow:0 0 15px rgba(6,182,212,.08)}
 .lock-card.cracked{border-color:var(--red);background:rgba(239,68,68,.05)}
 .lock-card.cracked::after{content:'EXPLOITED';position:absolute;top:6px;right:8px;font-size:9px;font-weight:700;color:var(--red);letter-spacing:1px}
-.lock-icon{font-size:24px;width:36px;text-align:center;flex-shrink:0}
+.lock-icon{font-size:24px;width:36px;text-align:center;flex-shrink:0;padding-top:2px}
 .lock-info{flex:1;min-width:0}
 .lock-name{font-weight:700;font-size:14px;color:#fff}
-.lock-desc{font-size:11px;color:var(--txt-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lock-toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+.lock-desc{font-size:12px;color:var(--txt-dim);line-height:1.5;margin-top:2px}
+.lock-toggle{position:relative;width:44px;height:24px;flex-shrink:0;margin-top:2px}
 .lock-toggle input{opacity:0;width:0;height:0}
 .lock-toggle .slider{position:absolute;inset:0;background:#333;border-radius:12px;cursor:pointer;transition:.3s}
 .lock-toggle .slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#888;border-radius:50%;transition:.3s}
@@ -218,6 +328,78 @@ body{background:var(--bg);color:var(--txt);font-family:var(--font);line-height:1
   <h1><span class="white">Can Your </span><span class="red">Bridge</span><span class="white"> Be Drained </span><span class="cyan-text">Across Chains?</span></h1>
   <p class="subtitle">8 security rules. $120M TVL. Only one method finds the cross-chain exploit.</p>
 </header>
+
+<!-- ======================== -->
+<!-- CRISIS INTRO SECTION     -->
+<!-- ======================== -->
+<section class="glass-section">
+  <div class="glass-panel">
+    <h2><span style="color:var(--red)">The Cross-Chain Bridge</span> Security Crisis</h2>
+    <p class="section-subtitle">Billions lost, and the root cause is still misunderstood.</p>
+
+    <p>
+      <span class="highlight-text">Cross-chain bridges</span> are the connective tissue of multi-chain DeFi. They allow users to move tokens
+      between blockchains that cannot natively communicate: lock an asset on Chain A, mint a synthetic representation on Chain B.
+      With over <span class="highlight-text">$50 billion in daily volume</span> flowing through bridge protocols, they have become the
+      highest-value targets in all of crypto. And the most frequently exploited.
+    </p>
+
+    <p>
+      Between February and October 2022, a single six-month window, attackers drained more than <span class="red-text">$1.8 billion</span> from
+      five major bridges alone. Each exploit was different in mechanism, but identical in root cause: <span class="highlight-text">the security
+      model treated each chain as an independent system</span>, while the attacker operated across both simultaneously.
+    </p>
+
+    <div class="exploit-timeline">
+      <div class="exploit-entry">
+        <span class="exploit-name">Ronin Bridge</span>
+        <span class="exploit-amount-tag">$625M</span>
+        <div class="exploit-detail">March 2022 &mdash; Validator key compromise. Attacker gained control of 5 out of 9 validator nodes and forged
+        withdrawal signatures. The bridge had no cross-chain verification that locked funds still existed on the source chain. The exploit went
+        undetected for six days because each chain's state appeared internally consistent.</div>
+      </div>
+      <div class="exploit-entry">
+        <span class="exploit-name">BNB Bridge</span>
+        <span class="exploit-amount-tag">$586M</span>
+        <div class="exploit-detail">October 2022 &mdash; Proof verification bypass. The attacker crafted a forged proof that passed the bridge's
+        on-chain verification by exploiting a flaw in how the IAVL Merkle proof was validated. The bridge minted tokens backed by a proof that
+        referenced data the source chain never committed to.</div>
+      </div>
+      <div class="exploit-entry">
+        <span class="exploit-name">Wormhole</span>
+        <span class="exploit-amount-tag">$325M</span>
+        <div class="exploit-detail">February 2022 &mdash; Signature verification bypass. A deprecated function call allowed the attacker to bypass
+        guardian signature verification entirely, minting 120,000 wETH on Solana without any corresponding deposit on Ethereum. The per-chain
+        contracts were correct; the verification gap existed only in the cross-chain handoff.</div>
+      </div>
+      <div class="exploit-entry">
+        <span class="exploit-name">Nomad</span>
+        <span class="exploit-amount-tag">$190M</span>
+        <div class="exploit-detail">August 2022 &mdash; Merkle root initialization exploit. A routine upgrade accidentally set the trusted root to
+        0x00, which meant any message was considered proven. Hundreds of copycat attackers replayed the original exploit transaction with different
+        addresses, draining the bridge in a chaotic free-for-all.</div>
+      </div>
+      <div class="exploit-entry">
+        <span class="exploit-name">Harmony Horizon</span>
+        <span class="exploit-amount-tag">$100M</span>
+        <div class="exploit-detail">June 2022 &mdash; Multi-sig key theft. The bridge required only 2-of-5 signatures, and the attacker compromised
+        two keys through targeted social engineering. The on-chain logic was flawless; the vulnerability existed in the operational security model
+        that the smart contract could not verify.</div>
+      </div>
+    </div>
+
+    <div class="insight-callout">
+      <div class="callout-label">The Fundamental Problem</div>
+      <p>
+        The total losses from bridge exploits now exceed <span class="red-text">$10 billion</span>. But the dollar figure obscures the deeper issue.
+        Every one of these bridges was audited. Many were audited multiple times, by the industry's most respected firms. The audits
+        checked each chain's smart contracts <em>independently</em> and found them correct. Because they were correct &mdash; on each chain,
+        in isolation. <span class="highlight-text">Cross-chain security is not the sum of per-chain security.</span> The exploits live in the
+        gaps between chains: in timing assumptions, finality races, and state inconsistencies that no single-chain audit can observe.
+      </p>
+    </div>
+  </div>
+</section>
 
 <!-- BRIDGE VISUAL + RULES -->
 <section class="bridge-section">
@@ -351,12 +533,153 @@ body{background:var(--bg);color:var(--txt);font-family:var(--font);line-height:1
 <!-- COMPARISON -->
 <section class="comparison-section" id="compSection">
   <div class="comp-grid">
-    <div class="comp-card"><h4 style="color:var(--blue)">&#x1f40d; Python</h4><div class="result" style="color:var(--green)" id="compPythonResult">20,000/20,000 SECURE</div><div class="explain" id="compPythonExplain">Simulated 20,000 bridge transactions. Each individually valid. Never tested cross-chain reorg timing attacks across multiple congestion windows.</div></div>
-    <div class="comp-card"><h4 style="color:var(--cyan)">&#x1f4d0; Formal Verify</h4><div class="result" style="color:var(--cyan)" id="compFormalResult">8/8 PROPERTIES HOLD</div><div class="explain" id="compFormalExplain">Verified each chain's properties independently. Cross-chain composition causes state explosion at 10^15 states. Per-chain secure, composition unverifiable.</div></div>
-    <div class="comp-card"><h4 style="color:var(--green)">&#x1f916; AI</h4><div class="result" style="color:var(--green)" id="compAIResult">NO KNOWN PATTERNS</div><div class="explain" id="compAIExplain">Matched against Ronin, Wormhole, Nomad, Harmony, Poly Network exploits. All mitigated. Novel cross-chain timing attack not in training data.</div></div>
-    <div class="comp-card fail"><h4 style="color:var(--gold)">&#x269b; Tau</h4><div class="result" id="compTauResult">$47M DRAINED</div><div class="explain" id="compTauExplain">Verified cross-chain temporal composition. Found reorg-timing exploit in async gap between chains. Rate limiter is chain-local; conservation fails across the bridge.</div></div>
+    <div class="comp-card"><h4 style="color:var(--blue)">&#x1f40d; Python</h4><div class="result" style="color:var(--green)" id="compPythonResult">20,000/20,000 SECURE</div><div class="explain" id="compPythonExplain">Simulated 20,000 bridge transactions. Each individually valid. Never tested cross-chain reorg timing attacks across multiple congestion windows. Python simulation treats each transaction as an isolated event, so multi-day temporal exploits that depend on cross-chain state divergence are invisible to it.</div></div>
+    <div class="comp-card"><h4 style="color:var(--cyan)">&#x1f4d0; Formal Verify</h4><div class="result" style="color:var(--cyan)" id="compFormalResult">8/8 PROPERTIES HOLD</div><div class="explain" id="compFormalExplain">Verified each chain's properties independently. Cross-chain composition causes state explosion at 10^15 states. Per-chain secure, composition unverifiable. Traditional model checkers like NuSMV can verify safety properties on a single chain's state machine, but the combinatorial product of two chains with temporal finality windows exceeds tractable bounds.</div></div>
+    <div class="comp-card"><h4 style="color:var(--green)">&#x1f916; AI</h4><div class="result" style="color:var(--green)" id="compAIResult">NO KNOWN PATTERNS</div><div class="explain" id="compAIExplain">Matched against Ronin, Wormhole, Nomad, Harmony, Poly Network exploits. All mitigated. Novel cross-chain timing attack not in training data. AI auditors excel at pattern matching against known exploit taxonomies, but cannot reason about emergent properties of systems that have never been attacked in a specific way before.</div></div>
+    <div class="comp-card fail"><h4 style="color:var(--gold)">&#x269b; Tau</h4><div class="result" id="compTauResult">$47M DRAINED</div><div class="explain" id="compTauExplain">Verified cross-chain temporal composition. Found reorg-timing exploit in async gap between chains. Rate limiter is chain-local; conservation fails across the bridge. Tau reasons about both chains simultaneously across time, discovering that per-chain correctness does not compose into cross-chain correctness.</div></div>
   </div>
   <div class="tagline">"Both chains were secure. Every contract was verified. Between them &mdash; $47M materialized from nothing. Only Tau verifies across chains and across time."</div>
+</section>
+
+<!-- ================================ -->
+<!-- HOW BRIDGES ARE AUDITED TODAY    -->
+<!-- ================================ -->
+<section class="glass-section" id="auditSection" style="opacity:0;transform:translateY(30px);transition:all .8s">
+  <div class="glass-panel">
+    <h2>How Bridges Are <span style="color:var(--cyan)">Audited Today</span></h2>
+    <p class="section-subtitle">Industry-standard methodology and where it falls short.</p>
+
+    <p>
+      The bridge security industry relies on a handful of elite firms: <span class="highlight-text">Trail of Bits</span>,
+      <span class="highlight-text">OpenZeppelin</span>, <span class="highlight-text">Consensys Diligence</span>,
+      <span class="highlight-text">Halborn</span>, and <span class="highlight-text">Certik</span>. Their methodologies are rigorous,
+      their tooling is sophisticated, and their track records on single-chain protocols are strong. The problem is not competence.
+      The problem is scope.
+    </p>
+
+    <div class="audit-methods-grid">
+      <div class="audit-method-card">
+        <div class="method-type" style="background:rgba(59,130,246,.15);color:var(--blue)">Static Analysis</div>
+        <h4>Automated Code Scanning</h4>
+        <p>Tools like Slither, Mythril, and Securify analyze smart contract bytecode and source for known vulnerability patterns.</p>
+        <ul>
+          <li class="finds">Finds: reentrancy, unchecked return values, integer overflow, access control misconfigurations</li>
+          <li class="misses">Misses: cross-contract interactions that span two independent chains with different finality models</li>
+        </ul>
+      </div>
+      <div class="audit-method-card">
+        <div class="method-type" style="background:rgba(168,85,247,.15);color:var(--purple)">Symbolic Execution</div>
+        <h4>Constraint Solving</h4>
+        <p>Symbolic engines explore all possible execution paths through a contract by treating inputs as symbolic variables.</p>
+        <ul>
+          <li class="finds">Finds: edge-case arithmetic, unreachable code, assertion violations within a single contract</li>
+          <li class="misses">Misses: temporal dependencies where the same symbolic state must be tracked across two blockchains over days</li>
+        </ul>
+      </div>
+      <div class="audit-method-card">
+        <div class="method-type" style="background:rgba(34,197,94,.15);color:var(--green)">Fuzzing</div>
+        <h4>Randomized Input Testing</h4>
+        <p>Fuzzers like Echidna and Foundry generate millions of randomized transaction sequences to find invariant violations.</p>
+        <ul>
+          <li class="finds">Finds: unexpected state transitions, gas griefing, denial of service vectors</li>
+          <li class="misses">Misses: attacks that require precise timing coordination between two separate chain environments</li>
+        </ul>
+      </div>
+      <div class="audit-method-card">
+        <div class="method-type" style="background:rgba(239,68,68,.15);color:var(--red)">Manual Review</div>
+        <h4>Expert Code Review</h4>
+        <p>Senior auditors read every line, reason about business logic, and construct adversarial scenarios by hand.</p>
+        <ul>
+          <li class="finds">Finds: logic errors, governance attacks, economic exploits, privilege escalation</li>
+          <li class="misses">Misses: combinatorial interactions where the state space is too large for human intuition to enumerate</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="insight-callout">
+      <div class="callout-label">The Async Gap</div>
+      <p>
+        Every one of these methods verifies Chain A and Chain B <em>in isolation</em>. The bridge contract on Ethereum is audited as an
+        Ethereum contract. The bridge contract on Polygon is audited as a Polygon contract. <span class="highlight-text">Nobody verifies
+        the composed system</span> &mdash; what happens when Chain A reorganizes after Chain B has already minted, when finality
+        assumptions on one chain are violated by congestion on the other, or when a rate limiter on Chain B cannot observe state
+        changes on Chain A. The async gap between chains is where billions have been lost, and current audit methodology has
+        no tool to close it.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ================================ -->
+<!-- HOW TAU CHANGES BRIDGE SECURITY  -->
+<!-- ================================ -->
+<section class="glass-section" id="tauSection" style="opacity:0;transform:translateY(30px);transition:all .8s">
+  <div class="glass-panel">
+    <h2>How <span style="color:var(--gold)">Tau</span> Changes Bridge Security</h2>
+    <p class="section-subtitle">From per-chain audits to cross-chain temporal verification.</p>
+
+    <p>
+      Tau does not replace existing audit tools. It fills the gap they cannot reach. Where static analysis, symbolic execution,
+      and fuzzing verify individual contracts on individual chains, <span class="gold-text">Tau verifies the composed system across
+      chains and across time</span>. It is the first verification framework that can formally reason about asynchronous multi-chain
+      interactions with real-time temporal semantics.
+    </p>
+
+    <div class="tau-advantages-grid">
+      <div class="tau-advantage-card">
+        <h4>Cross-Chain Temporal Composition</h4>
+        <p>Tau models both chains simultaneously as a single temporal system. Lock events on Chain A and mint events on Chain B
+        are not verified in isolation &mdash; they are verified as a composed temporal trace where the ordering, timing, and
+        finality guarantees of both chains interact. This is what allows Tau to detect exploits that exist only in the
+        <em>relationship</em> between two otherwise-correct contracts.</p>
+      </div>
+      <div class="tau-advantage-card">
+        <h4>BDD Compression</h4>
+        <p>The reason traditional model checkers fail on cross-chain verification is state explosion: 847 states on Chain A
+        times 1,203 states on Chain B times temporal windows yields 6.9 x 10^15 explicit states. Tau uses Binary Decision
+        Diagram compression to collapse this into approximately 1,800 symbolic nodes &mdash; a reduction of twelve orders of
+        magnitude &mdash; making the combined state space tractable for exhaustive verification.</p>
+      </div>
+      <div class="tau-advantage-card">
+        <h4>Async Finality Modeling</h4>
+        <p>Finality on most blockchains is probabilistic, not absolute. A block confirmed at depth 15 can still be reorganized
+        during extreme congestion. Tau models finality as a probability distribution that varies with network conditions, then
+        verifies conservation properties against the worst-case finality scenarios. This is how it discovers that a 15-block
+        wait is insufficient during congestion events where reorg probability at depth 12 exceeds 0.3%.</p>
+      </div>
+      <div class="tau-advantage-card">
+        <h4>Continuous Verification</h4>
+        <p>Traditional audits are point-in-time snapshots. A bridge is audited before launch, then operates for months or years
+        without re-verification as parameters change, congestion patterns shift, and new chains are added. Tau enables continuous
+        verification: as bridge parameters change, the temporal model is re-evaluated automatically, catching new exploit windows
+        the moment they open rather than after funds are already drained.</p>
+      </div>
+      <div class="tau-advantage-card">
+        <h4>Concrete Value: Preventing Billions in Losses</h4>
+        <p>The cross-chain reorg timing attack demonstrated in this simulation is not hypothetical. It represents the class of
+        vulnerability that led to the Ronin, Wormhole, and Nomad exploits: cross-chain state inconsistencies that per-chain
+        audits cannot detect. If Tau had been used to verify these bridges before deployment, the temporal composition analysis
+        would have identified the cross-chain timing vectors that allowed attackers to extract over $1.8 billion in a single year.</p>
+      </div>
+      <div class="tau-advantage-card">
+        <h4>Integration Path</h4>
+        <p>Tau is designed to complement, not replace, existing audit workflows. Bridge teams run their standard audit pipeline
+        &mdash; Trail of Bits for manual review, Slither for static analysis, Echidna for fuzzing &mdash; then add Tau as a
+        final cross-chain verification layer. The Tau specification is written alongside the bridge's smart contracts, defining
+        the cross-chain invariants (conservation, finality, rate limiting scope) that must hold across the composed system. The
+        result is a bridge that is verified both per-chain and cross-chain.</p>
+      </div>
+    </div>
+
+    <div class="insight-callout" style="border-left-color:var(--gold);background:linear-gradient(135deg,rgba(255,215,0,.06),rgba(255,215,0,.02));">
+      <div class="callout-label" style="color:var(--gold)">The Key Insight</div>
+      <p>
+        Per-chain security does not equal cross-chain security. A bridge where both contracts pass every audit, every formal
+        verification, and every fuzzing campaign can still be drained if the <em>interaction</em> between those contracts
+        contains a temporal exploit. <span class="gold-text">Tau is the only tool that verifies the interaction itself.</span>
+      </p>
+    </div>
+  </div>
 </section>
 
 <!-- SHARE -->
@@ -546,14 +869,14 @@ orbAnimationId = requestAnimationFrame(updateOrbs);
 
 // ========== RULES CONFIG ==========
 const RULES = [
-  { id: 0, icon: "\u{1f510}", name: "Multi-sig Validators", desc: "3-of-5 validator consensus required", on: true },
-  { id: 1, icon: "\u{1f333}", name: "Merkle Proof Verification", desc: "Cryptographic proof of lock on source chain", on: true },
-  { id: 2, icon: "\u23f1\ufe0f", name: "Rate Limiting", desc: "Maximum $10M per rolling 24hr window", on: true },
-  { id: 3, icon: "\u26d3", name: "Finality Wait", desc: "15 block confirmations before mint", on: true },
-  { id: 4, icon: "\u{1f4ca}", name: "Oracle Price Feed", desc: "Price validated against 3 independent oracles", on: true },
-  { id: 5, icon: "\u{1f504}", name: "Replay Protection", desc: "Unique nonce prevents transaction replay", on: true },
-  { id: 6, icon: "\u{1f6a8}", name: "Emergency Circuit Breaker", desc: "Auto-pause on anomaly detection", on: true },
-  { id: 7, icon: "\u{1f517}", name: "Cross-chain Nonce", desc: "Sequential nonce prevents reorg exploits", on: true }
+  { id: 0, icon: "\u{1f510}", name: "Multi-sig Validators", desc: "3-of-5 validator consensus required for every bridge operation. Prevents single-key compromise attacks like Ronin, where one entity controlling multiple keys could forge withdrawals.", on: true },
+  { id: 1, icon: "\u{1f333}", name: "Merkle Proof Verification", desc: "Cryptographic proof that the lock transaction exists in the source chain's state trie. Prevents forged deposit claims like the Nomad exploit, where invalid proofs were accepted.", on: true },
+  { id: 2, icon: "\u23f1\ufe0f", name: "Rate Limiting", desc: "Maximum $10M per rolling 24hr window on the mint side. Caps the damage from any single exploit to $10M per day, but only enforces limits on Chain B's local state.", on: true },
+  { id: 3, icon: "\u26d3", name: "Finality Wait", desc: "15 block confirmations required before minting. Ensures the source chain lock is deep enough to resist casual reorgs, but does not account for congestion-induced deep reorganizations.", on: true },
+  { id: 4, icon: "\u{1f4ca}", name: "Oracle Price Feed", desc: "Price validated against 3 independent oracles before large transfers. Prevents value extraction via manipulated price feeds, but cannot detect cross-chain state inconsistencies.", on: true },
+  { id: 5, icon: "\u{1f504}", name: "Replay Protection", desc: "Unique nonce prevents transaction replay across sessions. Each bridge operation gets a one-time identifier, preventing the same lock proof from being used to mint tokens twice.", on: true },
+  { id: 6, icon: "\u{1f6a8}", name: "Emergency Circuit Breaker", desc: "Auto-pause on anomaly detection in transaction patterns. Monitors for unusual volume or velocity, but anomaly thresholds are calibrated per-chain and miss cross-chain divergence.", on: true },
+  { id: 7, icon: "\u{1f517}", name: "Cross-chain Nonce", desc: "Sequential nonce prevents reorg exploits by ensuring bridge operations are processed in order. However, during reorganizations the nonce sequence on the source chain can be disrupted.", on: true }
 ];
 
 const PRESETS = {
@@ -606,6 +929,10 @@ function resetUI(){
   ['pythonVerdict','formalVerdict','aiVerdict','tauVerdict'].forEach(id => { const el = document.getElementById(id); el.textContent = ''; el.className = 'col-verdict'; });
   document.getElementById('compSection').classList.remove('visible');
   document.getElementById('shareSection').classList.remove('visible');
+  document.getElementById('auditSection').style.opacity = '0';
+  document.getElementById('auditSection').style.transform = 'translateY(30px)';
+  document.getElementById('tauSection').style.opacity = '0';
+  document.getElementById('tauSection').style.transform = 'translateY(30px)';
   // Reset bridge path
   document.getElementById('bridgePath').setAttribute('stroke','url(#bridgeGrad)');
   // Clear leaked orbs
@@ -850,6 +1177,20 @@ async function runAttack(){
   updateComparison(exploit, enabled);
 
   await new Promise(r => setTimeout(r, 400));
+
+  // Reveal post-analysis sections
+  const auditSec = document.getElementById('auditSection');
+  auditSec.style.opacity = '1';
+  auditSec.style.transform = 'translateY(0)';
+
+  await new Promise(r => setTimeout(r, 300));
+
+  const tauSec = document.getElementById('tauSection');
+  tauSec.style.opacity = '1';
+  tauSec.style.transform = 'translateY(0)';
+
+  await new Promise(r => setTimeout(r, 300));
+
   document.getElementById('shareSection').classList.add('visible');
   document.getElementById('shareAmount').textContent = '$' + (exploit.drainable / 1e6).toFixed(0) + 'M drained across chains in ' + exploit.days + ' days';
 
@@ -1360,44 +1701,44 @@ function updateComparison(exploit, enabled){
     document.getElementById('compPythonResult').textContent = exploit.difficulty === 'trivial' ? 'VULNERABILITY FOUND' : 'PARTIAL FINDING';
     document.getElementById('compPythonResult').style.color = 'var(--red)';
     document.getElementById('compPythonExplain').textContent = exploit.difficulty === 'trivial'
-      ? 'Even single-step attacks succeed with so few rules. Python easily finds the vulnerability.'
-      : 'Found basic repeated transaction pattern but missed the cross-chain reorg timing attack.';
+      ? 'Even single-step attacks succeed with so few rules. Python easily finds the vulnerability because each transaction is individually exploitable without requiring cross-chain state correlation.'
+      : 'Found basic repeated transaction pattern but missed the cross-chain reorg timing attack. Simulation treats each bridge operation as independent, so temporal dependencies between chains are invisible.';
   } else {
     document.getElementById('compPythonResult').textContent = '20,000/20,000 SECURE';
     document.getElementById('compPythonResult').style.color = 'var(--green)';
-    document.getElementById('compPythonExplain').textContent = 'Simulated 20,000 bridge transactions. Each individually valid. Never tested cross-chain reorg timing attacks across multiple congestion windows.';
+    document.getElementById('compPythonExplain').textContent = 'Simulated 20,000 bridge transactions. Each individually valid. Never tested cross-chain reorg timing attacks across multiple congestion windows. Python simulation treats each transaction as an isolated event, so multi-day temporal exploits that depend on cross-chain state divergence are invisible to it.';
   }
 
   if(exploit.formalFinds){
     document.getElementById('compFormalResult').textContent = 'VULNERABILITY DETECTED';
     document.getElementById('compFormalResult').style.color = 'var(--red)';
-    document.getElementById('compFormalExplain').textContent = 'With fewer rules, the state space is small enough for model checking to find violations.';
+    document.getElementById('compFormalExplain').textContent = 'With fewer rules, the state space is small enough for model checking to find violations. But as complexity grows, the combinatorial product of two chains with temporal windows exceeds tractable bounds for explicit state enumeration.';
   } else {
     document.getElementById('compFormalResult').textContent = enabled.length + '/' + enabled.length + ' PROPERTIES HOLD';
     document.getElementById('compFormalResult').style.color = 'var(--cyan)';
-    document.getElementById('compFormalExplain').textContent = 'Verified each chain\'s properties independently. Cross-chain composition causes state explosion at 10^15 states. Per-chain secure, composition unverifiable.';
+    document.getElementById('compFormalExplain').textContent = 'Verified each chain\'s properties independently. Cross-chain composition causes state explosion at 10^15 states. Per-chain secure, composition unverifiable. Traditional model checkers like NuSMV can verify safety on a single chain, but the cross-product of two chains with temporal finality windows is computationally intractable.';
   }
 
   if(exploit.aiFinds){
     document.getElementById('compAIResult').textContent = exploit.difficulty === 'trivial' ? 'CRITICAL RISK' : 'KNOWN RISKS FOUND';
     document.getElementById('compAIResult').style.color = 'var(--red)';
     document.getElementById('compAIExplain').textContent = exploit.difficulty === 'trivial'
-      ? 'AI pattern matching catches the obvious lack of security with so few protection layers.'
-      : 'Found known patterns but missed the novel cross-chain timing attack not in training data.';
+      ? 'AI pattern matching catches the obvious lack of security with so few protection layers. The vulnerability matches known exploit signatures in its training data.'
+      : 'Found known patterns but missed the novel cross-chain timing attack not in training data. AI auditors excel at matching known exploit taxonomies but cannot reason about emergent cross-chain properties.';
   } else {
     document.getElementById('compAIResult').textContent = 'NO KNOWN PATTERNS';
     document.getElementById('compAIResult').style.color = 'var(--green)';
-    document.getElementById('compAIExplain').textContent = 'Matched against Ronin, Wormhole, Nomad, Harmony, Poly Network exploits. All mitigated. Novel cross-chain reorg timing attack not in training data.';
+    document.getElementById('compAIExplain').textContent = 'Matched against Ronin, Wormhole, Nomad, Harmony, Poly Network exploits. All mitigated. Novel cross-chain reorg timing attack not in training data. AI auditors excel at pattern matching against known exploit taxonomies but cannot reason about emergent properties of systems never attacked in this specific way.';
   }
 
   document.getElementById('compTauResult').textContent = '$' + drainedM + 'M DRAINED';
-  document.getElementById('compTauExplain').textContent = 'Verified cross-chain temporal composition using BDD compression. Found reorg-timing exploit in async gap between chains. Rate limiter is chain-local; conservation fails across the bridge.';
+  document.getElementById('compTauExplain').textContent = 'Verified cross-chain temporal composition using BDD compression. Found reorg-timing exploit in async gap between chains. Rate limiter is chain-local; conservation fails across the bridge. Tau reasons about both chains simultaneously across time, discovering that per-chain correctness does not compose into cross-chain correctness.';
 }
 
 // ========== INIT ==========
 buildLocks();
 drawChart([]);
-window.addEventListener('resize', () => drawChart([]));
 </script>
+
 </body>
 </html>

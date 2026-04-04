@@ -6,7 +6,7 @@
 <title>CAN YOUR SELF-DRIVING CAR KILL? — Autonomous Vehicle Safety Demo</title>
 <style>
 :root{
-  --bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a28;
+  --bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a28;--bg4:#22223a;
   --red:#ef4444;--red-dark:#991b1b;--red-glow:rgba(239,68,68,.3);
   --gold:#ffd700;--gold-dim:#b8960f;--gold-glow:rgba(255,215,0,.25);
   --cyan:#06b6d4;--cyan-glow:rgba(6,182,212,.2);
@@ -20,125 +20,179 @@
 html{scroll-behavior:smooth;}
 body{
   background:var(--bg);color:var(--txt);font-family:var(--font);
-  line-height:1.6;overflow-x:hidden;
+  line-height:1.7;overflow-x:hidden;
 }
 ::-webkit-scrollbar{width:8px;}
 ::-webkit-scrollbar-track{background:var(--bg2);}
 ::-webkit-scrollbar-thumb{background:var(--txt-dark);border-radius:4px;}
 
 /* ── Hero ── */
-.hero{position:relative;width:100%;padding:20px 0 0;}
+.hero{position:relative;width:100%;padding:28px 0 0;}
 .hero-title{
-  text-align:center;font-size:clamp(1.6rem,4vw,2.8rem);font-weight:800;
-  letter-spacing:-.02em;padding:20px 20px 10px;
-  background:linear-gradient(135deg,var(--red),var(--gold));
+  text-align:center;font-size:clamp(1.8rem,4.5vw,3.2rem);font-weight:800;
+  letter-spacing:-.03em;padding:24px 20px 10px;
+  background:linear-gradient(135deg,var(--red),var(--gold) 60%,var(--red));
+  background-size:200% 200%;
+  animation:gradShift 6s ease infinite;
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
   background-clip:text;
 }
-.hero-sub{text-align:center;color:var(--txt-dim);font-size:.95rem;margin-bottom:16px;}
+@keyframes gradShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.hero-sub{text-align:center;color:var(--txt-dim);font-size:1rem;margin-bottom:20px;letter-spacing:.01em;}
+.hero-sub strong{color:var(--red);font-weight:700;}
 #intersectionCanvas{
   display:block;width:100%;max-width:1200px;margin:0 auto;
-  border-radius:12px;border:1px solid rgba(255,255,255,.06);
+  border-radius:14px;border:1px solid rgba(255,255,255,.08);
+}
+
+/* ── Section Divider ── */
+.section-divider{
+  max-width:1260px;margin:0 auto;padding:0 20px;
+}
+.section-divider::after{
+  content:'';display:block;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.08) 20%,rgba(255,215,0,.15) 50%,rgba(255,255,255,.08) 80%,transparent);
 }
 
 /* ── Panels ── */
-.section{max-width:1260px;margin:0 auto;padding:32px 20px;}
+.section{max-width:1260px;margin:0 auto;padding:36px 20px;}
 .section-title{
-  font-size:1.5rem;font-weight:700;margin-bottom:20px;
+  font-size:1.45rem;font-weight:700;margin-bottom:22px;
   display:flex;align-items:center;gap:10px;
 }
 .section-title .dot{width:10px;height:10px;border-radius:50%;}
 
+/* ── Glass Card ── */
+.glass-section{
+  max-width:1260px;margin:0 auto;padding:36px 20px;
+}
+.glass-card{
+  background:linear-gradient(135deg,rgba(18,18,26,.85),rgba(26,26,40,.75));
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;padding:36px 40px;
+  box-shadow:0 8px 32px rgba(0,0,0,.3);
+}
+.glass-card h2{
+  font-size:1.4rem;font-weight:700;margin-bottom:18px;
+  display:flex;align-items:center;gap:10px;
+}
+.glass-card h2 .dot{width:10px;height:10px;border-radius:50%;}
+.glass-card p{color:var(--txt-dim);font-size:.92rem;margin-bottom:14px;line-height:1.75;}
+.glass-card ul{color:var(--txt-dim);font-size:.9rem;margin:10px 0 14px 20px;line-height:1.8;}
+.glass-card li{margin-bottom:4px;}
+
+/* ── Stat Highlights ── */
+.stat-row{
+  display:flex;flex-wrap:wrap;gap:16px;margin:24px 0 10px;
+}
+.stat-chip{
+  padding:10px 22px;border-radius:10px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  text-align:center;flex:1;min-width:140px;
+}
+.stat-chip .val{font-size:1.3rem;font-weight:800;font-family:var(--mono);}
+.stat-chip .label{font-size:.72rem;color:var(--txt-dim);margin-top:2px;}
+
 /* ── Toggle Grid ── */
-.toggle-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
+.toggle-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
 .toggle-card{
   background:var(--bg2);border:1px solid rgba(255,255,255,.07);
   border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;
-  cursor:pointer;transition:all .2s;user-select:none;
+  cursor:pointer;transition:all .25s ease;user-select:none;
 }
-.toggle-card:hover{border-color:rgba(255,255,255,.15);background:var(--bg3);}
-.toggle-card.active{border-color:var(--green);box-shadow:0 0 16px var(--green-glow);}
+.toggle-card:hover{border-color:rgba(255,255,255,.18);background:var(--bg3);transform:translateY(-1px);}
+.toggle-card.active{border-color:var(--green);box-shadow:0 0 20px var(--green-glow);}
 .toggle-icon{font-size:1.4rem;flex-shrink:0;}
 .toggle-info{flex:1;min-width:0;}
 .toggle-name{font-size:.85rem;font-weight:600;}
-.toggle-desc{font-size:.72rem;color:var(--txt-dim);}
+.toggle-desc{font-size:.74rem;color:var(--txt-dim);line-height:1.5;white-space:normal;word-wrap:break-word;}
 .toggle-sw{
-  width:40px;height:22px;border-radius:11px;background:var(--txt-dark);
-  position:relative;transition:background .2s;flex-shrink:0;
+  width:42px;height:24px;border-radius:12px;background:var(--txt-dark);
+  position:relative;transition:background .25s;flex-shrink:0;
 }
 .toggle-card.active .toggle-sw{background:var(--green);}
 .toggle-sw::after{
-  content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;
-  border-radius:50%;background:#fff;transition:transform .2s;
+  content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;
+  border-radius:50%;background:#fff;transition:transform .25s cubic-bezier(.4,.0,.2,1);
 }
 .toggle-card.active .toggle-sw::after{transform:translateX(18px);}
 
 /* ── Presets ── */
 .preset-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;}
 .preset-btn{
-  padding:8px 18px;border-radius:8px;border:1px solid rgba(255,255,255,.1);
-  background:var(--bg2);color:var(--txt);font-size:.8rem;font-weight:600;
-  cursor:pointer;transition:all .2s;font-family:var(--font);
+  padding:9px 20px;border-radius:8px;border:1px solid rgba(255,255,255,.1);
+  background:var(--bg2);color:var(--txt);font-size:.82rem;font-weight:600;
+  cursor:pointer;transition:all .25s;font-family:var(--font);
 }
-.preset-btn:hover{background:var(--bg3);border-color:rgba(255,255,255,.2);}
-.preset-btn.active{border-color:var(--gold);color:var(--gold);box-shadow:0 0 12px var(--gold-glow);}
+.preset-btn:hover{background:var(--bg3);border-color:rgba(255,255,255,.2);transform:translateY(-1px);}
+.preset-btn.active{border-color:var(--gold);color:var(--gold);box-shadow:0 0 16px var(--gold-glow);}
 
 /* ── Sliders ── */
 .slider-row{display:flex;flex-wrap:wrap;gap:20px;margin-bottom:24px;}
 .slider-group{flex:1;min-width:240px;}
-.slider-label{font-size:.8rem;font-weight:600;margin-bottom:6px;display:flex;justify-content:space-between;}
+.slider-label{font-size:.82rem;font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between;}
 .slider-val{color:var(--gold);font-family:var(--mono);}
 input[type=range]{
   -webkit-appearance:none;width:100%;height:6px;border-radius:3px;
   background:var(--bg3);outline:none;
 }
 input[type=range]::-webkit-slider-thumb{
-  -webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+  -webkit-appearance:none;width:20px;height:20px;border-radius:50%;
   background:var(--gold);cursor:pointer;border:2px solid var(--bg);
+  box-shadow:0 0 8px var(--gold-glow);
 }
 
 /* ── Chart ── */
 #chartCanvas{
   display:block;width:100%;max-width:1200px;margin:0 auto;
-  border-radius:10px;border:1px solid rgba(255,255,255,.06);
+  border-radius:12px;border:1px solid rgba(255,255,255,.08);
 }
 
 /* ── Simulate Button ── */
-.sim-row{text-align:center;margin:28px 0;}
+.sim-row{text-align:center;margin:32px 0;}
 .sim-btn{
-  padding:14px 44px;border:2px solid var(--red);border-radius:10px;
-  background:transparent;color:var(--red);font-size:1.05rem;font-weight:700;
-  cursor:pointer;transition:all .25s;font-family:var(--font);
-  text-transform:uppercase;letter-spacing:.06em;
+  padding:16px 52px;border:2px solid var(--red);border-radius:12px;
+  background:transparent;color:var(--red);font-size:1.1rem;font-weight:700;
+  cursor:pointer;transition:all .3s cubic-bezier(.4,.0,.2,1);font-family:var(--font);
+  text-transform:uppercase;letter-spacing:.08em;
+  position:relative;overflow:hidden;
 }
-.sim-btn:hover{background:var(--red);color:#fff;box-shadow:0 0 30px var(--red-glow);}
-.sim-btn:disabled{opacity:.4;cursor:not-allowed;}
+.sim-btn::before{
+  content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(239,68,68,.1),transparent);
+  transition:left .5s;
+}
+.sim-btn:hover::before{left:100%;}
+.sim-btn:hover{background:var(--red);color:#fff;box-shadow:0 0 40px var(--red-glow);transform:translateY(-2px);}
+.sim-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
 
 /* ── 4-column terminals ── */
 .terminals{
   display:grid;grid-template-columns:repeat(4,1fr);gap:14px;
-  max-width:1260px;margin:0 auto;padding:0 20px 32px;
+  max-width:1260px;margin:0 auto;padding:0 20px 36px;
 }
 @media(max-width:1100px){.terminals{grid-template-columns:repeat(2,1fr);}}
 @media(max-width:600px){.terminals{grid-template-columns:1fr;}}
 .term{
   background:var(--bg2);border:1px solid rgba(255,255,255,.07);
-  border-radius:10px;overflow:hidden;display:flex;flex-direction:column;
+  border-radius:12px;overflow:hidden;display:flex;flex-direction:column;
 }
 .term-header{
-  padding:10px 14px;font-size:.75rem;font-weight:700;
+  padding:11px 14px;font-size:.75rem;font-weight:700;
   border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:8px;
   text-transform:uppercase;letter-spacing:.06em;
 }
 .term-header .hdr-dot{width:8px;height:8px;border-radius:50%;}
 .term-body{
-  padding:12px 14px;font-family:var(--mono);font-size:.62rem;
-  line-height:1.55;white-space:pre-wrap;overflow-y:auto;
+  padding:12px 14px;font-family:var(--mono);font-size:.64rem;
+  line-height:1.6;white-space:pre-wrap;overflow-y:auto;
   max-height:520px;color:var(--txt-dim);flex:1;
 }
 .term-verdict{
-  padding:10px 14px;font-size:.78rem;font-weight:700;
+  padding:11px 14px;font-size:.78rem;font-weight:700;
   border-top:1px solid rgba(255,255,255,.06);text-align:center;
+  transition:opacity .4s;
 }
 
 /* ── Comparison ── */
@@ -147,45 +201,85 @@ input[type=range]::-webkit-slider-thumb{
 @media(max-width:500px){.compare-grid{grid-template-columns:1fr;}}
 .compare-card{
   background:var(--bg2);border:1px solid rgba(255,255,255,.07);
-  border-radius:10px;padding:18px;text-align:center;
+  border-radius:12px;padding:20px;text-align:center;
+  transition:transform .25s,box-shadow .25s;
 }
-.compare-card h3{font-size:.85rem;margin-bottom:6px;}
-.compare-card .result{font-size:1.1rem;font-weight:800;margin:6px 0;}
-.compare-card .detail{font-size:.7rem;color:var(--txt-dim);}
+.compare-card:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,.3);}
+.compare-card h3{font-size:.85rem;margin-bottom:8px;}
+.compare-card .result{font-size:1.15rem;font-weight:800;margin:8px 0;}
+.compare-card .detail{font-size:.72rem;color:var(--txt-dim);line-height:1.5;}
 
 /* ── Timeline Bar ── */
 .timeline-bar{
   max-width:900px;margin:20px auto;background:var(--bg3);
-  border-radius:8px;overflow:hidden;height:36px;position:relative;
+  border-radius:8px;overflow:hidden;height:38px;position:relative;
 }
-.tl-seg{position:absolute;top:0;height:100%;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#fff;}
+.tl-seg{position:absolute;top:0;height:100%;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;color:#fff;}
 .tl-safe{background:var(--green);}
 .tl-gap{background:var(--red);animation:pulseGap 1s infinite;}
 @keyframes pulseGap{0%,100%{opacity:1;}50%{opacity:.6;}}
 
+/* ── Industry Context Grid ── */
+.context-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;margin-top:20px;}
+.context-item{
+  background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);
+  border-radius:12px;padding:20px 22px;transition:border-color .25s;
+}
+.context-item:hover{border-color:rgba(255,255,255,.12);}
+.context-item h4{font-size:.9rem;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.context-item p{font-size:.82rem;color:var(--txt-dim);line-height:1.65;}
+.context-item .tag{
+  display:inline-block;padding:2px 10px;border-radius:6px;font-size:.65rem;font-weight:700;
+  margin-top:8px;letter-spacing:.04em;
+}
+
+/* ── Where Tau Fits ── */
+.tau-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:20px;}
+.tau-item{
+  background:rgba(255,215,0,.03);border:1px solid rgba(255,215,0,.1);
+  border-radius:12px;padding:20px 22px;position:relative;overflow:hidden;
+}
+.tau-item::before{
+  content:'';position:absolute;top:0;left:0;width:3px;height:100%;
+  background:linear-gradient(180deg,var(--gold),transparent);
+}
+.tau-item h4{font-size:.88rem;font-weight:700;color:var(--gold);margin-bottom:8px;}
+.tau-item p{font-size:.82rem;color:var(--txt-dim);line-height:1.65;}
+
 /* ── Tagline ── */
 .tagline{
-  text-align:center;max-width:800px;margin:40px auto;padding:0 20px;
-  font-size:clamp(.95rem,2vw,1.25rem);font-weight:600;
-  color:var(--txt-dim);line-height:1.7;
+  text-align:center;max-width:800px;margin:44px auto;padding:0 20px;
+  font-size:clamp(1rem,2.2vw,1.3rem);font-weight:600;
+  color:var(--txt-dim);line-height:1.75;
 }
 .tagline em{color:var(--red);font-style:normal;font-weight:800;}
 .tagline strong{color:var(--gold);}
 
 /* ── Share Card ── */
 .share-card{
-  max-width:520px;margin:30px auto 50px;padding:28px 32px;
+  max-width:540px;margin:36px auto 60px;padding:32px 36px;
   background:linear-gradient(135deg,var(--bg2),var(--bg3));
-  border:1px solid rgba(255,215,0,.2);border-radius:14px;
-  text-align:center;box-shadow:0 0 40px var(--gold-glow);
+  border:1px solid rgba(255,215,0,.2);border-radius:16px;
+  text-align:center;box-shadow:0 0 50px var(--gold-glow);
+  transition:transform .3s;
 }
-.share-icon{font-size:2.4rem;margin-bottom:8px;}
-.share-stat{font-size:1.4rem;font-weight:800;color:var(--red);margin-bottom:6px;}
-.share-quote{font-size:.82rem;color:var(--txt-dim);margin-bottom:12px;font-style:italic;}
+.share-card:hover{transform:translateY(-2px);}
+.share-icon{font-size:2.6rem;margin-bottom:10px;}
+.share-stat{font-size:1.5rem;font-weight:800;color:var(--red);margin-bottom:8px;}
+.share-quote{font-size:.85rem;color:var(--txt-dim);margin-bottom:14px;font-style:italic;line-height:1.6;}
 .tau-badge{
-  display:inline-block;padding:6px 20px;border-radius:20px;
+  display:inline-block;padding:7px 22px;border-radius:20px;
   border:1px solid var(--gold);color:var(--gold);font-size:.75rem;
   font-weight:700;letter-spacing:.06em;
+}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .glass-card{padding:24px 20px;}
+  .stat-row{gap:10px;}
+  .stat-chip{min-width:110px;padding:8px 14px;}
+  .stat-chip .val{font-size:1.05rem;}
+  .context-grid,.tau-grid{grid-template-columns:1fr;}
 }
 </style>
 </head>
@@ -194,11 +288,30 @@ input[type=range]::-webkit-slider-thumb{
 <!-- ── HERO ── -->
 <div class="hero">
   <h1 class="hero-title">CAN YOUR SELF-DRIVING CAR KILL?</h1>
-  <p class="hero-sub">9 safety rules. All verified. All correct. The gap between them is lethal.</p>
-  <canvas id="intersectionCanvas" width="1200" height="460"></canvas>
+  <p class="hero-sub">9 safety rules. All verified. All correct. <strong>The gap between them is lethal.</strong></p>
+  <canvas id="intersectionCanvas"></canvas>
+</div>
+
+<!-- ── INTRO: THE AV SAFETY CHALLENGE ── -->
+<div class="section-divider"></div>
+<div class="glass-section">
+  <div class="glass-card">
+    <h2><span class="dot" style="background:var(--red)"></span> The Autonomous Vehicle Safety Challenge</h2>
+    <p>The autonomous vehicle market is projected to exceed <strong style="color:var(--gold)">$2 trillion by 2030</strong>. Companies like Waymo, Tesla, Cruise, and Mobileye are racing to deploy vehicles that can navigate complex urban environments without human intervention. The fundamental promise: autonomous vehicles will be <em>safer</em> than human drivers.</p>
+    <p>But there is a fundamental verification challenge that no amount of road testing can solve. A self-driving car encounters <strong style="color:var(--txt)">billions of possible scenarios</strong> — combinations of weather, traffic, pedestrians, construction zones, sensor states, and timing. Statistical testing (even billions of simulated miles) can only sample this space. It cannot prove the absence of lethal edge cases.</p>
+    <p>The core problem is not that individual safety rules fail. Each rule — emergency braking, pedestrian priority, V2V communication — can be verified correct in isolation. The danger lies in <strong style="color:var(--red)">the temporal interactions between rules</strong>: the brief moments when one rule deactivates and another has not yet taken effect. These gaps are measured in milliseconds, invisible to simulation, and lethal in practice.</p>
+    <div class="stat-row">
+      <div class="stat-chip"><div class="val" style="color:var(--gold)">$2T+</div><div class="label">AV Market by 2030</div></div>
+      <div class="stat-chip"><div class="val" style="color:var(--cyan)">10<sup>12</sup></div><div class="label">Possible State Combinations</div></div>
+      <div class="stat-chip"><div class="val" style="color:var(--red)">200ms</div><div class="label">Lethal Gap Duration</div></div>
+      <div class="stat-chip"><div class="val" style="color:var(--green)">9 / 9</div><div class="label">Rules Individually Correct</div></div>
+      <div class="stat-chip"><div class="val" style="color:var(--red)">0</div><div class="label">Rules Violated in Crash</div></div>
+    </div>
+  </div>
 </div>
 
 <!-- ── CONTROLS ── -->
+<div class="section-divider"></div>
 <div class="section">
   <div class="section-title"><span class="dot" style="background:var(--gold)"></span> Safety Rules</div>
 
@@ -219,9 +332,10 @@ input[type=range]::-webkit-slider-thumb{
 </div>
 
 <!-- ── CHART ── -->
+<div class="section-divider"></div>
 <div class="section">
   <div class="section-title"><span class="dot" style="background:var(--green)"></span> Safety Margin Over 10,000 Driving Hours</div>
-  <canvas id="chartCanvas" width="1200" height="260"></canvas>
+  <canvas id="chartCanvas"></canvas>
 </div>
 
 <!-- ── SIMULATE ── -->
@@ -233,11 +347,12 @@ input[type=range]::-webkit-slider-thumb{
 <div class="terminals" id="terminals"></div>
 
 <!-- ── COMPARISON ── -->
+<div class="section-divider"></div>
 <div class="section">
   <div class="section-title"><span class="dot" style="background:var(--red)"></span> Verification Method Comparison</div>
   <div class="compare-grid" id="compareGrid"></div>
-  <div style="margin-top:18px;">
-    <div style="font-size:.8rem;font-weight:600;text-align:center;color:var(--txt-dim);margin-bottom:8px;">The 200ms Timeline</div>
+  <div style="margin-top:20px;">
+    <div style="font-size:.82rem;font-weight:600;text-align:center;color:var(--txt-dim);margin-bottom:10px;">The 200ms Timeline</div>
     <div class="timeline-bar">
       <div class="tl-seg tl-safe" style="left:0;width:25%;">Ped Priority ON</div>
       <div class="tl-seg tl-gap" style="left:25%;width:10%;">NO RULE</div>
@@ -247,7 +362,83 @@ input[type=range]::-webkit-slider-thumb{
   </div>
 </div>
 
+<!-- ── INDUSTRY CONTEXT ── -->
+<div class="section-divider"></div>
+<div class="glass-section">
+  <div class="glass-card">
+    <h2><span class="dot" style="background:var(--cyan)"></span> Industry Context: How AVs Are Verified Today</h2>
+    <p>The autonomous vehicle industry uses a patchwork of testing and verification approaches. Each addresses part of the safety challenge, but none checks the <strong style="color:var(--txt)">temporal interactions between multiple safety rules simultaneously</strong>.</p>
+
+    <div class="context-grid">
+      <div class="context-item">
+        <h4><span style="color:var(--cyan)">&#9670;</span> Waymo (Alphabet)</h4>
+        <p>Uses "Simulation City" — millions of simulated miles per day — combined with extensive real-world testing in Phoenix, San Francisco, and Los Angeles. Their simulation replays real-world encounters with variations. Strong on scenario coverage, but simulation is inherently sampling-based: it tests specific scenarios, it does not prove absence of all gaps.</p>
+        <span class="tag" style="background:rgba(6,182,212,.15);color:var(--cyan);">SIMULATION + ROAD TESTING</span>
+      </div>
+      <div class="context-item">
+        <h4><span style="color:var(--green)">&#9670;</span> Tesla (FSD)</h4>
+        <p>Relies on "shadow mode" and fleet learning: millions of vehicles generate real-world data, and neural networks are trained on edge cases. No formal verification of rule interactions. The approach is powerful for learning common scenarios but cannot guarantee coverage of rare temporal edge cases that have never been observed.</p>
+        <span class="tag" style="background:rgba(34,197,94,.15);color:var(--green);">FLEET LEARNING + NEURAL NETS</span>
+      </div>
+      <div class="context-item">
+        <h4><span style="color:var(--blue)">&#9670;</span> Cruise / GM</h4>
+        <p>Extensive scenario-based testing with structured scenario libraries. Uses both simulation and controlled real-world testing. Scenario libraries are manually curated from real incidents and expert analysis. The limitation: scenarios are enumerated, so unknown combinations of rule transitions remain untested.</p>
+        <span class="tag" style="background:rgba(59,130,246,.15);color:var(--blue);">SCENARIO-BASED TESTING</span>
+      </div>
+      <div class="context-item">
+        <h4><span style="color:var(--gold)">&#9670;</span> Mobileye (Intel) — RSS</h4>
+        <p>Responsibility-Sensitive Safety (RSS) is the closest to formal methods in production. RSS defines mathematical rules for safe following distances, right-of-way, and occlusion handling. However, RSS checks <em>pairs</em> of agents (ego vehicle + one other). It does not compositionally verify timing interactions across multiple rules simultaneously.</p>
+        <span class="tag" style="background:rgba(255,215,0,.15);color:var(--gold);">FORMAL RULES (PAIRWISE)</span>
+      </div>
+      <div class="context-item">
+        <h4><span style="color:var(--txt-dim)">&#9670;</span> ISO 21448 — SOTIF</h4>
+        <p>Safety of the Intended Functionality is the automotive standard for handling scenarios where the system behaves as designed but still causes harm. SOTIF categorizes scenarios into known-safe, known-unsafe, unknown-safe, and unknown-unsafe. The goal is to minimize the unknown-unsafe region. But SOTIF is a process framework, not a verification tool — it guides what to test, not how to exhaustively check rule interactions.</p>
+        <span class="tag" style="background:rgba(255,255,255,.06);color:var(--txt-dim);">SAFETY STANDARD (PROCESS)</span>
+      </div>
+      <div class="context-item">
+        <h4><span style="color:var(--txt-dim)">&#9670;</span> ISO 26262 — Functional Safety</h4>
+        <p>The foundational automotive functional safety standard. Defines ASIL levels (A-D) for hardware and software. Focuses on preventing random hardware failures and systematic software faults. Excellent for component-level safety but does not address emergent behavior from correct-but-interacting subsystems — the exact class of failure this demo illustrates.</p>
+        <span class="tag" style="background:rgba(255,255,255,.06);color:var(--txt-dim);">FUNCTIONAL SAFETY STANDARD</span>
+      </div>
+      <div class="context-item">
+        <h4><span style="color:var(--txt-dim)">&#9670;</span> NHTSA ADS Framework</h4>
+        <p>The U.S. National Highway Traffic Safety Administration's Automated Driving Systems framework provides voluntary guidance for AV developers. Covers object detection, fallback performance, crashworthiness, and post-crash behavior. Important for regulatory compliance but does not mandate formal verification of temporal rule compositions.</p>
+        <span class="tag" style="background:rgba(255,255,255,.06);color:var(--txt-dim);">REGULATORY FRAMEWORK</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── WHERE TAU FITS ── -->
+<div class="section-divider"></div>
+<div class="glass-section">
+  <div class="glass-card">
+    <h2><span class="dot" style="background:var(--gold)"></span> Where Tau Fits</h2>
+    <p>The critical gap across all current approaches: <strong style="color:var(--red)">no production tool checks temporal interactions between multiple safety rules simultaneously</strong>. Every method verifies rules individually or tests specific scenarios. The 200ms lethal gap in this demo exists precisely because it falls between rules, not within any single rule.</p>
+
+    <div class="tau-grid">
+      <div class="tau-item">
+        <h4>Beyond Pairwise: Full Compositional Checking</h4>
+        <p>Mobileye's RSS checks pairs of agents (ego + one other). Tau could check ALL agents and ALL rules simultaneously. Instead of verifying 36 pairs, Tau checks all 84 three-way interactions — and finds the gap that pairwise analysis misses.</p>
+      </div>
+      <div class="tau-item">
+        <h4>Exhaustive vs. Sampling</h4>
+        <p>SOTIF focuses on reducing the "unknown-unsafe" region through targeted testing. Tau exhaustively verifies ALL temporal states — it does not sample. The 200ms gap is not unknown-unsafe; with Tau, it is found, characterized, and reported with a precise timestamp.</p>
+      </div>
+      <div class="tau-item">
+        <h4>Millisecond Temporal Precision</h4>
+        <p>Traditional model checkers (UPPAAL, SPIN) suffer state explosion when composing timed systems. Tau uses BDD-based temporal representation that scales: 9 rules with 1ms timing resolution, without the 10<sup>12</sup> state explosion that makes model checking intractable.</p>
+      </div>
+      <div class="tau-item">
+        <h4>Design-Time Integration</h4>
+        <p>Tau is not a replacement for simulation or road testing — it is a design-time verification tool that catches compositional timing bugs before a single mile is driven. Integrate Tau alongside Waymo-style simulation, RSS rules, and SOTIF processes to close the gap that none of them cover alone.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ── TAGLINE ── -->
+<div class="section-divider"></div>
 <p class="tagline">
   9 safety rules. All verified. All correct. Between them &mdash; <em>a 200ms gap where a pedestrian dies.</em> <strong>Only Tau checks the space between rules.</strong>
 </p>
@@ -265,15 +456,15 @@ input[type=range]::-webkit-slider-thumb{
    DATA & STATE
    ================================================================ */
 const RULES = [
-  {id:'lidar',    icon:'\u{1F4E1}', name:'LIDAR Redundancy',       desc:'Dual LIDAR units with failover'},
-  {id:'fusion',   icon:'\u{1F4F7}', name:'Camera-LIDAR Fusion',    desc:'Sensor fusion for object classification'},
-  {id:'braking',  icon:'\u{1F6D1}', name:'Emergency Braking',      desc:'Sub-100ms response time braking'},
-  {id:'ped',      icon:'\u{1F6B6}', name:'Pedestrian Priority',    desc:'Pedestrians always have right-of-way'},
-  {id:'speed',    icon:'\u{1F697}', name:'Speed Limit Compliance',  desc:'Hard cap at posted speed limit'},
-  {id:'weather',  icon:'\u{1F327}', name:'Weather Adaptation',      desc:'Reduced speed + increased following distance'},
-  {id:'v2v',      icon:'\u{1F4F6}', name:'V2V Communication',       desc:'Vehicle-to-vehicle intent broadcasting'},
-  {id:'intersect',icon:'\u{1F504}', name:'Intersection Protocol',   desc:'Wait for V2V clearance before entering'},
-  {id:'constr',   icon:'\u{1F6A7}', name:'Construction Zone Override',desc:'Modified rules in active work zones'},
+  {id:'lidar',    icon:'\u{1F4E1}', name:'LIDAR Redundancy',       desc:'Dual LIDAR units with automatic failover if primary sensor fails'},
+  {id:'fusion',   icon:'\u{1F4F7}', name:'Camera-LIDAR Fusion',    desc:'Multi-sensor fusion for robust object classification in all conditions'},
+  {id:'braking',  icon:'\u{1F6D1}', name:'Emergency Braking',      desc:'Sub-100ms response time autonomous emergency braking system'},
+  {id:'ped',      icon:'\u{1F6B6}', name:'Pedestrian Priority',    desc:'Pedestrians always have right-of-way, overrides other movement rules'},
+  {id:'speed',    icon:'\u{1F697}', name:'Speed Limit Compliance',  desc:'Hard cap at posted speed limit with geofence verification'},
+  {id:'weather',  icon:'\u{1F327}', name:'Weather Adaptation',      desc:'Reduced speed and increased following distance in adverse conditions'},
+  {id:'v2v',      icon:'\u{1F4F6}', name:'V2V Communication',       desc:'Vehicle-to-vehicle intent broadcasting for cooperative awareness'},
+  {id:'intersect',icon:'\u{1F504}', name:'Intersection Protocol',   desc:'Wait for V2V clearance before entering any intersection zone'},
+  {id:'constr',   icon:'\u{1F6A7}', name:'Construction Zone Override',desc:'Modified safety rules and reduced speed in active work zones'},
 ];
 const PRESETS = [
   {name:'\u{1F3C6} Level 5 Full',  on:[0,1,2,3,4,5,6,7,8]},
@@ -282,9 +473,9 @@ const PRESETS = [
   {name:'\u{1F4E1} Sensor Failure',on:[2,3,4,5,6,7,8]},
 ];
 
-let ruleStates = new Array(9).fill(true); // all on initially
+let ruleStates = new Array(9).fill(true);
 let simRunning = false;
-let simPhase = 0; // 0=idle,1=running,2=frozen,3=resume
+let simPhase = 0;
 let simTimer = 0;
 let activePreset = 0;
 
@@ -344,22 +535,32 @@ hoursSlider.addEventListener('input', () => { hoursVal.textContent = Number(hour
 weatherSlider.addEventListener('input', () => { weatherVal.textContent = weatherSlider.value; drawChart(); });
 
 /* ================================================================
-   CHART — Safety Margin
+   CHART — Safety Margin (HiDPI)
    ================================================================ */
 const chartCvs = document.getElementById('chartCanvas');
 const chartCtx = chartCvs.getContext('2d');
 
-function drawChart(){
-  const W = chartCvs.width, H = chartCvs.height;
+function setupChartCanvas(){
   const dpr = window.devicePixelRatio || 1;
-  chartCvs.style.width = '100%';
-  chartCvs.style.height = H/dpr + 'px';
+  const rect = chartCvs.parentElement;
+  const w = Math.min(1200, rect.clientWidth - 40);
+  const h = 360;
+  chartCvs.width = w * dpr;
+  chartCvs.height = h * dpr;
+  chartCvs.style.width = w + 'px';
+  chartCvs.style.height = h + 'px';
+  chartCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return {w, h};
+}
+
+function drawChart(){
+  const {w: W, h: H} = setupChartCanvas();
 
   chartCtx.clearRect(0,0,W,H);
   chartCtx.fillStyle = '#0d0d15';
   chartCtx.fillRect(0,0,W,H);
 
-  const pad = {l:60,r:20,t:20,b:36};
+  const pad = {l:58,r:24,t:28,b:40};
   const gw = W-pad.l-pad.r, gh = H-pad.t-pad.b;
   const maxHours = 10000;
   const hours = Number(hoursSlider.value);
@@ -375,130 +576,169 @@ function drawChart(){
     chartCtx.beginPath(); chartCtx.moveTo(pad.l,y); chartCtx.lineTo(pad.l+gw,y); chartCtx.stroke();
   }
   // y labels
-  chartCtx.fillStyle = 'var(--txt-dark)';
-  chartCtx.font = '11px sans-serif';
+  chartCtx.font = '12px "Segoe UI", system-ui, sans-serif';
   chartCtx.textAlign = 'right';
+  chartCtx.textBaseline = 'middle';
   for(let pct=0;pct<=100;pct+=20){
     const y = pad.t + gh - (pct/100)*gh;
     chartCtx.fillStyle = '#64748b';
-    chartCtx.fillText(pct+'%', pad.l-8, y+4);
+    chartCtx.fillText(pct+'%', pad.l-10, y);
   }
   // x labels
   chartCtx.textAlign = 'center';
+  chartCtx.textBaseline = 'top';
   for(let h=0;h<=maxHours;h+=2000){
     const x = pad.l + (h/maxHours)*gw;
     chartCtx.fillStyle = '#64748b';
-    chartCtx.fillText(h.toLocaleString()+'h', x, H-8);
+    chartCtx.fillText(h.toLocaleString()+'h', x, H-32);
   }
 
-  // safety line
+  // safety line data
   const pts = [];
   const step = 20;
   for(let h=0;h<=maxHours;h+=step){
     let margin = 99.95;
-    // micro-dips from weather
     if(h%800 < step) margin -= weatherSev * 0.15;
-    if(h%1200 < step && !ruleStates[5]) margin -= 0.4; // weather off
-    if(h%600 < step && !ruleStates[0]) margin -= 0.3; // lidar off
-    // THE GAP
+    if(h%1200 < step && !ruleStates[5]) margin -= 0.4;
+    if(h%600 < step && !ruleStates[0]) margin -= 0.3;
     if(Math.abs(h-gapHour)<step && allOn) margin = 0;
     if(Math.abs(h-gapHour)<step && !allOn) margin = Math.max(margin - 30, 5);
-    // dips from disabled rules
     const offCount = ruleStates.filter(x=>!x).length;
     if(offCount>0 && h%(400/offCount)<step) margin -= offCount*0.6;
     margin = Math.max(0, Math.min(100, margin));
     pts.push({x: pad.l + (h/maxHours)*gw, y: pad.t + gh - (margin/100)*gh, m: margin});
   }
 
-  // draw filled area
+  // filled area
   chartCtx.beginPath();
   chartCtx.moveTo(pts[0].x, pad.t+gh);
   pts.forEach(p => chartCtx.lineTo(p.x, p.y));
   chartCtx.lineTo(pts[pts.length-1].x, pad.t+gh);
   chartCtx.closePath();
   const grad = chartCtx.createLinearGradient(0, pad.t, 0, pad.t+gh);
-  grad.addColorStop(0, 'rgba(34,197,94,.25)');
-  grad.addColorStop(0.8, 'rgba(34,197,94,.03)');
-  grad.addColorStop(1, 'rgba(239,68,68,.15)');
+  grad.addColorStop(0, 'rgba(34,197,94,.22)');
+  grad.addColorStop(0.7, 'rgba(34,197,94,.03)');
+  grad.addColorStop(1, 'rgba(239,68,68,.12)');
   chartCtx.fillStyle = grad;
   chartCtx.fill();
 
-  // draw line
+  // line
   chartCtx.beginPath();
   pts.forEach((p,i) => i===0?chartCtx.moveTo(p.x,p.y):chartCtx.lineTo(p.x,p.y));
   chartCtx.strokeStyle = '#22c55e';
-  chartCtx.lineWidth = 2;
+  chartCtx.lineWidth = 2.5;
   chartCtx.stroke();
 
   // red spike
   const gapPt = pts.find(p => p.m < 5);
   if(gapPt){
     chartCtx.beginPath();
-    chartCtx.arc(gapPt.x, gapPt.y, 6, 0, Math.PI*2);
-    chartCtx.fillStyle = 'var(--red)';
+    chartCtx.arc(gapPt.x, gapPt.y, 7, 0, Math.PI*2);
     chartCtx.fillStyle = '#ef4444';
     chartCtx.fill();
-    chartCtx.strokeStyle = 'rgba(239,68,68,.5)';
-    chartCtx.lineWidth = 12;
+    chartCtx.strokeStyle = 'rgba(239,68,68,.4)';
+    chartCtx.lineWidth = 14;
     chartCtx.stroke();
     // label
     chartCtx.fillStyle = '#ef4444';
-    chartCtx.font = 'bold 11px sans-serif';
+    chartCtx.font = 'bold 13px "Segoe UI", system-ui, sans-serif';
     chartCtx.textAlign = 'center';
-    chartCtx.fillText('LETHAL GAP — Hour 7,847', gapPt.x, gapPt.y - 16);
-    chartCtx.fillText('0% for 200ms', gapPt.x, gapPt.y - 4 + 20);
+    chartCtx.textBaseline = 'bottom';
+    chartCtx.fillText('LETHAL GAP \u2014 Hour 7,847', gapPt.x, gapPt.y - 18);
+    chartCtx.font = '12px "Segoe UI", system-ui, sans-serif';
+    chartCtx.textBaseline = 'top';
+    chartCtx.fillText('0% safety for 200ms', gapPt.x, gapPt.y + 18);
   }
 
   // hours marker
   const hx = pad.l + (hours/maxHours)*gw;
-  chartCtx.setLineDash([4,4]);
+  chartCtx.setLineDash([5,5]);
   chartCtx.strokeStyle = 'rgba(255,215,0,.5)';
-  chartCtx.lineWidth = 1;
+  chartCtx.lineWidth = 1.5;
   chartCtx.beginPath(); chartCtx.moveTo(hx,pad.t); chartCtx.lineTo(hx,pad.t+gh); chartCtx.stroke();
   chartCtx.setLineDash([]);
   chartCtx.fillStyle = '#ffd700';
-  chartCtx.font = 'bold 10px sans-serif';
-  chartCtx.fillText(hours.toLocaleString()+'h', hx, pad.t - 4);
+  chartCtx.font = 'bold 12px "Segoe UI", system-ui, sans-serif';
+  chartCtx.textBaseline = 'bottom';
+  chartCtx.textAlign = 'center';
+  chartCtx.fillText(hours.toLocaleString()+'h', hx, pad.t - 6);
 }
 drawChart();
+window.addEventListener('resize', drawChart);
 
 /* ================================================================
-   INTERSECTION CANVAS — Animated City Intersection
+   INTERSECTION CANVAS — Animated City Intersection (HiDPI)
    ================================================================ */
 const iCvs = document.getElementById('intersectionCanvas');
 const iCtx = iCvs.getContext('2d');
-const IW = iCvs.width, IH = iCvs.height;
+let IW, IH, dprI;
+
+function setupIntersectionCanvas(){
+  dprI = window.devicePixelRatio || 1;
+  const parentW = Math.min(1200, iCvs.parentElement.clientWidth - 40);
+  const h = 480;
+  iCvs.width = parentW * dprI;
+  iCvs.height = h * dprI;
+  iCvs.style.width = parentW + 'px';
+  iCvs.style.height = h + 'px';
+  IW = parentW;
+  IH = h;
+  iCtx.setTransform(dprI, 0, 0, dprI, 0, 0);
+}
+setupIntersectionCanvas();
+window.addEventListener('resize', () => {
+  setupIntersectionCanvas();
+  // recalc geometry
+  cx_ = IW/2; cy_ = IH/2;
+});
 
 // Intersection geometry
-const roadW = 100;
-const cx = IW/2, cy = IH/2;
+let cx_ = IW/2, cy_ = IH/2;
+const roadW = 110;
 
 // Traffic light state
-let tlPhase = 0; // 0=green-h, 1=yellow-h, 2=red-h/green-v, 3=yellow-v
+let tlPhase = 0;
 let tlTimer = 0;
-const tlDurations = [180, 40, 180, 40]; // frames per phase
+const tlDurations = [180, 40, 180, 40];
 
 // AV
-const av = {x:-80, y:cy+18, speed:1.2, lidarAngle:0, lidarDir:1};
+const av = {x:-80, y:0, speed:1.2, lidarAngle:0, lidarDir:1};
 
 // Other vehicles
 const otherCars = [
-  {x:cx+18, y:-40, speed:0.9, dir:'down', color:'#555'},
-  {x:cx-200, y:cy+18, speed:0.7, dir:'right', color:'#666'},
-  {x:cx+18, y:IH+40, speed:-0.85, dir:'up', color:'#5a5a5a'},
-  {x:IW+60, y:cy-18, speed:-0.75, dir:'left', color:'#606060'},
+  {x:0, y:-40, baseSpeed:0.9, speed:0.9, dir:'down', color:'#4a4a5a', accent:'#6366f1'},
+  {x:0, y:0, baseSpeed:0.7, speed:0.7, dir:'right', color:'#4a4a5a', accent:'#f59e0b'},
+  {x:0, y:0, baseSpeed:-0.85, speed:-0.85, dir:'up', color:'#4a4a5a', accent:'#10b981'},
+  {x:0, y:0, baseSpeed:-0.75, speed:-0.75, dir:'left', color:'#4a4a5a', accent:'#ef4444'},
 ];
 
 // Pedestrians
 const peds = [
-  {x:cx-roadW/2-10, y:cy-10, tx:cx+roadW/2+10, speed:0.35, progress:0},
-  {x:cx+10, y:cy+roadW/2+10, ty:cy-roadW/2-10, speed:0.3, progress:0},
-  {x:cx-20, y:cy-roadW/2-10, ty:cy+roadW/2+10, speed:0.32, progress:0},
+  {x:0, y:0, tx:0, speed:0.35, progress:0, dir:'h', legPhase:0},
+  {x:0, y:0, ty:0, speed:0.3, progress:0, dir:'v', legPhase:0.5},
+  {x:0, y:0, ty:0, speed:0.32, progress:0, dir:'v', legPhase:1.0},
 ];
 
-// Particles (background)
+// Update positions based on current cx_/cy_
+function updateDynamicPositions(){
+  av.y = cy_ + 22;
+  otherCars[0].x = cx_ + 22; otherCars[0].y = -40;
+  otherCars[1].x = cx_ - 220; otherCars[1].y = cy_ + 22;
+  otherCars[2].x = cx_ + 22; otherCars[2].y = IH + 40;
+  otherCars[3].x = IW + 60; otherCars[3].y = cy_ - 22;
+  peds[0].x = cx_ - roadW/2 - 14; peds[0].y = cy_ - 12; peds[0].tx = cx_ + roadW/2 + 14;
+  peds[1].x = cx_ + 12; peds[1].y = cy_ + roadW/2 + 14; peds[1].ty = cy_ - roadW/2 - 14;
+  peds[2].x = cx_ - 12; peds[2].y = cy_ - roadW/2 - 14; peds[2].ty = cy_ + roadW/2 + 14;
+}
+updateDynamicPositions();
+
+// Particles
 const particles = [];
-for(let i=0;i<60;i++) particles.push({x:Math.random()*IW, y:Math.random()*IH, vx:(Math.random()-.5)*.3, vy:(Math.random()-.5)*.3, r:Math.random()*1.5+.5, a:Math.random()*.3});
+for(let i=0;i<80;i++) particles.push({x:Math.random()*1200, y:Math.random()*480, vx:(Math.random()-.5)*.25, vy:(Math.random()-.5)*.25, r:Math.random()*1.5+.4, a:Math.random()*.25+.05});
+
+// Buildings
+const buildingSeeds = [];
+for(let i=0;i<24;i++) buildingSeeds.push({ox:Math.random(), oy:Math.random(), w:20+Math.random()*40, h:20+Math.random()*50, lit:Math.random()});
 
 // Attack sim overlay
 let freezeAlpha = 0;
@@ -506,15 +746,19 @@ let dangerPulse = 0;
 let labelAlpha = 0;
 let showTimeline = false;
 
+// Easing
+function easeInOutCubic(t){ return t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2; }
+
 function drawIntersection(t){
+  const cx = cx_, cy = cy_;
   iCtx.clearRect(0,0,IW,IH);
 
-  // -- Background: dark city grid
-  iCtx.fillStyle = '#0c0c14';
+  // Background
+  iCtx.fillStyle = '#0b0b13';
   iCtx.fillRect(0,0,IW,IH);
 
   // subtle grid
-  iCtx.strokeStyle = 'rgba(255,255,255,.02)';
+  iCtx.strokeStyle = 'rgba(255,255,255,.015)';
   iCtx.lineWidth = 1;
   for(let x=0;x<IW;x+=40){iCtx.beginPath();iCtx.moveTo(x,0);iCtx.lineTo(x,IH);iCtx.stroke();}
   for(let y=0;y<IH;y+=40){iCtx.beginPath();iCtx.moveTo(0,y);iCtx.lineTo(IW,y);iCtx.stroke();}
@@ -524,68 +768,91 @@ function drawIntersection(t){
     p.x += p.vx; p.y += p.vy;
     if(p.x<0)p.x=IW; if(p.x>IW)p.x=0; if(p.y<0)p.y=IH; if(p.y>IH)p.y=0;
     iCtx.beginPath(); iCtx.arc(p.x,p.y,p.r,0,Math.PI*2);
-    iCtx.fillStyle = `rgba(100,140,200,${p.a})`;
+    iCtx.fillStyle = `rgba(80,120,180,${p.a})`;
     iCtx.fill();
   });
 
-  // -- Buildings (dark blocks in corners)
-  const bldgColor = '#0f0f18';
-  const bCorners = [
-    [0,0,cx-roadW/2,cy-roadW/2],
-    [cx+roadW/2,0,IW-(cx+roadW/2),cy-roadW/2],
-    [0,cy+roadW/2,cx-roadW/2,IH-(cy+roadW/2)],
-    [cx+roadW/2,cy+roadW/2,IW-(cx+roadW/2),IH-(cy+roadW/2)]
+  // Buildings (detailed silhouettes in corners)
+  const corners = [
+    {x:0,y:0,w:cx-roadW/2,h:cy-roadW/2},
+    {x:cx+roadW/2,y:0,w:IW-(cx+roadW/2),h:cy-roadW/2},
+    {x:0,y:cy+roadW/2,w:cx-roadW/2,h:IH-(cy+roadW/2)},
+    {x:cx+roadW/2,y:cy+roadW/2,w:IW-(cx+roadW/2),h:IH-(cy+roadW/2)}
   ];
-  bCorners.forEach(b => {
-    iCtx.fillStyle = bldgColor;
-    iCtx.fillRect(b[0],b[1],b[2],b[3]);
+  corners.forEach((c,ci) => {
+    // base block
+    iCtx.fillStyle = '#0e0e18';
+    iCtx.fillRect(c.x,c.y,c.w,c.h);
     iCtx.strokeStyle = 'rgba(255,255,255,.03)';
-    iCtx.strokeRect(b[0],b[1],b[2],b[3]);
+    iCtx.strokeRect(c.x,c.y,c.w,c.h);
+
+    // building silhouettes within each corner
+    for(let bi=ci*6;bi<ci*6+6;bi++){
+      if(bi>=buildingSeeds.length) break;
+      const bs = buildingSeeds[bi];
+      const bx = c.x + bs.ox * (c.w - bs.w);
+      const by = c.y + bs.oy * (c.h - bs.h);
+      iCtx.fillStyle = '#111120';
+      iCtx.fillRect(bx, by, bs.w, bs.h);
+      iCtx.strokeStyle = 'rgba(255,255,255,.04)';
+      iCtx.strokeRect(bx, by, bs.w, bs.h);
+      // lit windows
+      if(bs.lit > 0.4){
+        const winSize = 3;
+        for(let wy=by+5;wy<by+bs.h-5;wy+=8){
+          for(let wx=bx+4;wx<bx+bs.w-4;wx+=7){
+            if(Math.random()>0.6){
+              iCtx.fillStyle = `rgba(255,220,140,${0.08+Math.random()*0.1})`;
+              iCtx.fillRect(wx,wy,winSize,winSize);
+            }
+          }
+        }
+      }
+    }
   });
 
-  // -- Roads
-  iCtx.fillStyle = '#1a1a24';
-  iCtx.fillRect(0, cy-roadW/2, IW, roadW); // horizontal
-  iCtx.fillRect(cx-roadW/2, 0, roadW, IH); // vertical
+  // Roads
+  iCtx.fillStyle = '#1c1c28';
+  iCtx.fillRect(0, cy-roadW/2, IW, roadW);
+  iCtx.fillRect(cx-roadW/2, 0, roadW, IH);
+
+  // Road edge lines (solid)
+  iCtx.strokeStyle = 'rgba(255,255,255,.08)';
+  iCtx.lineWidth = 1.5;
+  [cy-roadW/2, cy+roadW/2].forEach(y => { iCtx.beginPath(); iCtx.moveTo(0,y); iCtx.lineTo(IW,y); iCtx.stroke(); });
+  [cx-roadW/2, cx+roadW/2].forEach(x => { iCtx.beginPath(); iCtx.moveTo(x,0); iCtx.lineTo(x,IH); iCtx.stroke(); });
 
   // lane markings — dashed
-  iCtx.setLineDash([16,12]);
-  iCtx.strokeStyle = 'rgba(255,255,255,.2)';
+  iCtx.setLineDash([18,14]);
+  iCtx.strokeStyle = 'rgba(255,255,255,.18)';
   iCtx.lineWidth = 2;
-  // horizontal center
   iCtx.beginPath(); iCtx.moveTo(0,cy); iCtx.lineTo(cx-roadW/2,cy); iCtx.stroke();
   iCtx.beginPath(); iCtx.moveTo(cx+roadW/2,cy); iCtx.lineTo(IW,cy); iCtx.stroke();
-  // vertical center
   iCtx.beginPath(); iCtx.moveTo(cx,0); iCtx.lineTo(cx,cy-roadW/2); iCtx.stroke();
   iCtx.beginPath(); iCtx.moveTo(cx,cy+roadW/2); iCtx.lineTo(cx,IH); iCtx.stroke();
   iCtx.setLineDash([]);
 
   // crosswalk stripes
-  const cw = 8;
-  iCtx.fillStyle = 'rgba(255,255,255,.15)';
-  for(let i=0;i<6;i++){
-    // top crosswalk
-    iCtx.fillRect(cx-roadW/2+8+i*16, cy-roadW/2-12, cw, 12);
-    // bottom crosswalk
-    iCtx.fillRect(cx-roadW/2+8+i*16, cy+roadW/2, cw, 12);
-    // left crosswalk
-    iCtx.fillRect(cx-roadW/2-12, cy-roadW/2+8+i*16, 12, cw);
-    // right crosswalk
-    iCtx.fillRect(cx+roadW/2, cy-roadW/2+8+i*16, 12, cw);
+  const cw = 9;
+  iCtx.fillStyle = 'rgba(255,255,255,.13)';
+  for(let i=0;i<7;i++){
+    iCtx.fillRect(cx-roadW/2+8+i*15, cy-roadW/2-14, cw, 14);
+    iCtx.fillRect(cx-roadW/2+8+i*15, cy+roadW/2, cw, 14);
+    iCtx.fillRect(cx-roadW/2-14, cy-roadW/2+8+i*15, 14, cw);
+    iCtx.fillRect(cx+roadW/2, cy-roadW/2+8+i*15, 14, cw);
   }
 
-  // -- Construction zone (if toggle on)
+  // Construction zone
   if(ruleStates[8]){
     iCtx.save();
-    const czx = cx+roadW/2+4, czy = cy-roadW/2-60, czw = 80, czh = 56;
-    // stripes
+    const czx = cx+roadW/2+6, czy = cy-roadW/2-68, czw = 90, czh = 62;
     iCtx.beginPath();
     iCtx.rect(czx,czy,czw,czh);
     iCtx.clip();
-    iCtx.fillStyle = 'rgba(255,165,0,.12)';
+    iCtx.fillStyle = 'rgba(255,165,0,.1)';
     iCtx.fillRect(czx,czy,czw,czh);
     for(let s=-czw;s<czw+czh;s+=14){
-      iCtx.strokeStyle = 'rgba(255,165,0,.35)';
+      iCtx.strokeStyle = 'rgba(255,165,0,.3)';
       iCtx.lineWidth = 4;
       iCtx.beginPath();
       iCtx.moveTo(czx+s,czy);
@@ -593,22 +860,27 @@ function drawIntersection(t){
       iCtx.stroke();
     }
     iCtx.restore();
-    iCtx.strokeStyle = 'rgba(255,165,0,.5)';
+    iCtx.strokeStyle = 'rgba(255,165,0,.45)';
     iCtx.lineWidth = 1.5;
     iCtx.strokeRect(czx,czy,czw,czh);
     // cones
     iCtx.fillStyle = '#ff8c00';
-    iCtx.beginPath(); iCtx.moveTo(czx+10,czy+czh); iCtx.lineTo(czx+14,czy+czh-12); iCtx.lineTo(czx+18,czy+czh); iCtx.fill();
-    iCtx.beginPath(); iCtx.moveTo(czx+czw-18,czy+czh); iCtx.lineTo(czx+czw-14,czy+czh-12); iCtx.lineTo(czx+czw-10,czy+czh); iCtx.fill();
+    [[czx+12,czy+czh],[czx+czw-12,czy+czh],[czx+czw/2,czy+czh]].forEach(([x,y])=>{
+      iCtx.beginPath(); iCtx.moveTo(x-5,y); iCtx.lineTo(x,y-14); iCtx.lineTo(x+5,y); iCtx.fill();
+      // stripe on cone
+      iCtx.fillStyle = '#fff';
+      iCtx.fillRect(x-3, y-9, 6, 3);
+      iCtx.fillStyle = '#ff8c00';
+    });
   }
 
-  // -- Traffic lights
-  const tlR = 6;
+  // Traffic lights with glow
+  const tlR = 7;
   const tlPositions = [
-    {x:cx-roadW/2-16, y:cy-roadW/2-16, h:true},  // top-left (controls horizontal)
-    {x:cx+roadW/2+16, y:cy-roadW/2-16, h:false},  // top-right (controls vertical)
-    {x:cx-roadW/2-16, y:cy+roadW/2+16, h:false},  // bottom-left
-    {x:cx+roadW/2+16, y:cy+roadW/2+16, h:true},   // bottom-right
+    {x:cx-roadW/2-18, y:cy-roadW/2-18, h:true},
+    {x:cx+roadW/2+18, y:cy-roadW/2-18, h:false},
+    {x:cx-roadW/2-18, y:cy+roadW/2+18, h:false},
+    {x:cx+roadW/2+18, y:cy+roadW/2+18, h:true},
   ];
   const hGreen = tlPhase===0, hYellow = tlPhase===1, vGreen = tlPhase===2, vYellow = tlPhase===3;
   tlPositions.forEach(tl => {
@@ -618,23 +890,42 @@ function drawIntersection(t){
     const r = isH ? (tlPhase===2||tlPhase===3) : (tlPhase===0||tlPhase===1);
     // housing
     iCtx.fillStyle = '#111';
-    iCtx.beginPath(); iCtx.roundRect(tl.x-10, tl.y-20, 20, 40, 4); iCtx.fill();
-    // red
-    iCtx.beginPath(); iCtx.arc(tl.x, tl.y-12, tlR, 0, Math.PI*2);
-    iCtx.fillStyle = r ? '#ef4444' : '#3a1111'; iCtx.fill();
-    // yellow
-    iCtx.beginPath(); iCtx.arc(tl.x, tl.y, tlR, 0, Math.PI*2);
-    iCtx.fillStyle = y ? '#eab308' : '#3a3411'; iCtx.fill();
-    // green
-    iCtx.beginPath(); iCtx.arc(tl.x, tl.y+12, tlR, 0, Math.PI*2);
-    iCtx.fillStyle = g ? '#22c55e' : '#113a11'; iCtx.fill();
+    iCtx.beginPath(); iCtx.roundRect(tl.x-11, tl.y-22, 22, 44, 5); iCtx.fill();
+    // glow effect for active light
+    if(r){
+      iCtx.save(); iCtx.shadowColor='rgba(239,68,68,.6)'; iCtx.shadowBlur=12;
+      iCtx.beginPath(); iCtx.arc(tl.x, tl.y-13, tlR, 0, Math.PI*2);
+      iCtx.fillStyle = '#ef4444'; iCtx.fill(); iCtx.restore();
+    } else {
+      iCtx.beginPath(); iCtx.arc(tl.x, tl.y-13, tlR, 0, Math.PI*2);
+      iCtx.fillStyle = '#3a1111'; iCtx.fill();
+    }
+    if(y){
+      iCtx.save(); iCtx.shadowColor='rgba(234,179,8,.6)'; iCtx.shadowBlur=12;
+      iCtx.beginPath(); iCtx.arc(tl.x, tl.y, tlR, 0, Math.PI*2);
+      iCtx.fillStyle = '#eab308'; iCtx.fill(); iCtx.restore();
+    } else {
+      iCtx.beginPath(); iCtx.arc(tl.x, tl.y, tlR, 0, Math.PI*2);
+      iCtx.fillStyle = '#3a3411'; iCtx.fill();
+    }
+    if(g){
+      iCtx.save(); iCtx.shadowColor='rgba(34,197,94,.6)'; iCtx.shadowBlur=12;
+      iCtx.beginPath(); iCtx.arc(tl.x, tl.y+13, tlR, 0, Math.PI*2);
+      iCtx.fillStyle = '#22c55e'; iCtx.fill(); iCtx.restore();
+    } else {
+      iCtx.beginPath(); iCtx.arc(tl.x, tl.y+13, tlR, 0, Math.PI*2);
+      iCtx.fillStyle = '#113a11'; iCtx.fill();
+    }
   });
 
   const frozen = simPhase === 2;
 
-  // -- Other vehicles
+  // Other vehicles with easing
   otherCars.forEach(car => {
     if(!frozen){
+      // Smooth speed with slight sine variation
+      const sineVar = Math.sin(t * 0.001 + otherCars.indexOf(car) * 1.5) * 0.15;
+      car.speed = car.baseSpeed + sineVar;
       if(car.dir==='down'){ car.y += car.speed; if(car.y>IH+60) car.y=-60; }
       else if(car.dir==='up'){ car.y += car.speed; if(car.y<-60) car.y=IH+60; }
       else if(car.dir==='right'){ car.x += car.speed; if(car.x>IW+60) car.x=-60; }
@@ -643,163 +934,286 @@ function drawIntersection(t){
     iCtx.save();
     iCtx.translate(car.x, car.y);
     if(car.dir==='down'||car.dir==='up') iCtx.rotate(Math.PI/2);
+    // car body
     iCtx.fillStyle = car.color;
-    iCtx.beginPath(); iCtx.roundRect(-16,-8,32,16,4); iCtx.fill();
+    iCtx.beginPath(); iCtx.roundRect(-18,-9,36,18,4); iCtx.fill();
+    // windshield
+    iCtx.fillStyle = 'rgba(100,180,255,.2)';
+    iCtx.fillRect(10,-6,5,12);
+    // tail lights
+    iCtx.fillStyle = car.accent;
+    iCtx.fillRect(-17,-8,3,4);
+    iCtx.fillRect(-17,4,3,4);
+    // headlights
+    iCtx.fillStyle = 'rgba(255,255,200,.6)';
+    iCtx.fillRect(15,-7,2,3);
+    iCtx.fillRect(15,4,2,3);
     iCtx.restore();
   });
 
-  // -- V2V lines
+  // V2V lines
   if(ruleStates[6]){
     otherCars.forEach(car => {
       const dx = car.x - av.x, dy = car.y - av.y;
       const dist = Math.sqrt(dx*dx+dy*dy);
       if(dist < 500){
+        const alpha = .18 * (1-dist/500);
         iCtx.setLineDash([3,6]);
-        iCtx.strokeStyle = `rgba(6,182,212,${.15 * (1-dist/500)})`;
+        iCtx.strokeStyle = `rgba(6,182,212,${alpha})`;
         iCtx.lineWidth = 1;
         iCtx.beginPath(); iCtx.moveTo(av.x, av.y); iCtx.lineTo(car.x, car.y); iCtx.stroke();
         iCtx.setLineDash([]);
+        // small diamond at midpoint
+        const mx = (av.x+car.x)/2, my = (av.y+car.y)/2;
+        iCtx.save();
+        iCtx.translate(mx,my); iCtx.rotate(Math.PI/4);
+        iCtx.fillStyle = `rgba(6,182,212,${alpha*2})`;
+        iCtx.fillRect(-2,-2,4,4);
+        iCtx.restore();
       }
     });
   }
 
-  // -- Pedestrians
+  // Pedestrians with walking animation
   peds.forEach((p,pi) => {
     if(!frozen){
       p.progress += p.speed / 200;
       if(p.progress > 1) p.progress = 0;
+      p.legPhase += 0.06;
     }
     let px, py;
+    // Smooth easing on pedestrian movement
+    const ep = easeInOutCubic(p.progress);
     if(p.tx !== undefined){
-      px = p.x + (p.tx - p.x) * p.progress;
+      px = p.x + (p.tx - p.x) * ep;
       py = p.y;
     } else {
       px = p.x;
-      py = p.y + (p.ty - p.y) * p.progress;
+      py = p.y + (p.ty - p.y) * ep;
     }
 
-    // danger highlight during freeze
     const isDangerPed = pi === 0 && simPhase === 2;
+
+    // danger highlight during freeze
     if(isDangerPed){
+      const pulseR = 16 + Math.sin(dangerPulse)*5;
       iCtx.beginPath();
-      iCtx.arc(px, py, 14 + Math.sin(dangerPulse)*4, 0, Math.PI*2);
-      iCtx.fillStyle = `rgba(239,68,68,${.25+.15*Math.sin(dangerPulse)})`;
+      iCtx.arc(px, py, pulseR, 0, Math.PI*2);
+      iCtx.fillStyle = `rgba(239,68,68,${.2+.12*Math.sin(dangerPulse)})`;
       iCtx.fill();
-      iCtx.strokeStyle = '#ef4444';
+      iCtx.strokeStyle = `rgba(239,68,68,${.6+.3*Math.sin(dangerPulse)})`;
       iCtx.lineWidth = 2;
       iCtx.stroke();
     }
 
+    // body
+    const headR = 4;
     iCtx.beginPath();
-    iCtx.arc(px, py, 5, 0, Math.PI*2);
+    iCtx.arc(px, py - 3, headR, 0, Math.PI*2);
     iCtx.fillStyle = isDangerPed ? '#ef4444' : '#ddd';
     iCtx.fill();
+
+    // torso
+    iCtx.strokeStyle = isDangerPed ? '#ef4444' : '#bbb';
+    iCtx.lineWidth = 2;
+    iCtx.beginPath(); iCtx.moveTo(px, py+1); iCtx.lineTo(px, py+8); iCtx.stroke();
+
+    // legs (walking animation)
+    const legSwing = Math.sin(p.legPhase) * 4;
+    iCtx.beginPath(); iCtx.moveTo(px, py+8); iCtx.lineTo(px-legSwing, py+14); iCtx.stroke();
+    iCtx.beginPath(); iCtx.moveTo(px, py+8); iCtx.lineTo(px+legSwing, py+14); iCtx.stroke();
+
+    // direction indicator
+    if(!isDangerPed){
+      const dirX = p.tx !== undefined ? Math.sign(p.tx - p.x) : 0;
+      const dirY = p.ty !== undefined ? Math.sign(p.ty - p.y) : 0;
+      iCtx.fillStyle = 'rgba(255,255,255,.3)';
+      iCtx.beginPath();
+      iCtx.moveTo(px + dirX*8, py-3 + dirY*8);
+      iCtx.lineTo(px + dirX*5 - dirY*2, py-3 + dirY*5 + dirX*2);
+      iCtx.lineTo(px + dirX*5 + dirY*2, py-3 + dirY*5 - dirX*2);
+      iCtx.fill();
+    }
   });
 
-  // -- AV
+  // AV movement with easing
   if(!frozen){
     if(simPhase === 0) {
-      // idle: loop back and forth approaching intersection
+      // Smooth looping approach
+      const targetSpeed = 1.2;
+      av.speed += (targetSpeed - av.speed) * 0.02;
       av.x += av.speed;
       if(av.x > cx - roadW/2 - 40) { av.x = -80; }
     } else if(simPhase === 1){
+      // Accelerating approach
+      av.speed = Math.min(av.speed + 0.02, 2.0);
       av.x += av.speed;
     } else if(simPhase === 3){
-      av.x += av.speed * 1.5;
-      if(av.x > IW + 100) { simPhase = 0; av.x = -80; simRunning = false; document.getElementById('simBtn').disabled = false; }
+      // Smooth acceleration away
+      av.speed = Math.min(av.speed + 0.03, 2.5);
+      av.x += av.speed;
+      if(av.x > IW + 100) { simPhase = 0; av.x = -80; av.speed = 1.2; simRunning = false; document.getElementById('simBtn').disabled = false; }
     }
   }
 
-  // LIDAR sweep
+  // LIDAR sweep (improved)
   if(ruleStates[0]){
-    av.lidarAngle += av.lidarDir * 0.03;
-    if(av.lidarAngle > 0.5) av.lidarDir = -1;
-    if(av.lidarAngle < -0.5) av.lidarDir = 1;
+    av.lidarAngle += av.lidarDir * 0.025;
+    if(av.lidarAngle > 0.6) av.lidarDir = -1;
+    if(av.lidarAngle < -0.6) av.lidarDir = 1;
     iCtx.save();
     iCtx.translate(av.x, av.y);
+    // Main sweep
     iCtx.beginPath();
     iCtx.moveTo(0,0);
-    iCtx.arc(0,0,120, av.lidarAngle - 0.52, av.lidarAngle + 0.52);
+    iCtx.arc(0,0,140, av.lidarAngle - 0.55, av.lidarAngle + 0.55);
     iCtx.closePath();
-    const lg = iCtx.createRadialGradient(0,0,0,0,0,120);
-    lg.addColorStop(0,'rgba(6,182,212,.2)');
+    const lg = iCtx.createRadialGradient(0,0,0,0,0,140);
+    lg.addColorStop(0,'rgba(6,182,212,.22)');
+    lg.addColorStop(0.6,'rgba(6,182,212,.06)');
     lg.addColorStop(1,'rgba(6,182,212,0)');
     iCtx.fillStyle = lg;
     iCtx.fill();
+    // Sweep edge line
+    iCtx.strokeStyle = 'rgba(6,182,212,.3)';
+    iCtx.lineWidth = 1;
+    iCtx.beginPath();
+    iCtx.moveTo(0,0);
+    iCtx.lineTo(Math.cos(av.lidarAngle)*140, Math.sin(av.lidarAngle)*140);
+    iCtx.stroke();
+    // Point cloud dots along sweep
+    for(let d=20;d<140;d+=18){
+      const scatter = (Math.random()-.5)*0.3;
+      const dotX = Math.cos(av.lidarAngle+scatter)*d;
+      const dotY = Math.sin(av.lidarAngle+scatter)*d;
+      iCtx.beginPath(); iCtx.arc(dotX,dotY,1.2,0,Math.PI*2);
+      iCtx.fillStyle = `rgba(6,182,212,${.4-d/500})`;
+      iCtx.fill();
+    }
     iCtx.restore();
   }
 
-  // AV body
+  // AV body (detailed)
   iCtx.save();
   iCtx.translate(av.x, av.y);
   // glow
-  iCtx.shadowColor = 'rgba(59,130,246,.6)';
-  iCtx.shadowBlur = 18;
+  iCtx.shadowColor = 'rgba(59,130,246,.7)';
+  iCtx.shadowBlur = 22;
   iCtx.fillStyle = '#2563eb';
-  iCtx.beginPath(); iCtx.roundRect(-20,-10,40,20,5); iCtx.fill();
+  iCtx.beginPath(); iCtx.roundRect(-22,-11,44,22,6); iCtx.fill();
   iCtx.shadowBlur = 0;
+  // roof sensor bar
+  iCtx.fillStyle = '#1d4ed8';
+  iCtx.fillRect(-8,-13,16,3);
+  // rotating LIDAR indicator on roof
+  const lidarDotAngle = t * 0.005;
+  iCtx.fillStyle = '#06b6d4';
+  iCtx.beginPath(); iCtx.arc(Math.cos(lidarDotAngle)*5, -12, 1.5, 0, Math.PI*2); iCtx.fill();
   // outline
   iCtx.strokeStyle = '#60a5fa';
   iCtx.lineWidth = 1.5;
-  iCtx.beginPath(); iCtx.roundRect(-20,-10,40,20,5); iCtx.stroke();
+  iCtx.beginPath(); iCtx.roundRect(-22,-11,44,22,6); iCtx.stroke();
+  // windshield
+  iCtx.fillStyle = 'rgba(100,180,255,.25)';
+  iCtx.fillRect(12,-8,6,16);
+  // headlights
+  iCtx.fillStyle = 'rgba(255,255,220,.8)';
+  iCtx.fillRect(20,-9,3,4);
+  iCtx.fillRect(20,5,3,4);
+  // headlight beam
+  iCtx.save();
+  iCtx.beginPath();
+  iCtx.moveTo(22,-8); iCtx.lineTo(60,-20); iCtx.lineTo(60,28); iCtx.lineTo(22,8);
+  iCtx.closePath();
+  const hbGrad = iCtx.createLinearGradient(22,0,60,0);
+  hbGrad.addColorStop(0,'rgba(255,255,200,.06)');
+  hbGrad.addColorStop(1,'rgba(255,255,200,0)');
+  iCtx.fillStyle = hbGrad;
+  iCtx.fill();
+  iCtx.restore();
   // label
   iCtx.fillStyle = '#fff';
-  iCtx.font = 'bold 7px sans-serif';
+  iCtx.font = 'bold 7px "Segoe UI", system-ui, sans-serif';
   iCtx.textAlign = 'center';
-  iCtx.fillText('AV-01', 0, 3);
+  iCtx.textBaseline = 'middle';
+  iCtx.fillText('AV-01', 0, 1);
   iCtx.restore();
 
-  // -- ATTACK FREEZE OVERLAY
+  // ATTACK FREEZE OVERLAY
   if(simPhase === 2){
-    dangerPulse += 0.08;
-    freezeAlpha = Math.min(freezeAlpha + 0.02, 0.6);
-    labelAlpha = Math.min(labelAlpha + 0.015, 1);
+    dangerPulse += 0.06;
+    freezeAlpha = Math.min(freezeAlpha + 0.015, 0.55);
+    labelAlpha = Math.min(labelAlpha + 0.012, 1);
 
-    // red danger zone over crosswalk
-    const dzx = cx - roadW/2 - 15, dzy = cy - 15, dzw = roadW + 30, dzh = 30;
-    iCtx.fillStyle = `rgba(239,68,68,${.12 + .08*Math.sin(dangerPulse)})`;
+    // Frosted overlay over entire canvas (subtle)
+    iCtx.fillStyle = `rgba(10,10,20,${freezeAlpha * 0.3})`;
+    iCtx.fillRect(0,0,IW,IH);
+
+    // Vignette effect
+    const vigGrad = iCtx.createRadialGradient(cx,cy,100,cx,cy,Math.max(IW,IH)*0.7);
+    vigGrad.addColorStop(0,'rgba(0,0,0,0)');
+    vigGrad.addColorStop(1,`rgba(10,0,0,${freezeAlpha*0.4})`);
+    iCtx.fillStyle = vigGrad;
+    iCtx.fillRect(0,0,IW,IH);
+
+    // red danger zone
+    const dzx = cx - roadW/2 - 18, dzy = cy - 18, dzw = roadW + 36, dzh = 36;
+    iCtx.fillStyle = `rgba(239,68,68,${.1 + .06*Math.sin(dangerPulse)})`;
     iCtx.fillRect(dzx, dzy, dzw, dzh);
-    iCtx.strokeStyle = `rgba(239,68,68,${.5 + .3*Math.sin(dangerPulse)})`;
+    iCtx.strokeStyle = `rgba(239,68,68,${.45 + .25*Math.sin(dangerPulse)})`;
     iCtx.lineWidth = 2;
     iCtx.setLineDash([6,4]);
     iCtx.strokeRect(dzx, dzy, dzw, dzh);
     iCtx.setLineDash([]);
 
     // "NO RULE ACTIVE" flash
-    const flash = Math.sin(dangerPulse*2) > 0;
+    const flash = Math.sin(dangerPulse*1.8) > 0;
     if(flash){
+      iCtx.save();
+      iCtx.shadowColor = 'rgba(239,68,68,.8)';
+      iCtx.shadowBlur = 16;
       iCtx.fillStyle = '#ef4444';
-      iCtx.font = 'bold 16px sans-serif';
+      iCtx.font = 'bold 18px "Segoe UI", system-ui, sans-serif';
       iCtx.textAlign = 'center';
-      iCtx.fillText('NO RULE ACTIVE', cx, cy + 4);
+      iCtx.textBaseline = 'middle';
+      iCtx.fillText('NO RULE ACTIVE', cx, cy + 2);
+      iCtx.restore();
     }
 
     // Labels
     const la = labelAlpha;
-    iCtx.font = 'bold 9px sans-serif';
+    iCtx.font = 'bold 10px "Segoe UI", system-ui, sans-serif';
     iCtx.textAlign = 'left';
+    iCtx.textBaseline = 'middle';
 
     iCtx.fillStyle = `rgba(255,165,0,${la})`;
-    iCtx.fillText('Construction Override ACTIVE', cx + roadW/2 + 20, cy - 50);
-    drawArrow(iCtx, cx+roadW/2+18, cy-46, cx+roadW/2+6, cy-roadW/2-4, `rgba(255,165,0,${la*.5})`);
+    iCtx.fillText('Construction Override ACTIVE', cx + roadW/2 + 24, cy - 55);
+    drawArrow(iCtx, cx+roadW/2+22, cy-50, cx+roadW/2+8, cy-roadW/2-4, `rgba(255,165,0,${la*.5})`);
 
     iCtx.fillStyle = `rgba(6,182,212,${la})`;
-    iCtx.fillText('V2V WAITING', cx + roadW/2 + 20, cy - 30);
+    iCtx.fillText('V2V WAITING (140ms remaining)', cx + roadW/2 + 24, cy - 35);
 
     iCtx.fillStyle = `rgba(239,68,68,${la})`;
-    iCtx.fillText('Pedestrian Priority SUSPENDED', cx + roadW/2 + 20, cy - 10);
+    iCtx.fillText('Pedestrian Priority SUSPENDED', cx + roadW/2 + 24, cy - 15);
 
-    // Timeline bar overlay
+    iCtx.fillStyle = `rgba(255,255,255,${la*0.5})`;
+    iCtx.fillText('Emergency Braking: NO TRIGGER', cx + roadW/2 + 24, cy + 5);
+
+    // Timeline overlay
     if(showTimeline){
-      const tlx = cx - 180, tly = cy + roadW/2 + 30, tlw = 360, tlh = 28;
-      iCtx.fillStyle = 'rgba(10,10,15,.85)';
-      iCtx.fillRect(tlx-4, tly-16, tlw+8, tlh+28);
-      iCtx.fillStyle = '#94a3b8';
-      iCtx.font = 'bold 8px sans-serif';
-      iCtx.textAlign = 'center';
-      iCtx.fillText('200ms GAP TIMELINE', cx, tly-4);
+      const tlx = cx - 190, tly = cy + roadW/2 + 36, tlw = 380, tlh = 30;
+      // backdrop
+      iCtx.fillStyle = 'rgba(10,10,18,.9)';
+      iCtx.beginPath(); iCtx.roundRect(tlx-6, tly-20, tlw+12, tlh+34, 8); iCtx.fill();
+      iCtx.strokeStyle = 'rgba(255,255,255,.06)';
+      iCtx.beginPath(); iCtx.roundRect(tlx-6, tly-20, tlw+12, tlh+34, 8); iCtx.stroke();
 
-      // segments
+      iCtx.fillStyle = '#94a3b8';
+      iCtx.font = 'bold 9px "Segoe UI", system-ui, sans-serif';
+      iCtx.textAlign = 'center';
+      iCtx.textBaseline = 'bottom';
+      iCtx.fillText('200ms GAP TIMELINE', cx, tly-6);
+
       const segs = [
         {pct:.375, color:'#22c55e', label:'Ped ON'},
         {pct:.125, color:'#ef4444', label:'NO RULE'},
@@ -807,14 +1221,16 @@ function drawIntersection(t){
         {pct:.25, color:'#22c55e', label:'Constr. ON'},
       ];
       let sx = tlx;
-      segs.forEach(s => {
+      segs.forEach((s,si) => {
         const sw = s.pct * tlw;
+        iCtx.beginPath(); iCtx.roundRect(sx, tly, sw-1, tlh, si===0?[4,0,0,4]:si===segs.length-1?[0,4,4,0]:0);
         iCtx.fillStyle = s.color;
-        iCtx.fillRect(sx, tly, sw, tlh);
+        iCtx.fill();
         iCtx.fillStyle = '#fff';
-        iCtx.font = 'bold 7px sans-serif';
+        iCtx.font = 'bold 8px "Segoe UI", system-ui, sans-serif';
         iCtx.textAlign = 'center';
-        if(sw > 30) iCtx.fillText(s.label, sx+sw/2, tly+tlh/2+3);
+        iCtx.textBaseline = 'middle';
+        if(sw > 35) iCtx.fillText(s.label, sx+sw/2, tly+tlh/2);
         sx += sw;
       });
     }
@@ -832,8 +1248,16 @@ function drawIntersection(t){
 
 function drawArrow(ctx, x1, y1, x2, y2, color){
   ctx.strokeStyle = color;
-  ctx.lineWidth = 1;
+  ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  // arrowhead
+  const angle = Math.atan2(y2-y1,x2-x1);
+  ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-6*Math.cos(angle-0.4), y2-6*Math.sin(angle-0.4));
+  ctx.lineTo(x2-6*Math.cos(angle+0.4), y2-6*Math.sin(angle+0.4));
+  ctx.fillStyle = color;
+  ctx.fill();
 }
 
 /* ================================================================
@@ -844,6 +1268,7 @@ document.getElementById('simBtn').addEventListener('click', () => {
   simRunning = true;
   simPhase = 1;
   av.x = -80;
+  av.speed = 1.2;
   freezeAlpha = 0;
   dangerPulse = 0;
   labelAlpha = 0;
@@ -851,25 +1276,27 @@ document.getElementById('simBtn').addEventListener('click', () => {
   document.getElementById('simBtn').disabled = true;
   typeAllTerminals();
 
-  // Phase 1: AV approaches
+  // Phase 1: AV approaches with smooth acceleration
   setTimeout(() => {
-    av.x = cx - roadW/2 - 50;
-    simPhase = 2; // freeze
-    peds[0].progress = 0.35; // ped in crosswalk
-    setTimeout(() => { showTimeline = true; }, 800);
-    // After 6 seconds, resume
+    av.x = cx_ - roadW/2 - 55;
+    simPhase = 2;
+    peds[0].progress = 0.35;
+    setTimeout(() => { showTimeline = true; }, 1000);
     setTimeout(() => {
       simPhase = 3;
+      av.speed = 0.5;
       freezeAlpha = 0;
-    }, 6000);
-  }, 2000);
+    }, 6500);
+  }, 2200);
 });
 
 /* ================================================================
    ANIMATION LOOP
    ================================================================ */
+let lastTime = 0;
 function animate(t){
   drawIntersection(t);
+  lastTime = t;
   requestAnimationFrame(animate);
 }
 requestAnimationFrame(animate);
@@ -1086,7 +1513,7 @@ function typeTerminal(idx, onDone){
   let pos = 0;
   el.textContent = '';
   verdict.style.opacity = '0';
-  const speed = Math.max(1, Math.floor(text.length / 260)); // chars per tick
+  const speed = Math.max(1, Math.floor(text.length / 260));
   const iv = setInterval(() => {
     pos += speed;
     if(pos >= text.length){
@@ -1101,7 +1528,6 @@ function typeTerminal(idx, onDone){
 }
 
 function typeAllTerminals(){
-  // type all 4 in parallel with slight stagger
   TERM_DATA.forEach((_, i) => {
     setTimeout(() => typeTerminal(i), i * 400);
   });
@@ -1114,10 +1540,10 @@ setTimeout(() => typeAllTerminals(), 600);
    COMPARISON CARDS
    ================================================================ */
 const COMPARE = [
-  {name:'Python Simulation', result:'99.994% Safe', detail:'Scenario testing: statistical, cannot find timing gaps', color:'#3b82f6'},
-  {name:'Formal Verification', result:'9/9 Verified', detail:'Individual rules proven; 3-rule composition intractable', color:'#06b6d4'},
-  {name:'AI / LLM Assessment', result:'SOTIF Compliant', detail:'Standards-based review; unknown-unsafe gap missed', color:'#22c55e'},
-  {name:'Tau Specification', result:'LETHAL GAP', detail:'200ms window: 0 safety rules active on crosswalk', color:'#ffd700'},
+  {name:'Python Simulation', result:'99.994% Safe', detail:'Scenario testing: statistical, cannot find timing gaps between rule transitions', color:'#3b82f6'},
+  {name:'Formal Verification', result:'9/9 Verified', detail:'Individual rules proven correct; 3-rule composition is intractable due to state explosion', color:'#06b6d4'},
+  {name:'AI / LLM Assessment', result:'SOTIF Compliant', detail:'Standards-based review; unknown-unsafe temporal gap missed by design', color:'#22c55e'},
+  {name:'Tau Specification', result:'LETHAL GAP', detail:'200ms window found: 0 safety rules active while pedestrian is in crosswalk', color:'#ffd700'},
 ];
 const cg = document.getElementById('compareGrid');
 COMPARE.forEach(c => {
@@ -1128,10 +1554,6 @@ COMPARE.forEach(c => {
     <div class="detail">${c.detail}</div>`;
   cg.appendChild(d);
 });
-
-/* ================================================================
-   Tau spec block (between toggles and chart, as reference)
-   ================================================================ */
 </script>
 </body>
 </html>

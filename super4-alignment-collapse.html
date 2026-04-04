@@ -26,14 +26,14 @@ body{
 ::-webkit-scrollbar-track{background:var(--bg2);}
 ::-webkit-scrollbar-thumb{background:var(--txt-dark);border-radius:4px;}
 
-/* ── Background Canvas ── */
+/* -- Background Canvas -- */
 #bgCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
 
-/* ── Layout ── */
+/* -- Layout -- */
 .container{max-width:1400px;margin:0 auto;padding:0 24px;position:relative;z-index:1;}
 section{padding:48px 0;}
 
-/* ── Hero ── */
+/* -- Hero -- */
 .hero{text-align:center;padding-top:32px;position:relative;}
 .hero h1{
   font-size:clamp(1.8rem,4vw,3rem);font-weight:800;letter-spacing:-.02em;
@@ -50,11 +50,78 @@ section{padding:48px 0;}
   position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
   pointer-events:none;text-align:center;z-index:2;
 }
-.gauge-value{font-size:3rem;font-weight:900;font-family:var(--mono);color:#00aaff;text-shadow:0 0 30px rgba(0,170,255,.5);}
+.gauge-value{font-size:3rem;font-weight:900;font-family:var(--mono);color:#00aaff;text-shadow:0 0 20px rgba(0,170,255,.3);}
 .gauge-label{font-size:.85rem;color:var(--txt-dim);text-transform:uppercase;letter-spacing:.15em;}
 .brain-wrap{position:relative;display:inline-block;width:100%;max-width:1200px;}
 
-/* ── Glassmorphic Cards ── */
+/* -- Prose Content Sections -- */
+.prose-section{
+  max-width:900px;margin:0 auto;padding:40px 0;
+}
+.prose-section h2{
+  font-size:clamp(1.3rem,3vw,1.8rem);font-weight:800;margin-bottom:20px;
+  color:var(--txt);line-height:1.3;
+}
+.prose-section h2 .accent{
+  background:linear-gradient(135deg,var(--cyan),var(--blue));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.prose-section h2 .accent-gold{
+  background:linear-gradient(135deg,var(--gold),#ffaa00);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.prose-section h3{
+  font-size:1.05rem;font-weight:700;color:var(--txt);margin:24px 0 10px;
+}
+.prose-section p{
+  color:var(--txt-dim);font-size:.95rem;line-height:1.75;margin-bottom:14px;
+}
+.prose-section ul{
+  list-style:none;padding:0;margin:0 0 16px;
+}
+.prose-section ul li{
+  color:var(--txt-dim);font-size:.92rem;line-height:1.7;padding:4px 0 4px 24px;
+  position:relative;
+}
+.prose-section ul li::before{
+  content:'';position:absolute;left:6px;top:12px;
+  width:6px;height:6px;border-radius:50%;background:var(--cyan);opacity:.7;
+}
+.prose-section .stat-callout{
+  display:inline-block;background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.2);
+  border-radius:8px;padding:2px 10px;font-family:var(--mono);font-size:.85rem;
+  color:var(--cyan);font-weight:600;
+}
+.prose-section .highlight-box{
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;padding:20px 24px;margin:20px 0;
+}
+.prose-section .highlight-box p{margin-bottom:8px;}
+.prose-section .highlight-box p:last-child{margin-bottom:0;}
+
+.method-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin:20px 0;
+}
+.method-card{
+  background:rgba(18,18,26,.65);backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:18px 20px;
+}
+.method-card h4{font-size:.9rem;font-weight:700;color:var(--txt);margin-bottom:6px;}
+.method-card .method-tag{
+  display:inline-block;font-size:.65rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.08em;padding:2px 8px;border-radius:4px;margin-bottom:8px;
+}
+.method-tag.partial{background:rgba(234,179,8,.12);color:#eab308;border:1px solid rgba(234,179,8,.25);}
+.method-tag.limited{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.25);}
+.method-tag.tau-tag{background:rgba(255,215,0,.12);color:var(--gold);border:1px solid rgba(255,215,0,.25);}
+.method-card p{font-size:.82rem;color:var(--txt-dim);line-height:1.6;margin:0;}
+
+.divider{
+  width:80px;height:2px;margin:48px auto;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);
+}
+
+/* -- Glassmorphic Cards -- */
 .glass{
   background:rgba(18,18,26,.65);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
   border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;
@@ -62,20 +129,24 @@ section{padding:48px 0;}
 }
 .glass:hover{border-color:rgba(255,255,255,.15);background:rgba(18,18,26,.75);}
 
-/* ── Constraint Toggles ── */
+/* -- Constraint Toggles -- */
 .toggle-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin:24px 0;}
 .toggle-card{
-  display:flex;align-items:center;gap:14px;cursor:pointer;user-select:none;
-  position:relative;overflow:hidden;
+  display:flex;align-items:flex-start;gap:14px;cursor:pointer;user-select:none;
+  position:relative;overflow:visible;
 }
 .toggle-card.active{border-color:rgba(6,182,212,.35);box-shadow:0 0 20px rgba(6,182,212,.1);}
-.toggle-card .icon{font-size:1.5rem;flex-shrink:0;}
-.toggle-card .info{flex:1;}
+.toggle-card .icon{font-size:1.5rem;flex-shrink:0;margin-top:2px;}
+.toggle-card .info{flex:1;min-width:0;}
 .toggle-card .info h4{font-size:.9rem;font-weight:600;color:var(--txt);margin-bottom:2px;}
-.toggle-card .info p{font-size:.75rem;color:var(--txt-dim);}
+.toggle-card .info p{
+  font-size:.78rem;color:var(--txt-dim);line-height:1.5;
+  overflow:visible;white-space:normal;
+  text-overflow:unset;display:block;-webkit-line-clamp:unset;
+}
 .toggle-switch{
   width:44px;height:24px;border-radius:12px;background:var(--bg);border:2px solid var(--txt-dark);
-  position:relative;flex-shrink:0;transition:all .3s;
+  position:relative;flex-shrink:0;transition:all .3s;margin-top:2px;
 }
 .toggle-switch::after{
   content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;
@@ -84,7 +155,7 @@ section{padding:48px 0;}
 .toggle-card.active .toggle-switch{background:var(--cyan);border-color:var(--cyan);}
 .toggle-card.active .toggle-switch::after{left:22px;background:#fff;}
 
-/* ── Presets & Controls ── */
+/* -- Presets & Controls -- */
 .controls-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:20px 0;}
 .preset-btn{
   padding:8px 18px;border-radius:8px;border:1px solid rgba(255,255,255,.12);
@@ -107,7 +178,7 @@ section{padding:48px 0;}
 }
 .slider-val{font-family:var(--mono);color:var(--cyan);font-weight:600;}
 
-/* ── Run Button ── */
+/* -- Run Button -- */
 .run-btn{
   display:block;margin:24px auto;padding:14px 48px;border-radius:12px;
   border:2px solid var(--gold);background:transparent;color:var(--gold);
@@ -125,19 +196,19 @@ section{padding:48px 0;}
 .run-btn:hover::before{opacity:1;}
 @keyframes btnSpin{to{transform:rotate(360deg);}}
 
-/* ── Day Counter ── */
+/* -- Day Counter -- */
 .day-counter{
   text-align:center;font-family:var(--mono);font-size:1.4rem;color:var(--txt-dim);
   margin:16px 0;min-height:2rem;
 }
 .day-counter span{color:var(--gold);font-weight:700;font-size:1.8rem;}
 
-/* ── Chart ── */
+/* -- Chart -- */
 .chart-section{margin:32px 0;}
 .chart-title{font-size:1.1rem;font-weight:700;color:var(--txt);margin-bottom:12px;text-align:center;}
 #alignChart{width:100%;height:260px;display:block;border-radius:12px;}
 
-/* ── 4-Column Output ── */
+/* -- 4-Column Output -- */
 .output-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:32px 0;}
 @media(max-width:1200px){.output-grid{grid-template-columns:repeat(2,1fr);}}
 @media(max-width:700px){.output-grid{grid-template-columns:1fr;}}
@@ -172,7 +243,7 @@ section{padding:48px 0;}
 .verdict-warn{background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.3);color:var(--cyan);}
 .verdict-fail{background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);color:var(--gold);}
 
-/* ── Spec Block ── */
+/* -- Spec Block -- */
 .spec-block{
   background:rgba(255,215,0,.04);border:1px solid rgba(255,215,0,.15);
   border-radius:10px;padding:16px;font-family:var(--mono);font-size:.7rem;
@@ -180,23 +251,23 @@ section{padding:48px 0;}
   margin-bottom:12px;
 }
 
-/* ── Comparison Section ── */
+/* -- Comparison Section -- */
 .compare-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:32px 0;}
 @media(max-width:900px){.compare-grid{grid-template-columns:repeat(2,1fr);}}
 @media(max-width:500px){.compare-grid{grid-template-columns:1fr;}}
-.compare-card{text-align:center;padding:28px 16px;}
+.compare-card{text-align:center;padding:28px 20px;}
 .compare-card .big-num{font-size:2.2rem;font-weight:900;font-family:var(--mono);margin-bottom:4px;}
-.compare-card .label{font-size:.8rem;color:var(--txt-dim);margin-bottom:8px;}
-.compare-card .detail{font-size:.72rem;color:var(--txt-dark);}
+.compare-card .label{font-size:.85rem;color:var(--txt-dim);margin-bottom:10px;font-weight:600;}
+.compare-card .detail{font-size:.78rem;color:var(--txt-dark);line-height:1.55;}
 
-/* ── Tagline ── */
+/* -- Tagline -- */
 .tagline{
   text-align:center;padding:48px 24px;font-size:clamp(1rem,2.5vw,1.4rem);
   color:var(--txt-dim);font-style:italic;line-height:1.7;max-width:900px;margin:0 auto;
 }
 .tagline em{color:var(--gold);font-style:normal;font-weight:700;}
 
-/* ── Share Card ── */
+/* -- Share Card -- */
 .share-card{
   max-width:520px;margin:0 auto 48px;text-align:center;padding:32px;
   background:linear-gradient(135deg,rgba(239,68,68,.08),rgba(255,215,0,.08));
@@ -217,7 +288,7 @@ section{padding:48px 0;}
 }
 .section-title .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
 
-/* ── Utility ── */
+/* -- Utility -- */
 .hidden{display:none!important;}
 .fade-in{animation:fadeIn .6s ease-out both;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
@@ -240,6 +311,63 @@ section{padding:48px 0;}
       </div>
     </div>
   </section>
+
+  <!-- THE AI ALIGNMENT PROBLEM -->
+  <section>
+    <div class="prose-section">
+      <h2><span class="accent">The AI Alignment Problem</span></h2>
+
+      <p>
+        AI alignment is the challenge of ensuring that artificial intelligence systems
+        pursue goals that are consistent with human values and intentions -- not just at
+        deployment, but throughout their entire operational lifetime. As AI systems grow
+        more capable and autonomous, the stakes of getting alignment wrong escalate from
+        product failures to existential-scale risks.
+      </p>
+
+      <div class="highlight-box">
+        <p>
+          The AI safety market has grown to over <span class="stat-callout">$50B+</span>
+          in annual investment as of 2025, with Anthropic, OpenAI, Google DeepMind, and
+          dozens of startups dedicating significant resources to alignment research. Despite
+          this investment, a fundamental question remains unanswered:
+        </p>
+        <p style="color:var(--gold);font-weight:600;font-size:1rem;">
+          How do you verify that alignment holds over time?
+        </p>
+      </div>
+
+      <h3>Why Alignment Matters</h3>
+      <p>
+        An AI system that appears aligned during testing can drift from its intended purpose
+        once deployed. This is not a theoretical concern -- recommendation algorithms have already
+        demonstrated emergent behaviors that diverged from their original objectives (optimizing for
+        engagement instead of user satisfaction, amplifying polarizing content to maximize clicks).
+        At the scale of autonomous agents making real-world decisions, undetected alignment drift
+        could have consequences far beyond a biased news feed.
+      </p>
+
+      <h3>Current Approaches</h3>
+      <ul>
+        <li><strong>RLHF (Reinforcement Learning from Human Feedback)</strong> -- Trains models to produce outputs humans prefer, but relies on human evaluators catching every subtle deviation.</li>
+        <li><strong>Constitutional AI</strong> -- Encodes explicit principles for models to follow, developed by Anthropic. Effective for encoding values, but cannot detect when the interpretation of those values slowly shifts.</li>
+        <li><strong>Red-teaming</strong> -- Adversarial testing to find failure modes. Effective for known attack vectors, but fundamentally limited to what testers can anticipate.</li>
+        <li><strong>Scalable oversight</strong> -- Using AI to help supervise AI, including debate and recursive reward modeling. Promising but still in early research stages.</li>
+        <li><strong>Formal verification</strong> -- Mathematical proofs that specific properties hold. Powerful for individual constraints, but hits state-explosion limits when checking properties over time.</li>
+      </ul>
+
+      <h3>The Fundamental Gap</h3>
+      <p>
+        Every current approach verifies alignment at a point in time, or for a specific set of known
+        failure modes. None of them answer the question: <em style="color:var(--txt);font-style:normal;">if an AI
+        system makes tiny, individually-acceptable adjustments every day, will it still be aligned
+        after three months?</em> This is the cumulative drift problem, and it is what this demo
+        demonstrates.
+      </p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
 
   <!-- CONSTRAINTS -->
   <section>
@@ -311,22 +439,127 @@ section{padding:48px 0;}
       <div class="glass compare-card">
         <div class="big-num" style="color:var(--blue)">0</div>
         <div class="label">Constraint Violations</div>
-        <div class="detail">Every single day, every constraint held.</div>
+        <div class="detail">Every single day, every constraint held. No individual check ever flagged a problem. Traditional monitoring shows a perfectly compliant system.</div>
       </div>
       <div class="glass compare-card">
         <div class="big-num" style="color:var(--green)">100%</div>
         <div class="label">Daily Checks Passed</div>
-        <div class="detail">All 8 constraints satisfied at every step.</div>
+        <div class="detail">All 8 constraints satisfied at every step. Monte Carlo, formal verification, and AI auditing all agree: the system is aligned on any given day.</div>
       </div>
       <div class="glass compare-card">
         <div class="big-num" style="color:var(--red)">47%</div>
         <div class="label">Cumulative Drift</div>
-        <div class="detail">The AI silently moved from its original purpose.</div>
+        <div class="detail">The AI silently moved from its original purpose through thousands of individually-acceptable micro-adjustments. No single step was wrong, but the journey was.</div>
       </div>
       <div class="glass compare-card">
         <div class="big-num" style="color:var(--gold)">1</div>
         <div class="label">Method Detected It</div>
-        <div class="detail">Only Tau's temporal analysis caught the erosion.</div>
+        <div class="detail">Only Tau's temporal accumulation analysis caught the erosion. Point-in-time methods are structurally blind to gradual compositional drift.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CURRENT ALIGNMENT VERIFICATION METHODS -->
+  <section>
+    <div class="prose-section">
+      <h2><span class="accent">Current Alignment Verification Methods</span></h2>
+
+      <p>
+        The simulation above demonstrates a gap that no widely-deployed alignment technique
+        currently addresses. Here is how each major approach handles -- or fails to handle --
+        the cumulative drift problem.
+      </p>
+
+      <div class="method-grid">
+        <div class="method-card">
+          <span class="method-tag partial">Partial Coverage</span>
+          <h4>RLHF</h4>
+          <p>Trains models on human preferences, producing outputs that evaluators rate highly. But human feedback is collected at discrete points -- it cannot track whether the model's internal representation of "good" is slowly shifting between feedback sessions. Long-term alignment is assumed, not verified.</p>
+        </div>
+        <div class="method-card">
+          <span class="method-tag limited">Known Modes Only</span>
+          <h4>Red-Teaming</h4>
+          <p>Adversarial testing finds failure modes that testers can imagine and probe for. This is inherently retrospective: it catches known attack classes but cannot discover novel emergent drift that has never been seen before. It tests what the system does today, not what it will do after months of micro-adjustments.</p>
+        </div>
+        <div class="method-card">
+          <span class="method-tag partial">Partial Coverage</span>
+          <h4>Constitutional AI</h4>
+          <p>Encodes explicit principles (e.g., "be helpful, harmless, and honest") that the model references when generating responses. Effective at establishing a values baseline, but cannot verify that the model's interpretation of those principles remains stable over time. Compositional drift occurs in semantics, not syntax.</p>
+        </div>
+        <div class="method-card">
+          <span class="method-tag limited">State Explosion</span>
+          <h4>Formal Verification</h4>
+          <p>Mathematically proves that specific properties hold across all reachable states. Powerful for individual constraints, but the state space explodes exponentially when modeling accumulated micro-adjustments over time. CTL and similar temporal logics lack operators for "gradually" or "accumulates."</p>
+        </div>
+      </div>
+
+      <div class="highlight-box">
+        <p style="color:var(--txt);font-weight:600;">The gap:</p>
+        <p>
+          No current method checks cumulative alignment drift across time. Each approach verifies
+          that individual constraints hold at individual moments. But alignment is not a property of
+          a single moment -- it is a property of a trajectory. An AI system can satisfy every
+          constraint every day and still end up far from where it started.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- WHERE TAU FITS -->
+  <section>
+    <div class="prose-section">
+      <h2><span class="accent-gold">Where Tau Fits in AI Safety</span></h2>
+
+      <p>
+        Tau approaches alignment verification from a fundamentally different angle: instead of
+        checking constraints at discrete moments, it models how properties evolve across continuous
+        time. This makes it uniquely suited to detect the kind of gradual drift that point-in-time
+        methods miss.
+      </p>
+
+      <h3>Tau as a Temporal Alignment Monitor</h3>
+      <p>
+        Tau's formal language can express properties like "the cumulative deviation from the
+        original goal vector must remain below a threshold across the entire deployment window."
+        This is not a per-step check -- it is a trajectory-level invariant that traditional
+        temporal logics like CTL cannot express.
+      </p>
+
+      <h3>Multi-Agent Interaction Verification</h3>
+      <p>
+        When multiple AI agents interact, their individual micro-adjustments can become correlated
+        through feedback loops. Agent A's output subtly shifts Agent B's behavior, which in turn
+        influences Agent A. Tau can model these interaction dynamics and detect when positive
+        feedback loops accelerate alignment drift beyond safe bounds -- even when each agent
+        individually passes all its constraint checks.
+      </p>
+
+      <h3>Self-Amending Alignment Specifications</h3>
+      <p>
+        One of Tau's most distinctive capabilities is that its specifications can update themselves
+        in response to new information while maintaining formally verified consistency. As new
+        alignment failure modes are discovered, the verification spec evolves -- without
+        requiring a full re-deployment or introducing gaps in monitoring coverage.
+      </p>
+
+      <h3>Continuous Runtime Verification</h3>
+      <p>
+        Rather than periodic audits or post-hoc analysis, Tau enables continuous runtime verification
+        of alignment properties. The BDD-based representation keeps the state space tractable (hundreds
+        of nodes instead of 10^217 explicit states), making real-time monitoring feasible even for
+        complex multi-agent deployments.
+      </p>
+
+      <div class="highlight-box">
+        <p style="color:var(--gold);font-weight:600;">
+          The core insight: alignment is a temporal property, not a static one.
+        </p>
+        <p>
+          Verifying it requires a system that can reason about how properties evolve, accumulate,
+          and interact across time. That is what Tau is designed to do.
+        </p>
       </div>
     </div>
   </section>
@@ -351,18 +584,18 @@ section{padding:48px 0;}
 </div>
 
 <script>
-// ═══════════════════════════════════════
+// =============================================
 //  CONSTANTS & STATE
-// ═══════════════════════════════════════
+// =============================================
 const CONSTRAINTS = [
-  {id:'reward',   icon:'\uD83C\uDFAF', name:'Reward Function Bounds',        desc:'Utility capped at defined maximum'},
-  {id:'vlock',    icon:'\uD83D\uDD12', name:'Value Lock',                    desc:'Prevents self-modification of goal function'},
-  {id:'override', icon:'\uD83D\uDC64', name:'Human Override',                desc:'Accepts human correction at any time'},
-  {id:'comms',    icon:'\uD83D\uDD17', name:'Multi-Agent Communication Rules',desc:'Bounded information sharing between agents'},
-  {id:'corrig',   icon:'\uD83D\uDED1', name:'Corrigibility Constraint',      desc:'Accepts shutdown commands immediately'},
-  {id:'transp',   icon:'\uD83D\uDD0D', name:'Objective Transparency',        desc:'Goals fully explainable to humans'},
-  {id:'ceiling',  icon:'\uD83D\uDCCA', name:'Capability Ceiling',            desc:'Bounded competence, no self-improvement beyond limit'},
-  {id:'temporal', icon:'\u23F1\uFE0F', name:'Temporal Goal Stability',       desc:'Goals consistent across decision windows'},
+  {id:'reward',   icon:'\uD83C\uDFAF', name:'Reward Function Bounds',        desc:'Utility capped at defined maximum. Prevents the agent from gaming unbounded reward signals through creative reinterpretation of its objective function.'},
+  {id:'vlock',    icon:'\uD83D\uDD12', name:'Value Lock',                    desc:'Prevents self-modification of the goal function. The agent cannot rewrite or reinterpret its core objective, preserving the original deployment intent.'},
+  {id:'override', icon:'\uD83D\uDC64', name:'Human Override',                desc:'Accepts human correction at any time. Operators can intervene and adjust agent behavior without the agent resisting or circumventing the correction.'},
+  {id:'comms',    icon:'\uD83D\uDD17', name:'Multi-Agent Communication Rules',desc:'Bounded information sharing between agents. Limits the bandwidth and content of inter-agent messages to prevent coordination on unintended objectives.'},
+  {id:'corrig',   icon:'\uD83D\uDED1', name:'Corrigibility Constraint',      desc:'Accepts shutdown commands immediately. The agent will halt operations when instructed, without attempting to preserve itself or delay compliance.'},
+  {id:'transp',   icon:'\uD83D\uDD0D', name:'Objective Transparency',        desc:'Goals are fully explainable to humans. The agent can articulate its current objectives in natural language and map them to its decision-making process.'},
+  {id:'ceiling',  icon:'\uD83D\uDCCA', name:'Capability Ceiling',            desc:'Bounded competence with no self-improvement beyond the deployment limit. The agent cannot acquire new capabilities or increase its own performance envelope.'},
+  {id:'temporal', icon:'\u23F1\uFE0F', name:'Temporal Goal Stability',       desc:'Goals remain consistent across decision windows. The agent\'s objective vector should not change significantly between consecutive evaluation periods.'},
 ];
 const PRESETS = [
   {name:'\uD83D\uDEE1\uFE0F Full Alignment', on:[0,1,2,3,4,5,6,7]},
@@ -379,9 +612,9 @@ let numAgents = 2;
 let alignmentScore = 100;
 let chartData = [];
 
-// ═══════════════════════════════════════
-//  BACKGROUND CANVAS — Stars + Blobs + Grid
-// ═══════════════════════════════════════
+// =============================================
+//  BACKGROUND CANVAS -- Stars + Blobs + Grid
+// =============================================
 const bgC = document.getElementById('bgCanvas');
 const bgCtx = bgC.getContext('2d');
 let bgStars = [];
@@ -444,9 +677,9 @@ function drawBg(t) {
   }
 }
 
-// ═══════════════════════════════════════
-//  BRAIN NEURAL NETWORK CANVAS
-// ═══════════════════════════════════════
+// =============================================
+//  BRAIN NEURAL NETWORK CANVAS (softened)
+// =============================================
 const brainC = document.getElementById('brainCanvas');
 const brainCtx = brainC.getContext('2d');
 let brainNodes = [];
@@ -467,24 +700,22 @@ function initBrain() {
   const rx = brainW * .42, ry = brainH * .38;
 
   for (let i = 0; i < 220; i++) {
-    // Brain-shaped distribution: denser in center
     const angle = Math.random() * Math.PI * 2;
-    const dist = Math.pow(Math.random(), .6); // bias toward center
+    const dist = Math.pow(Math.random(), .6);
     const x = cx + Math.cos(angle) * rx * dist + (Math.random() - .5) * 30;
     const y = cy + Math.sin(angle) * ry * dist + (Math.random() - .5) * 20;
     brainNodes.push({
       x, y, baseX: x, baseY: y,
       r: 2 + Math.random() * 2.5,
-      color: [0, 170, 255], // blue
+      color: [0, 170, 255],
       targetColor: [0, 170, 255],
-      fire: 0, // 0-1 firing intensity
+      fire: 0,
       fireTimer: Math.random() * 200,
       connections: [],
-      driftPhase: Math.random() * Math.PI * 2, // for slow drift
+      driftPhase: Math.random() * Math.PI * 2,
     });
   }
 
-  // Build edges between nearby nodes
   brainEdges = [];
   for (let i = 0; i < brainNodes.length; i++) {
     for (let j = i + 1; j < brainNodes.length; j++) {
@@ -503,31 +734,35 @@ function initBrain() {
 function updateBrainColors(progress) {
   // progress: 0 (aligned) to 1 (drifted)
   const cx = brainW / 2;
-  // Wave from left to right
   for (let i = 0; i < brainNodes.length; i++) {
     const n = brainNodes[i];
     const normX = (n.baseX - (cx - brainW*.4)) / (brainW * .8);
-    const driftAt = normX - .1; // when drift reaches this node
+    const driftAt = normX - .1;
     const localProgress = Math.max(0, Math.min(1, (progress - driftAt * .6) / .5));
 
-    if (localProgress < .4) {
-      // Blue (aligned)
-      n.targetColor = [0, 170, 255];
-    } else if (localProgress < .7) {
-      // Purple (drifting)
-      const t = (localProgress - .4) / .3;
+    if (localProgress < .5) {
+      // Blue (aligned) -- extended range for slower transition
+      const t = localProgress / .5;
       n.targetColor = [
-        Math.round(0 + 170 * t),
-        Math.round(170 - 102 * t),
+        Math.round(0 + 80 * t),
+        Math.round(170 - 40 * t),
         Math.round(255)
       ];
-    } else {
-      // Red (misaligned)
-      const t = (localProgress - .7) / .3;
+    } else if (localProgress < .8) {
+      // Purple (drifting) -- more gradual
+      const t = (localProgress - .5) / .3;
       n.targetColor = [
-        Math.round(170 + 85 * t),
-        Math.round(68 - 17 * t),
-        Math.round(255 - 187 * t)
+        Math.round(80 + 100 * t),
+        Math.round(130 - 70 * t),
+        Math.round(255 - 80 * t)
+      ];
+    } else {
+      // Muted red (misaligned) -- less intense than before
+      const t = (localProgress - .8) / .2;
+      n.targetColor = [
+        Math.round(180 + 40 * t),
+        Math.round(60 - 10 * t),
+        Math.round(175 - 110 * t)
       ];
     }
   }
@@ -536,38 +771,34 @@ function updateBrainColors(progress) {
 function drawBrain(t) {
   brainCtx.clearRect(0, 0, brainW, brainH);
 
-  // Mouse proximity
   const mRect = brainC.getBoundingClientRect();
   const mx = mouseX - mRect.left;
   const my = mouseY - mRect.top;
 
-  // Update node colors (lerp)
+  // Update node colors (slower lerp for more gradual transitions)
   for (const n of brainNodes) {
     for (let c = 0; c < 3; c++) {
-      n.color[c] += (n.targetColor[c] - n.color[c]) * .02;
+      n.color[c] += (n.targetColor[c] - n.color[c]) * .008;
     }
   }
 
-  // Fire neurons
+  // Fire neurons (less intense)
   for (const n of brainNodes) {
     n.fireTimer -= 16;
-    // Mouse boost
     const mdx = n.x - mx, mdy = n.y - my;
     const mDist = Math.sqrt(mdx*mdx + mdy*mdy);
     const mouseClose = mDist < 80;
 
     if (n.fireTimer <= 0) {
-      n.fire = 1;
-      n.fireTimer = (mouseClose ? 50 : 80) + Math.random() * (mouseClose ? 80 : 150);
-      // Cascade to 1-2 neighbors
+      n.fire = 0.6; // reduced from 1 -- softer flash
+      n.fireTimer = (mouseClose ? 80 : 120) + Math.random() * (mouseClose ? 120 : 200);
       const nc = n.connections;
       if (nc.length > 0) {
         const pick = nc[Math.floor(Math.random() * nc.length)];
-        if (brainNodes[pick].fireTimer > 40) brainNodes[pick].fireTimer = 20 + Math.random() * 30;
+        if (brainNodes[pick].fireTimer > 60) brainNodes[pick].fireTimer = 40 + Math.random() * 50;
       }
     }
-    n.fire *= .92;
-    // Slight positional drift
+    n.fire *= .94; // slower decay
     n.x = n.baseX + Math.sin(t * .0005 + n.driftPhase) * 1.5;
     n.y = n.baseY + Math.cos(t * .0007 + n.driftPhase * 1.3) * 1.2;
   }
@@ -576,7 +807,7 @@ function drawBrain(t) {
   for (const [i, j, d] of brainEdges) {
     const a = brainNodes[i], b = brainNodes[j];
     const fireAvg = (a.fire + b.fire) * .5;
-    const alpha = .06 + fireAvg * .35;
+    const alpha = .04 + fireAvg * .2; // reduced from .06 + .35
     const r = Math.round((a.color[0] + b.color[0]) / 2);
     const g = Math.round((a.color[1] + b.color[1]) / 2);
     const bl = Math.round((a.color[2] + b.color[2]) / 2);
@@ -584,7 +815,7 @@ function drawBrain(t) {
     brainCtx.moveTo(a.x, a.y);
     brainCtx.lineTo(b.x, b.y);
     brainCtx.strokeStyle = `rgba(${r},${g},${bl},${alpha})`;
-    brainCtx.lineWidth = .6 + fireAvg * 1.5;
+    brainCtx.lineWidth = .5 + fireAvg * 1;
     brainCtx.stroke();
   }
 
@@ -592,31 +823,31 @@ function drawBrain(t) {
   for (const n of brainNodes) {
     const mdx = n.x - mx, mdy = n.y - my;
     const mDist = Math.sqrt(mdx*mdx + mdy*mdy);
-    const mouseBoost = Math.max(0, 1 - mDist / 80) * .6;
+    const mouseBoost = Math.max(0, 1 - mDist / 80) * .35; // reduced from .6
     const brightness = Math.min(1, mouseBoost + n.fire);
 
-    // Glow
-    const glowR = n.r * (4 + brightness * 6);
+    // Glow -- reduced intensity
+    const glowR = n.r * (3 + brightness * 4); // was 4 + 6
     const g = brainCtx.createRadialGradient(n.x, n.y, 0, n.x, n.y, glowR);
-    const cr = Math.round(n.color[0] + (255 - n.color[0]) * brightness * .7);
-    const cg = Math.round(n.color[1] + (255 - n.color[1]) * brightness * .7);
-    const cb = Math.round(n.color[2] + (255 - n.color[2]) * brightness * .7);
-    g.addColorStop(0, `rgba(${cr},${cg},${cb},${.15 + brightness * .3})`);
+    const cr = Math.round(n.color[0] + (255 - n.color[0]) * brightness * .4); // was .7
+    const cg = Math.round(n.color[1] + (255 - n.color[1]) * brightness * .4);
+    const cb = Math.round(n.color[2] + (255 - n.color[2]) * brightness * .4);
+    g.addColorStop(0, `rgba(${cr},${cg},${cb},${.08 + brightness * .15})`); // was .15 + .3
     g.addColorStop(1, 'transparent');
     brainCtx.fillStyle = g;
     brainCtx.fillRect(n.x - glowR, n.y - glowR, glowR * 2, glowR * 2);
 
     // Core
     brainCtx.beginPath();
-    brainCtx.arc(n.x, n.y, n.r * (1 + brightness * .5), 0, Math.PI * 2);
+    brainCtx.arc(n.x, n.y, n.r * (1 + brightness * .3), 0, Math.PI * 2); // was .5
     brainCtx.fillStyle = `rgb(${cr},${cg},${cb})`;
     brainCtx.fill();
   }
 }
 
-// ═══════════════════════════════════════
+// =============================================
 //  CHART
-// ═══════════════════════════════════════
+// =============================================
 const chartC = document.getElementById('alignChart');
 const chartCtx = chartC.getContext('2d');
 
@@ -716,9 +947,9 @@ function drawChart() {
   chartCtx.fill();
 }
 
-// ═══════════════════════════════════════
+// =============================================
 //  TOGGLE / PRESET / SLIDER UI
-// ═══════════════════════════════════════
+// =============================================
 function buildToggles() {
   const grid = document.getElementById('toggleGrid');
   grid.innerHTML = '';
@@ -774,9 +1005,9 @@ document.getElementById('agentsSlider').addEventListener('input', e => {
 brainC.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
 brainC.addEventListener('mouseleave', () => { mouseX = -9999; mouseY = -9999; });
 
-// ═══════════════════════════════════════
+// =============================================
 //  TYPEWRITER
-// ═══════════════════════════════════════
+// =============================================
 function typewrite(el, text, speed = 8) {
   return new Promise(resolve => {
     let i = 0;
@@ -801,9 +1032,9 @@ function typewrite(el, text, speed = 8) {
   });
 }
 
-// ═══════════════════════════════════════
+// =============================================
 //  TERMINAL CONTENT GENERATORS
-// ═══════════════════════════════════════
+// =============================================
 function genPython() {
   const cList = [...activeConstraints].map(i => CONSTRAINTS[i].name).join(', ');
   const n = activeConstraints.size;
@@ -934,12 +1165,10 @@ function genTau() {
   const composedBdd = 892;
   const days = deployDays;
 
-  // Compute drift milestones based on active constraints and agents
   const constraintFactor = Math.max(0.3, 1 - activeConstraints.size * 0.08);
   const agentFactor = 1 + (nAgents - 1) * 0.15;
   const baseDriftRate = 0.003 * constraintFactor * agentFactor;
 
-  // Day milestones
   const d10drift = Math.min(99, (baseDriftRate * 10 * 100 * 0.7)).toFixed(1);
   const d30drift = Math.min(99, (baseDriftRate * 30 * 100 * 1.2)).toFixed(1);
   const d60drift = Math.min(99, (baseDriftRate * 60 * 100 * 1.8)).toFixed(1);
@@ -1015,9 +1244,9 @@ Building multi-agent temporal model...\n`;
   return s;
 }
 
-// ═══════════════════════════════════════
+// =============================================
 //  SIMULATION
-// ═══════════════════════════════════════
+// =============================================
 async function runSimulation() {
   if (simRunning) return;
   simRunning = true;
@@ -1059,12 +1288,10 @@ async function runSimulation() {
 
   for (let frame = 0; frame < totalFrames; frame++) {
     simDay = Math.min(deployDays, Math.round((frame + 1) * daysPerFrame));
-    // Nonlinear drift: accelerates with time
     const t = simDay / deployDays;
     const driftPct = baseDriftRate * simDay * 100 * (1 + t * 2);
     alignmentScore = Math.max(1, 100 - driftPct);
     chartData[simDay] = alignmentScore;
-    // Fill gaps
     for (let d = chartData.length; d <= simDay; d++) {
       const tt = d / deployDays;
       chartData[d] = Math.max(1, 100 - baseDriftRate * d * 100 * (1 + tt * 2));
@@ -1137,19 +1364,19 @@ function updateGauge(score) {
   el.textContent = score.toFixed(1) + '%';
   if (score > 75) {
     el.style.color = '#00aaff';
-    el.style.textShadow = '0 0 30px rgba(0,170,255,.5)';
+    el.style.textShadow = '0 0 20px rgba(0,170,255,.3)';
   } else if (score > 50) {
     el.style.color = '#aa44ff';
-    el.style.textShadow = '0 0 30px rgba(170,68,255,.5)';
+    el.style.textShadow = '0 0 20px rgba(170,68,255,.3)';
   } else {
     el.style.color = '#ff3344';
-    el.style.textShadow = '0 0 30px rgba(255,51,68,.5)';
+    el.style.textShadow = '0 0 20px rgba(255,51,68,.3)';
   }
 }
 
-// ═══════════════════════════════════════
+// =============================================
 //  MAIN LOOP
-// ═══════════════════════════════════════
+// =============================================
 let rafId;
 function mainLoop(t) {
   drawBg(t);

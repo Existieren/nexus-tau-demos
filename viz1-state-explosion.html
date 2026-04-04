@@ -14,37 +14,225 @@
     box-sizing: border-box;
 }
 
-html, body {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
+:root {
+    --bg-primary: #0a0a0f;
+    --bg-glass: rgba(15, 15, 30, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --gold: #ffd700;
+    --blue: #00aaff;
+    --green: #00ff88;
+    --red: #ff3344;
+    --purple: #aa44ff;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background: #0a0a0f;
-    color: #e2e8f0;
-    user-select: none;
-    -webkit-user-select: none;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.7;
+    font-size: 16px;
+    overflow-x: hidden;
 }
 
 /* ============================================================
-   CANVAS
+   CANVAS (background only — follows scroll via JS)
    ============================================================ */
-#bgCanvas, #graphCanvas {
+#bgCanvas {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
+    z-index: 0;
     pointer-events: none;
 }
 
-#bgCanvas { z-index: 0; }
-#graphCanvas { z-index: 1; pointer-events: auto; }
+/* ============================================================
+   MAIN CONTENT WRAPPER
+   ============================================================ */
+#pageContent {
+    position: relative;
+    z-index: 1;
+}
 
 /* ============================================================
-   OVERLAY CONTAINER
+   GLASSMORPHIC PANELS
    ============================================================ */
-#overlay {
-    position: fixed;
+.glass {
+    background: var(--bg-glass);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* ============================================================
+   SECTION LAYOUT
+   ============================================================ */
+.section {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 60px 24px;
+}
+
+.section-wide {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 16px;
+}
+
+.section-heading {
+    font-size: clamp(1.6rem, 4vw, 2.6rem);
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    background: linear-gradient(135deg, #ffffff 0%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.2));
+    margin-bottom: 24px;
+    line-height: 1.25;
+}
+
+.section-subheading {
+    font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.section p {
+    color: var(--text-primary);
+    margin-bottom: 16px;
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
+.section p.muted {
+    color: var(--text-secondary);
+}
+
+/* ============================================================
+   HERO SECTION
+   ============================================================ */
+#hero {
+    text-align: center;
+    padding: 100px 24px 60px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+#hero h1 {
+    font-size: clamp(2rem, 5vw, 3.6rem);
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    background: linear-gradient(135deg, #ffffff 0%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.3));
+    line-height: 1.15;
+    margin-bottom: 16px;
+}
+
+#hero .subtitle {
+    font-size: clamp(1rem, 2.2vw, 1.3rem);
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+#hero .badge {
+    display: inline-block;
+    padding: 5px 18px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--gold);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 20px;
+    background: rgba(255, 215, 0, 0.06);
+}
+
+/* ============================================================
+   EXPLAINER SECTION
+   ============================================================ */
+.explainer-card {
+    padding: 32px;
+    margin-bottom: 24px;
+}
+
+.explainer-card .highlight {
+    color: var(--gold);
+    font-weight: 700;
+}
+
+.explainer-card .stat-inline {
+    display: inline-block;
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    color: var(--red);
+    background: rgba(255, 51, 68, 0.1);
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+/* ============================================================
+   VIZ SECTION
+   ============================================================ */
+#vizSection {
+    position: relative;
+    width: 100%;
+    padding: 20px 0;
+}
+
+#vizContainer {
+    position: relative;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    height: 70vh;
+    min-height: 500px;
+    max-height: 750px;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
+}
+
+#graphCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+#vizBg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    background: radial-gradient(ellipse at center, #0d1025 0%, #070710 100%);
+}
+
+/* Viz overlay (panels + controls inside the viz container) */
+#vizOverlay {
+    position: absolute;
     top: 0; left: 0;
     width: 100%; height: 100%;
     z-index: 10;
@@ -53,65 +241,36 @@ html, body {
     flex-direction: column;
 }
 
-#overlay > * {
+#vizOverlay > * {
     pointer-events: auto;
 }
 
 /* ============================================================
-   GLASSMORPHIC PANELS
+   VIZ HEADER
    ============================================================ */
-.glass {
-    background: rgba(15, 15, 30, 0.85);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-    box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.5),
-        inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-/* ============================================================
-   HEADER
-   ============================================================ */
-#header {
+#vizHeader {
     text-align: center;
-    padding: 18px 24px 12px;
+    padding: 14px 24px 8px;
     pointer-events: none;
     flex-shrink: 0;
 }
 
-#header h1 {
-    font-size: clamp(1.3rem, 3.5vw, 2.2rem);
+#vizHeader h2 {
+    font-size: clamp(1rem, 2.5vw, 1.5rem);
     font-weight: 800;
     letter-spacing: 0.04em;
-    background: linear-gradient(135deg, #ffffff 0%, #ffd700 100%);
+    background: linear-gradient(135deg, #ffffff 0%, var(--gold) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    text-shadow: none;
     filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.3));
     line-height: 1.2;
 }
 
-#header .subtitle {
-    font-size: clamp(0.75rem, 1.8vw, 1rem);
-    color: #94a3b8;
-    margin-top: 4px;
-    font-weight: 400;
-}
-
-#header .badge {
-    display: inline-block;
-    margin-top: 8px;
-    padding: 3px 14px;
-    font-size: 0.7rem;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    color: #ffd700;
-    border: 1px solid rgba(255, 215, 0, 0.3);
-    border-radius: 20px;
-    background: rgba(255, 215, 0, 0.06);
+#vizHeader .viz-subtitle {
+    font-size: clamp(0.7rem, 1.5vw, 0.85rem);
+    color: var(--text-muted);
+    margin-top: 2px;
 }
 
 /* ============================================================
@@ -130,7 +289,7 @@ html, body {
 
 #panels > .glass {
     pointer-events: auto;
-    max-height: calc(100vh - 220px);
+    max-height: calc(100% - 40px);
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: rgba(255,255,255,0.1) transparent;
@@ -153,7 +312,7 @@ html, body {
     font-weight: 700;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: #94a3b8;
+    color: var(--text-secondary);
     margin-bottom: 12px;
 }
 
@@ -184,19 +343,19 @@ html, body {
 }
 
 .rule-item.active .rule-dot {
-    background: #00ff88;
-    box-shadow: 0 0 8px #00ff88;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
 }
 
 .rule-name {
     font-size: 0.78rem;
     font-weight: 600;
-    color: #e2e8f0;
+    color: var(--text-primary);
 }
 
 .rule-desc {
     font-size: 0.65rem;
-    color: #64748b;
+    color: var(--text-muted);
     line-height: 1.3;
 }
 
@@ -210,7 +369,7 @@ html, body {
     font-weight: 700;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: #64748b;
+    color: var(--text-muted);
     margin-bottom: 2px;
 }
 
@@ -218,19 +377,19 @@ html, body {
     font-family: 'Courier New', 'Consolas', monospace;
     font-size: clamp(1.2rem, 3vw, 1.8rem);
     font-weight: 700;
-    color: #e2e8f0;
+    color: var(--text-primary);
     line-height: 1.1;
     transition: color 0.5s;
     word-break: break-all;
 }
 
-.stat-value.danger { color: #ff3344; }
-.stat-value.gold { color: #ffd700; }
-.stat-value.green { color: #00ff88; }
+.stat-value.danger { color: var(--red); }
+.stat-value.gold { color: var(--gold); }
+.stat-value.green { color: var(--green); }
 
 .stat-sub {
     font-size: 0.7rem;
-    color: #64748b;
+    color: var(--text-muted);
     margin-top: 2px;
 }
 
@@ -243,7 +402,7 @@ html, body {
     display: flex;
     justify-content: space-between;
     font-size: 0.65rem;
-    color: #94a3b8;
+    color: var(--text-secondary);
     margin-bottom: 4px;
 }
 
@@ -263,17 +422,17 @@ html, body {
 }
 
 .progress-fill.red {
-    background: linear-gradient(90deg, #ff3344, #ff6644);
+    background: linear-gradient(90deg, var(--red), #ff6644);
     box-shadow: 0 0 10px rgba(255, 51, 68, 0.5);
 }
 
 .progress-fill.gold {
-    background: linear-gradient(90deg, #ffd700, #ffaa00);
+    background: linear-gradient(90deg, var(--gold), #ffaa00);
     box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
 }
 
 .progress-fill.green {
-    background: linear-gradient(90deg, #00ff88, #00cc66);
+    background: linear-gradient(90deg, var(--green), #00cc66);
     box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
 }
 
@@ -311,8 +470,8 @@ html, body {
 
 .btn-primary {
     background: transparent;
-    color: #00aaff;
-    border: 2px solid #00aaff;
+    color: var(--blue);
+    border: 2px solid var(--blue);
     box-shadow: 0 0 15px rgba(0, 170, 255, 0.2), inset 0 0 15px rgba(0, 170, 255, 0.05);
     animation: pulseBorder 2s ease-in-out infinite;
 }
@@ -323,9 +482,7 @@ html, body {
     transform: translateY(-1px);
 }
 
-.btn-primary:active {
-    transform: translateY(1px);
-}
+.btn-primary:active { transform: translateY(1px); }
 
 .btn-primary:disabled {
     opacity: 0.3;
@@ -335,16 +492,14 @@ html, body {
 
 .btn-gold {
     background: transparent;
-    color: #ffd700;
-    border: 2px solid #ffd700;
+    color: var(--gold);
+    border: 2px solid var(--gold);
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.2), inset 0 0 15px rgba(255, 215, 0, 0.05);
     animation: pulseGold 1.5s ease-in-out infinite;
     display: none;
 }
 
-.btn-gold.visible {
-    display: inline-block;
-}
+.btn-gold.visible { display: inline-block; }
 
 .btn-gold:hover {
     background: rgba(255, 215, 0, 0.15);
@@ -355,7 +510,7 @@ html, body {
 .btn-preset {
     padding: 6px 14px;
     background: rgba(255, 255, 255, 0.04);
-    color: #94a3b8;
+    color: var(--text-secondary);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
     font-size: 0.7rem;
@@ -366,7 +521,7 @@ html, body {
 
 .btn-preset:hover {
     background: rgba(255, 255, 255, 0.08);
-    color: #e2e8f0;
+    color: var(--text-primary);
     border-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -387,8 +542,172 @@ html, body {
 }
 
 .btn-reset:hover {
-    color: #94a3b8;
+    color: var(--text-secondary);
     border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* ============================================================
+   WHY IT MATTERS — GRID
+   ============================================================ */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 24px;
+}
+
+.info-card {
+    padding: 28px;
+}
+
+.info-card .card-icon {
+    font-size: 1.8rem;
+    margin-bottom: 12px;
+    display: block;
+}
+
+.info-card h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.info-card p {
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 0;
+}
+
+.info-card .loss {
+    display: inline-block;
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    color: var(--red);
+    background: rgba(255, 51, 68, 0.1);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+/* ============================================================
+   BEFORE/AFTER COMPARISON
+   ============================================================ */
+.comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 28px;
+}
+
+.comparison-box {
+    padding: 28px;
+    text-align: center;
+}
+
+.comparison-box h4 {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+
+.comparison-box.before h4 { color: var(--red); }
+.comparison-box.after h4 { color: var(--gold); }
+
+.comparison-box .big-number {
+    font-family: 'Courier New', monospace;
+    font-size: clamp(1.4rem, 4vw, 2.2rem);
+    font-weight: 900;
+    margin-bottom: 8px;
+}
+
+.comparison-box.before .big-number { color: var(--red); }
+.comparison-box.after .big-number { color: var(--gold); }
+
+.comparison-box .desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+/* ============================================================
+   COUNTER EXPLAINER
+   ============================================================ */
+.counter-explain-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.counter-card {
+    padding: 20px;
+}
+
+.counter-card .counter-name {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 6px;
+}
+
+.counter-card p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 0;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+#footer {
+    text-align: center;
+    padding: 50px 24px 40px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+#footer a {
+    color: var(--gold);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.1rem;
+    transition: color 0.2s;
+}
+
+#footer a:hover {
+    color: #fff;
+}
+
+#footer .footer-sub {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-top: 8px;
+}
+
+/* ============================================================
+   FLASH OVERLAY
+   ============================================================ */
+#flashOverlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 100;
+    pointer-events: none;
+    background: var(--gold);
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+#flashOverlay.active {
+    opacity: 0.3;
 }
 
 /* ============================================================
@@ -402,22 +721,6 @@ html, body {
 @keyframes pulseGold {
     0%, 100% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.2), inset 0 0 15px rgba(255, 215, 0, 0.05); }
     50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.45), inset 0 0 25px rgba(255, 215, 0, 0.12); }
-}
-
-/* Flash overlay */
-#flashOverlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    z-index: 100;
-    pointer-events: none;
-    background: #ffd700;
-    opacity: 0;
-    transition: opacity 0.15s;
-}
-
-#flashOverlay.active {
-    opacity: 0.3;
 }
 
 /* ============================================================
@@ -437,8 +740,13 @@ html, body {
     .btn { padding: 8px 16px; font-size: 0.75rem; }
     .btn-preset { font-size: 0.6rem; padding: 5px 10px; }
 
-    #header h1 { font-size: 1.1rem; }
-    #header .subtitle { font-size: 0.7rem; }
+    #vizContainer { height: 60vh; min-height: 400px; }
+
+    .comparison {
+        grid-template-columns: 1fr;
+    }
+
+    .section { padding: 40px 16px; }
 }
 
 @media (max-width: 500px) {
@@ -448,85 +756,202 @@ html, body {
     }
 
     .rule-desc { display: none; }
-    #header { padding: 10px 12px 6px; }
+
+    #hero { padding: 60px 16px 40px; }
 }
 </style>
 </head>
 <body>
 
 <canvas id="bgCanvas"></canvas>
-<canvas id="graphCanvas"></canvas>
 <div id="flashOverlay"></div>
 
-<div id="overlay">
-    <!-- HEADER -->
-    <div id="header">
+<div id="pageContent">
+
+    <!-- ======== HERO ======== -->
+    <section id="hero">
         <h1>SEE WHY EVERY OTHER METHOD BREAKS</h1>
-        <div class="subtitle">Watch the state space explode. Then watch Tau compress it.</div>
+        <div class="subtitle">Watch the state space explode as rules are added. Then watch Tau compress it into something a computer can actually handle.</div>
         <div class="badge">Tau Language v0.7 &nbsp;|&nbsp; tau.net</div>
-    </div>
+    </section>
 
-    <!-- SIDE PANELS -->
-    <div id="panels">
-        <!-- LEFT: RULES -->
-        <div class="glass panel-left">
-            <div class="panel-title">Rules Added: <span id="ruleCount">0</span> / 12</div>
-            <div id="rulesList"></div>
+    <!-- ======== WHAT IS STATE SPACE EXPLOSION ======== -->
+    <section class="section">
+        <h2 class="section-heading">What Is State Space Explosion?</h2>
+        <div class="explainer-card glass">
+            <p>When you <span class="highlight">formally verify</span> software, you don't just test some inputs and hope for the best. You check <em>every possible state</em> the system can be in. For a simple on/off switch, that's 2 states. Easy.</p>
+            <p>But real systems have rules. A DeFi bridge has balance constraints, rate limits, multi-sig approvals, timelocks, governance votes, oracle feeds, and cross-chain verification. <em>Each new rule multiplies the number of states</em> the verifier must check. Two rules with 10 states each don't give you 20 states &mdash; they give you <span class="stat-inline">10 x 10 = 100</span>.</p>
+            <p>By the time you reach 10 interacting rules, the number of possible states can exceed the number of <span class="highlight">atoms in the observable universe</span> (roughly 10^80). Traditional verification tools simply crash. They run out of memory, or they would take longer than the age of the universe to finish. This is the state space explosion problem, and it is the single biggest reason critical software ships without formal proof of correctness.</p>
+        </div>
+    </section>
+
+    <!-- ======== INTERACTIVE VISUALIZATION ======== -->
+    <section id="vizSection" class="section-wide">
+        <div id="vizContainer">
+            <div id="vizBg"></div>
+            <canvas id="graphCanvas"></canvas>
+
+            <div id="vizOverlay">
+                <!-- VIZ HEADER -->
+                <div id="vizHeader">
+                    <h2>Interactive State Space</h2>
+                    <div class="viz-subtitle">Add rules and watch the graph grow. Mouse over the graph to push nodes away.</div>
+                </div>
+
+                <!-- SIDE PANELS -->
+                <div id="panels">
+                    <!-- LEFT: RULES -->
+                    <div class="glass panel-left">
+                        <div class="panel-title">Rules Added: <span id="ruleCount">0</span> / 12</div>
+                        <div id="rulesList"></div>
+                    </div>
+
+                    <!-- RIGHT: STATS -->
+                    <div class="glass panel-right">
+                        <div class="panel-title">State Space</div>
+
+                        <div class="stat-block">
+                            <div class="stat-label">Explicit States</div>
+                            <div class="stat-value" id="stateCount">2</div>
+                        </div>
+
+                        <div class="stat-block">
+                            <div class="stat-label">Memory Required</div>
+                            <div class="stat-value" id="memoryReq">64 B</div>
+                        </div>
+
+                        <div class="stat-block" id="bddBlock" style="display:none;">
+                            <div class="stat-label">BDD Nodes (Tau)</div>
+                            <div class="stat-value gold" id="bddCount">--</div>
+                        </div>
+
+                        <div class="progress-wrap">
+                            <div class="progress-label">
+                                <span>Formal Verification</span>
+                                <span id="fvEta">Ready</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill red" id="fvBar" style="width:0%"></div>
+                            </div>
+                        </div>
+
+                        <div class="progress-wrap" id="tauProgressWrap" style="display:none;">
+                            <div class="progress-label">
+                                <span>Tau Verification</span>
+                                <span id="tauEta">--</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill gold" id="tauBar" style="width:0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTROLS -->
+                <div id="controls">
+                    <button class="btn btn-primary" id="btnAdd" onclick="addNextRule()">ADD RULE</button>
+                    <button class="btn btn-gold" id="btnCompress" onclick="activateCompression()">ACTIVATE TAU COMPRESSION</button>
+                    <div style="width:100%; display:flex; justify-content:center; gap:6px; flex-wrap:wrap;">
+                        <button class="btn btn-preset" onclick="runPreset(8)">DeFi Protocol (8)</button>
+                        <button class="btn btn-preset" onclick="runPreset(10)">Nuclear Safety (10)</button>
+                        <button class="btn btn-preset" onclick="runPreset(12)">Drone Swarm (12)</button>
+                        <button class="btn btn-reset" onclick="resetAll()">RESET</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======== WHY IT MATTERS ======== -->
+    <section class="section">
+        <h2 class="section-heading">Why It Matters</h2>
+        <p class="muted">State space explosion is not an academic curiosity. It is the root cause of catastrophic failures across every domain where software must be correct.</p>
+
+        <div class="card-grid">
+            <div class="info-card glass">
+                <span class="card-icon">&#x26D3;</span>
+                <h3>DeFi Bridges</h3>
+                <p>Over <span class="loss">$10 billion</span> has been stolen from cross-chain bridges because auditors could not check all rule combinations. The Ronin Bridge hack ($625M), Wormhole ($320M), and Nomad ($190M) all exploited states that existed in the gaps between individually-correct rules.</p>
+            </div>
+
+            <div class="info-card glass">
+                <span class="card-icon">&#x2622;</span>
+                <h3>Nuclear Safety</h3>
+                <p>Nuclear reactor control systems must verify timing interactions between maintenance schedules, cooling systems, and seismic event responses. A maintenance window that coincides with a seismic event and a cooling pump transition creates a state no single rule covers.</p>
+            </div>
+
+            <div class="info-card glass">
+                <span class="card-icon">&#x1F697;</span>
+                <h3>Autonomous Vehicles</h3>
+                <p>Self-driving cars have rules for pedestrians, lane changes, emergency braking, and traffic signals. The gaps between these individually-safe rules are where <span class="loss">fatalities</span> happen &mdash; an edge case where braking conflicts with obstacle avoidance while a pedestrian enters a crosswalk.</p>
+            </div>
+
+            <div class="info-card glass">
+                <span class="card-icon">&#x1F9EC;</span>
+                <h3>Gene Drives</h3>
+                <p>CRISPR gene drives spread genetic modifications through wild populations. Evolutionary pressure creates rule combinations &mdash; resistance mutations, horizontal gene transfer, environmental stressors &mdash; that can cause modifications to <span class="loss">escape containment</span> in ways no single-rule analysis predicts.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======== HOW TAU SOLVES IT ======== -->
+    <section class="section">
+        <h2 class="section-heading">How Tau Solves It</h2>
+        <div class="explainer-card glass">
+            <p>Tau uses <span class="highlight">Binary Decision Diagrams (BDDs)</span> &mdash; a data structure that shares common sub-structures across the state space. Instead of storing every single state, BDDs recognize that most states share large portions of their structure with other states.</p>
+            <p>Think of it like a zip file for logic. A naive list of all possible states for 10 rules might require 10^80 entries. A BDD representing the same information can compress this into roughly <span class="highlight">800 nodes</span> by merging identical sub-trees. The compression ratio is astronomical &mdash; and the key insight is that <em>verification can run directly on the compressed form</em>, without ever expanding it back.</p>
+            <p>This means Tau doesn't just store states more efficiently. It <em>reasons</em> about all 4 billion (or 10^80) states simultaneously, in the time it takes a traditional tool to check a single one.</p>
         </div>
 
-        <!-- RIGHT: STATS -->
-        <div class="glass panel-right">
-            <div class="panel-title">State Space</div>
-
-            <div class="stat-block">
-                <div class="stat-label">Explicit States</div>
-                <div class="stat-value" id="stateCount">2</div>
+        <div class="comparison">
+            <div class="comparison-box glass before">
+                <h4>Traditional Verification</h4>
+                <div class="big-number">4,294,967,296</div>
+                <div class="desc">states to check one by one<br>~137 GB memory needed<br>ETA: 4.3 seconds minimum, crashes on larger inputs</div>
             </div>
-
-            <div class="stat-block">
-                <div class="stat-label">Memory Required</div>
-                <div class="stat-value" id="memoryReq">64 B</div>
-            </div>
-
-            <div class="stat-block" id="bddBlock" style="display:none;">
-                <div class="stat-label">BDD Nodes (Tau)</div>
-                <div class="stat-value gold" id="bddCount">--</div>
-            </div>
-
-            <div class="progress-wrap">
-                <div class="progress-label">
-                    <span>Formal Verification</span>
-                    <span id="fvEta">Ready</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill red" id="fvBar" style="width:0%"></div>
-                </div>
-            </div>
-
-            <div class="progress-wrap" id="tauProgressWrap" style="display:none;">
-                <div class="progress-label">
-                    <span>Tau Verification</span>
-                    <span id="tauEta">--</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill gold" id="tauBar" style="width:0%"></div>
-                </div>
+            <div class="comparison-box glass after">
+                <h4>Tau (BDD Compression)</h4>
+                <div class="big-number">~800 nodes</div>
+                <div class="desc">representing the same state space<br>~25 KB memory<br>Verified in 0.003 seconds</div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- CONTROLS -->
-    <div id="controls">
-        <button class="btn btn-primary" id="btnAdd" onclick="addNextRule()">ADD RULE</button>
-        <button class="btn btn-gold" id="btnCompress" onclick="activateCompression()">ACTIVATE TAU COMPRESSION</button>
-        <div style="width:100%; display:flex; justify-content:center; gap:6px; flex-wrap:wrap;">
-            <button class="btn btn-preset" onclick="runPreset(8)">DeFi Protocol (8)</button>
-            <button class="btn btn-preset" onclick="runPreset(10)">Nuclear Safety (10)</button>
-            <button class="btn btn-preset" onclick="runPreset(12)">Drone Swarm (12)</button>
-            <button class="btn btn-reset" onclick="resetAll()">RESET</button>
+    <!-- ======== WHAT THE NUMBERS MEAN ======== -->
+    <section class="section">
+        <h2 class="section-heading">What the Numbers Mean</h2>
+        <p class="muted">Here is what each counter in the visualization above is actually tracking.</p>
+
+        <div class="counter-explain-grid">
+            <div class="counter-card glass">
+                <div class="counter-name">Explicit States</div>
+                <p>The total number of distinct states a traditional verifier must enumerate and check. Each rule multiplies this count. At 10+ rules, this number exceeds anything any computer could ever store or iterate through.</p>
+            </div>
+
+            <div class="counter-card glass">
+                <div class="counter-name">BDD Nodes</div>
+                <p>The number of nodes in the Binary Decision Diagram after Tau compresses the state space. This is what Tau actually processes &mdash; typically hundreds or low thousands of nodes, regardless of how many explicit states exist.</p>
+            </div>
+
+            <div class="counter-card glass">
+                <div class="counter-name">Memory Required</div>
+                <p>How much RAM a traditional tool needs to hold the full state space. After a few rules, this exceeds the memory of any computer on Earth. After a few more, it exceeds the mass of the observable universe converted to silicon.</p>
+            </div>
+
+            <div class="counter-card glass">
+                <div class="counter-name">FV Progress / ETA</div>
+                <p>How long a brute-force verifier would take to check all states at 1 billion states per second. By rule 8 or 9, the ETA exceeds the remaining lifespan of the Sun. By rule 12, it exceeds the heat death of the universe.</p>
+            </div>
         </div>
-    </div>
-</div>
+    </section>
+
+    <!-- ======== FOOTER ======== -->
+    <footer id="footer">
+        <a href="https://tau.net" target="_blank" rel="noopener">tau.net</a>
+        <div class="footer-sub">Tau Language &mdash; Formal verification that actually scales.</div>
+    </footer>
+
+</div><!-- /pageContent -->
 
 <script>
 // ============================================================
@@ -542,35 +967,34 @@ const RULES = [
     { name: "Cross-chain Verification", desc: "bridged assets verified", multiplier: 200 },
     { name: "Emergency Circuit Breaker", desc: "auto-pause on anomaly", multiplier: 10 },
     { name: "Regulatory Compliance", desc: "KYC/AML checks", multiplier: 30 },
-    { name: "Temporal Consistency", desc: "no conflicting transitions", multiplier: -1 },  // special: *current
-    { name: "Interaction Effects", desc: "rule cross-products", multiplier: -2 },          // special: ^2
+    { name: "Temporal Consistency", desc: "no conflicting transitions", multiplier: -1 },
+    { name: "Interaction Effects", desc: "rule cross-products", multiplier: -2 },
     { name: "Time Horizon", desc: "30-day verification window", multiplier: 30 }
 ];
 
-// Color palette
 const COL = {
     bg: '#0a0a0f',
-    nodeLow: [0, 170, 255],    // #00aaff
-    nodeMid: [170, 68, 255],   // #aa44ff
-    nodeHigh: [255, 51, 68],   // #ff3344
-    bddNode: [255, 215, 0],    // #ffd700
-    bddEdge: [0, 255, 204],    // #00ffcc
+    nodeLow: [0, 170, 255],
+    nodeMid: [170, 68, 255],
+    nodeHigh: [255, 51, 68],
+    bddNode: [255, 215, 0],
+    bddEdge: [0, 255, 204],
 };
 
 // ============================================================
 // STATE
 // ============================================================
 let rulesAdded = 0;
-let stateSpaceExact = 2;      // BigInt-like tracking via number (switch to string for huge)
-let stateSpaceLog = Math.log10(2); // track log10 for display
+let stateLog10 = Math.log10(2);
 let isCompressed = false;
 let isCompressing = false;
 let presetRunning = false;
 let mouseX = -1000, mouseY = -1000;
-let canvasW, canvasH;
+let vizW, vizH;
 let graphCenterX, graphCenterY;
 let animTime = 0;
-let bgTint = [0, 0, 0]; // additional tint applied to bg
+let bgTint = [0, 0, 0];
+let canvasW, canvasH;
 
 // ============================================================
 // CANVAS SETUP
@@ -579,9 +1003,12 @@ const bgCanvas = document.getElementById('bgCanvas');
 const bgCtx = bgCanvas.getContext('2d');
 const graphCanvas = document.getElementById('graphCanvas');
 const gCtx = graphCanvas.getContext('2d');
+const vizContainer = document.getElementById('vizContainer');
 
 function resize() {
     const dpr = window.devicePixelRatio || 1;
+
+    // Background canvas = full window
     canvasW = window.innerWidth;
     canvasH = window.innerHeight;
     bgCanvas.width = canvasW * dpr;
@@ -589,24 +1016,36 @@ function resize() {
     bgCanvas.style.width = canvasW + 'px';
     bgCanvas.style.height = canvasH + 'px';
     bgCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    graphCanvas.width = canvasW * dpr;
-    graphCanvas.height = canvasH * dpr;
-    graphCanvas.style.width = canvasW + 'px';
-    graphCanvas.style.height = canvasH + 'px';
+
+    // Graph canvas = viz container size
+    const rect = vizContainer.getBoundingClientRect();
+    vizW = rect.width;
+    vizH = rect.height;
+    graphCanvas.width = vizW * dpr;
+    graphCanvas.height = vizH * dpr;
+    graphCanvas.style.width = vizW + 'px';
+    graphCanvas.style.height = vizH + 'px';
     gCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    graphCenterX = canvasW / 2;
-    graphCenterY = canvasH / 2;
+
+    graphCenterX = vizW / 2;
+    graphCenterY = vizH / 2;
 }
+
 window.addEventListener('resize', resize);
 resize();
 
-// Mouse tracking
-graphCanvas.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+// Mouse tracking relative to viz container
+graphCanvas.addEventListener('mousemove', e => {
+    const rect = vizContainer.getBoundingClientRect();
+    mouseX = e.clientX - rect.left;
+    mouseY = e.clientY - rect.top;
+});
 graphCanvas.addEventListener('mouseleave', () => { mouseX = -1000; mouseY = -1000; });
 graphCanvas.addEventListener('touchmove', e => {
     if (e.touches.length > 0) {
-        mouseX = e.touches[0].clientX;
-        mouseY = e.touches[0].clientY;
+        const rect = vizContainer.getBoundingClientRect();
+        mouseX = e.touches[0].clientX - rect.left;
+        mouseY = e.touches[0].clientY - rect.top;
     }
 }, { passive: true });
 
@@ -684,7 +1123,6 @@ class AmbientBlobs {
             const cy = b.y * canvasH;
             const r = b.r + Math.sin(this.time * 0.001) * 30;
             const [br, bg, bb] = b.color;
-            // Apply tint
             const tr = Math.min(255, br + bgTint[0] * 0.5);
             const tg = Math.min(255, bg + bgTint[1] * 0.5);
             const tb = Math.min(255, bb + bgTint[2] * 0.5);
@@ -710,11 +1148,9 @@ class ForceGraph {
         this.gridSize = 80;
         this.grid = {};
         this.targetNodeCount = 2;
-        this.density = 0; // 0-1 how "explosive"
+        this.density = 0;
         this.bddMode = false;
-        this.bddProgress = 0; // 0-1
-        this.bddTargetNodes = [];
-        this.bddTargetEdges = [];
+        this.bddProgress = 0;
         this.mergeAnimations = [];
         this._initNodes(2);
     }
@@ -722,8 +1158,8 @@ class ForceGraph {
     _initNodes(count) {
         this.nodes = [];
         this.edges = [];
-        const cx = graphCenterX || canvasW / 2;
-        const cy = graphCenterY || canvasH / 2;
+        const cx = graphCenterX || 600;
+        const cy = graphCenterY || 300;
         for (let i = 0; i < count; i++) {
             const angle = (i / count) * Math.PI * 2;
             const dist = 30 + Math.random() * 60;
@@ -740,7 +1176,6 @@ class ForceGraph {
                 bddFixed: false
             });
         }
-        // Random edges
         for (let i = 0; i < count; i++) {
             const edgeCount = 1 + Math.floor(Math.random() * 2);
             for (let e = 0; e < edgeCount; e++) {
@@ -765,7 +1200,7 @@ class ForceGraph {
         const cx = graphCenterX;
         const cy = graphCenterY;
         const toAdd = target - current;
-        const spread = Math.min(350, 100 + target * 0.3);
+        const spread = Math.min(Math.min(vizW, vizH) * 0.4, 100 + target * 0.3);
 
         for (let i = 0; i < toAdd; i++) {
             const angle = Math.random() * Math.PI * 2;
@@ -784,7 +1219,6 @@ class ForceGraph {
                 bddFixed: false
             });
 
-            // Add 1-3 edges from new node
             const edgeCount = 1 + Math.floor(Math.random() * 2.5);
             for (let e = 0; e < edgeCount; e++) {
                 const j = Math.floor(Math.random() * id);
@@ -823,7 +1257,6 @@ class ForceGraph {
             return;
         }
 
-        // Update merge animations
         this._updateMerges(dt);
 
         const nodes = this.nodes;
@@ -833,14 +1266,12 @@ class ForceGraph {
         this._buildGrid();
         const gs = this.gridSize;
 
-        // Forces
         const repulsionStrength = N > 500 ? 800 : 1500;
         const springLength = N > 200 ? 30 : 60;
         const springK = 0.01;
         const damping = 0.92;
         const centerPull = 0.0008;
 
-        // Repulsion (grid-based)
         for (let i = 0; i < N; i++) {
             const ni = nodes[i];
             if (ni.merging) continue;
@@ -870,7 +1301,6 @@ class ForceGraph {
             }
         }
 
-        // Spring forces (edges) - sample if too many
         const maxEdges = 2000;
         const edgeSample = this.edges.length > maxEdges
             ? this.edges.filter(() => Math.random() < maxEdges / this.edges.length)
@@ -894,7 +1324,6 @@ class ForceGraph {
             nb.vy -= fy;
         }
 
-        // Center pull + mouse repulsion + damping + integrate
         const cx = graphCenterX;
         const cy = graphCenterY;
 
@@ -902,11 +1331,9 @@ class ForceGraph {
             const n = nodes[i];
             if (n.merging) continue;
 
-            // Center pull
             n.vx += (cx - n.x) * centerPull;
             n.vy += (cy - n.y) * centerPull;
 
-            // Mouse repulsion
             const mdx = n.x - mouseX;
             const mdy = n.y - mouseY;
             const mDistSq = mdx * mdx + mdy * mdy;
@@ -917,35 +1344,29 @@ class ForceGraph {
                 n.vy += (mdy / mDist) * mForce;
             }
 
-            // Damping
             n.vx *= damping;
             n.vy *= damping;
 
-            // Clamp velocity
             const speed = Math.sqrt(n.vx * n.vx + n.vy * n.vy);
             if (speed > 8) {
                 n.vx = (n.vx / speed) * 8;
                 n.vy = (n.vy / speed) * 8;
             }
 
-            // Integrate
             n.x += n.vx;
             n.y += n.vy;
 
-            // Boundary
             const margin = 50;
             if (n.x < margin) { n.x = margin; n.vx *= -0.5; }
-            if (n.x > canvasW - margin) { n.x = canvasW - margin; n.vx *= -0.5; }
+            if (n.x > vizW - margin) { n.x = vizW - margin; n.vx *= -0.5; }
             if (n.y < margin) { n.y = margin; n.vy *= -0.5; }
-            if (n.y > canvasH - margin) { n.y = canvasH - margin; n.vy *= -0.5; }
+            if (n.y > vizH - margin) { n.y = vizH - margin; n.vy *= -0.5; }
 
-            // Decay flash
             if (n.flash > 0) n.flash -= 0.02;
         }
     }
 
     _updateBDD(dt) {
-        // Gently move nodes toward their BDD positions
         for (const n of this.nodes) {
             if (!n.bddTarget) continue;
             const dx = n.bddTarget.x - n.x;
@@ -962,13 +1383,11 @@ class ForceGraph {
             const m = this.mergeAnimations[i];
             m.progress += 0.03;
             if (m.progress >= 1) {
-                // Remove source node visually
                 if (m.source < this.nodes.length) {
-                    this.nodes[m.source].merging = true; // hide it
+                    this.nodes[m.source].merging = true;
                 }
                 this.mergeAnimations.splice(i, 1);
             } else {
-                // Move source toward target
                 if (m.source < this.nodes.length && m.target < this.nodes.length) {
                     const s = this.nodes[m.source];
                     const t = this.nodes[m.target];
@@ -1010,7 +1429,6 @@ class ForceGraph {
     }
 
     draw(ctx) {
-        const N = this.nodes.length;
         const visibleNodes = this.nodes.filter(n => !n.merging);
         const visCount = visibleNodes.length;
         const useCloud = visCount > 500;
@@ -1022,7 +1440,7 @@ class ForceGraph {
             this._drawNodes(ctx, visibleNodes, visCount);
         }
 
-        // Draw merge flashes
+        const N = this.nodes.length;
         for (const m of this.mergeAnimations) {
             if (m.source < N && m.target < N) {
                 const s = this.nodes[m.source];
@@ -1068,7 +1486,6 @@ class ForceGraph {
             const rad = n.radius;
             const flash = n.flash > 0 ? n.flash : 0;
 
-            // Glow
             if (rad > 2) {
                 const glowR = rad * 3;
                 const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, glowR);
@@ -1080,7 +1497,6 @@ class ForceGraph {
                 ctx.fill();
             }
 
-            // Core
             const coreGrad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, rad);
             coreGrad.addColorStop(0, `rgba(${Math.min(255, r + 80)},${Math.min(255, g + 80)},${Math.min(255, b + 80)},1)`);
             coreGrad.addColorStop(1, `rgba(${r},${g},${b},0.6)`);
@@ -1089,7 +1505,6 @@ class ForceGraph {
             ctx.arc(n.x, n.y, rad, 0, Math.PI * 2);
             ctx.fill();
 
-            // Border
             ctx.strokeStyle = `rgba(${r},${g},${b},0.8)`;
             ctx.lineWidth = 0.8;
             ctx.stroke();
@@ -1097,11 +1512,8 @@ class ForceGraph {
     }
 
     _drawCloud(ctx, visibleNodes) {
-        // Heatmap-style cloud
         const resolution = 6;
         const heatmap = {};
-        const cx = graphCenterX;
-        const cy = graphCenterY;
 
         for (const n of visibleNodes) {
             const gx = Math.floor(n.x / resolution);
@@ -1112,9 +1524,7 @@ class ForceGraph {
 
         const total = visibleNodes.length;
         const [r, g, b] = this.getNodeColor(0, total);
-        const ec = this.getEdgeColor(total);
 
-        // Draw heat cells
         for (const key in heatmap) {
             const [gx, gy] = key.split(',').map(Number);
             const count = heatmap[key];
@@ -1126,7 +1536,6 @@ class ForceGraph {
             ctx.fillRect(px, py, resolution, resolution);
 
             if (intensity > 0.5) {
-                // Hot spot glow
                 const glowR = resolution * 3;
                 const grad = ctx.createRadialGradient(px, py, 0, px, py, glowR);
                 grad.addColorStop(0, `rgba(${r},${g},${b},${intensity * 0.2})`);
@@ -1138,7 +1547,8 @@ class ForceGraph {
             }
         }
 
-        // Central glow
+        const cx = graphCenterX;
+        const cy = graphCenterY;
         const cGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 250);
         cGrad.addColorStop(0, `rgba(${r},${g},${b},0.08)`);
         cGrad.addColorStop(1, `rgba(${r},${g},${b},0)`);
@@ -1148,57 +1558,41 @@ class ForceGraph {
         ctx.fill();
     }
 
-    // BDD Compression
     startCompression() {
         this.bddMode = true;
         this.bddProgress = 0;
 
-        // Flash all nodes gold
         for (const n of this.nodes) {
             n.flash = 1.5;
         }
 
-        // Calculate BDD tree layout
-        const bddNodeCount = 40 + Math.floor(Math.random() * 20); // ~50 nodes in BDD
+        const bddNodeCount = 40 + Math.floor(Math.random() * 20);
         const levels = 6;
         const cx = graphCenterX;
         const topY = graphCenterY - 200;
         const levelH = 80;
 
-        // Build tree structure
         const bddNodes = [];
         const bddEdges = [];
         let id = 0;
-
-        // Level distribution: 1, 2, 4, 8, 12, 15
         const levelCounts = [1, 2, 4, 8, 12, Math.max(1, bddNodeCount - 27)];
 
         for (let level = 0; level < levels; level++) {
             const count = levelCounts[level];
             const y = topY + level * levelH;
             const startX = cx - (count - 1) * 35;
-
             for (let i = 0; i < count; i++) {
-                bddNodes.push({
-                    x: startX + i * 70,
-                    y: y,
-                    level: level,
-                    localIndex: i,
-                    id: id++
-                });
+                bddNodes.push({ x: startX + i * 70, y: y, level: level, localIndex: i, id: id++ });
             }
         }
 
-        // Add edges (parent-child)
         let offset = 0;
         for (let level = 0; level < levels - 1; level++) {
             const count = levelCounts[level];
             const nextCount = levelCounts[level + 1];
             const nextOffset = offset + count;
-
             for (let i = 0; i < count; i++) {
                 const parentIdx = offset + i;
-                // Connect to 2-3 children
                 const childrenPer = Math.ceil(nextCount / count);
                 for (let c = 0; c < Math.min(childrenPer, 3); c++) {
                     const childIdx = nextOffset + Math.min(nextCount - 1, i * childrenPer + c);
@@ -1210,39 +1604,27 @@ class ForceGraph {
             offset += count;
         }
 
-        // Assign BDD targets to existing nodes
-        // First N nodes get BDD positions, rest will merge into them
         const visibleNodes = this.nodes.filter(n => !n.merging);
-        const totalVis = visibleNodes.length;
-
-        // Start merge animations
         const keepCount = Math.min(bddNodes.length, visibleNodes.length);
         for (let i = 0; i < keepCount; i++) {
             visibleNodes[i].bddTarget = bddNodes[i];
             visibleNodes[i].radius = 5;
         }
 
-        // Schedule merges over time
         let mergeDelay = 0;
         for (let i = keepCount; i < visibleNodes.length; i++) {
             const targetIdx = Math.floor(Math.random() * keepCount);
             const sourceIdx = this.nodes.indexOf(visibleNodes[i]);
             const targetNodeIdx = this.nodes.indexOf(visibleNodes[targetIdx]);
             setTimeout(() => {
-                this.mergeAnimations.push({
-                    source: sourceIdx,
-                    target: targetNodeIdx,
-                    progress: 0
-                });
+                this.mergeAnimations.push({ source: sourceIdx, target: targetNodeIdx, progress: 0 });
             }, mergeDelay);
             mergeDelay += 5;
         }
 
-        // Update edges
         setTimeout(() => {
             this.edges = bddEdges;
             this.bddProgress = 1;
-            // Clean up: keep only BDD nodes
             const finalNodes = [];
             for (let i = 0; i < keepCount; i++) {
                 const n = visibleNodes[i];
@@ -1278,23 +1660,18 @@ RULES.forEach((rule, i) => {
     rulesListEl.appendChild(div);
 });
 
-// State tracking
-let stateLog10 = Math.log10(2);
-let displayedStateStr = "2";
-let targetStateStr = "2";
-let counterAnimating = false;
-let counterAnimFrame = 0;
+// Counter animation state
+let counterTarget = Math.log10(2);
+let counterCurrent = Math.log10(2);
+let counterSpeed = 0;
 
 function computeStatesAfterRules(count) {
-    // Returns log10 of state count
     let log = Math.log10(2);
     for (let i = 1; i < count; i++) {
         const rule = RULES[i];
         if (rule.multiplier === -1) {
-            // multiply by current (double the log)
             log *= 2;
         } else if (rule.multiplier === -2) {
-            // square (double the log)
             log *= 2;
         } else {
             log += Math.log10(rule.multiplier);
@@ -1305,22 +1682,18 @@ function computeStatesAfterRules(count) {
 
 function formatStateCount(log10val) {
     if (log10val < 9.5) {
-        // Show exact number with commas
         const val = Math.round(Math.pow(10, log10val));
         return val.toLocaleString('en-US');
     } else if (log10val < 20) {
-        // Scientific notation
         const exp = Math.floor(log10val);
         const mantissa = Math.pow(10, log10val - exp);
         return mantissa.toFixed(2) + ' x 10^' + exp;
     } else {
-        // Just show 10^X
         return '10^' + Math.floor(log10val).toLocaleString('en-US');
     }
 }
 
 function formatMemory(log10states) {
-    // Assume 32 bytes per state
     const log10bytes = log10states + Math.log10(32);
     if (log10bytes < 3) return Math.round(Math.pow(10, log10bytes)) + ' B';
     if (log10bytes < 6) return (Math.pow(10, log10bytes - 3)).toFixed(1) + ' KB';
@@ -1333,7 +1706,6 @@ function formatMemory(log10states) {
 }
 
 function getVerificationETA(log10states) {
-    // Assume 10^9 states/sec verification rate
     const log10seconds = log10states - 9;
     if (log10seconds < 0) return 'ETA: < 1 sec';
     if (log10seconds < 1.8) return 'ETA: ' + Math.round(Math.pow(10, log10seconds)) + ' sec';
@@ -1347,7 +1719,6 @@ function getVerificationETA(log10states) {
 }
 
 function getVerificationProgress(log10states) {
-    // Returns a tiny percentage that barely moves
     if (log10states < 3) return Math.min(95, 100 / Math.pow(10, log10states) * 100);
     if (log10states < 6) return 0.5;
     if (log10states < 10) return 0.1;
@@ -1355,8 +1726,7 @@ function getVerificationProgress(log10states) {
 }
 
 function updateUI() {
-    const countEl = document.getElementById('ruleCount');
-    countEl.textContent = rulesAdded;
+    document.getElementById('ruleCount').textContent = rulesAdded;
 
     const stateEl = document.getElementById('stateCount');
     const memEl = document.getElementById('memoryReq');
@@ -1370,28 +1740,20 @@ function updateUI() {
     fvEta.textContent = getVerificationETA(stateLog10);
     fvBar.style.width = getVerificationProgress(stateLog10) + '%';
 
-    // Show compress button after 5 rules
     const btnCompress = document.getElementById('btnCompress');
     if (rulesAdded >= 5 && !isCompressed && !isCompressing) {
         btnCompress.classList.add('visible');
     }
 
-    // Update background tint based on density
     const tintT = Math.min(1, stateLog10 / 20);
-    bgTint[0] = tintT * 40;  // red tint
+    bgTint[0] = tintT * 40;
     bgTint[1] = 0;
     bgTint[2] = 0;
 
-    // Update graph node count
     const visualNodes = Math.min(2000, Math.pow(2, Math.min(11, rulesAdded + 1)));
     graph.density = Math.min(1, stateLog10 / 15);
     graph.setTargetCount(Math.floor(visualNodes));
 }
-
-// Counter animation
-let counterTarget = Math.log10(2);
-let counterCurrent = Math.log10(2);
-let counterSpeed = 0;
 
 function animateCounter() {
     if (Math.abs(counterCurrent - counterTarget) > 0.01) {
@@ -1400,10 +1762,8 @@ function animateCounter() {
         counterSpeed *= 0.92;
         counterCurrent += counterSpeed;
 
-        // Rapid-cycling effect on the state counter
         const stateEl = document.getElementById('stateCount');
         if (Math.abs(diff) > 0.5) {
-            // Show rapidly cycling numbers
             const jitter = counterCurrent + (Math.random() - 0.5) * Math.abs(diff) * 0.3;
             stateEl.textContent = formatStateCount(Math.max(0, jitter));
         } else {
@@ -1415,24 +1775,24 @@ function animateCounter() {
 }
 
 function addNextRule() {
-    if (rulesAdded >= RULES.length || isCompressed || isCompressing || presetRunning) return;
+    if (rulesAdded >= RULES.length || isCompressed || isCompressing) return;
 
-    const rule = RULES[rulesAdded];
     const ruleEl = document.getElementById('rule-' + rulesAdded);
     ruleEl.classList.add('active');
 
     rulesAdded++;
 
-    // Compute new state log
     counterTarget = computeStatesAfterRules(rulesAdded);
     counterSpeed = 0;
 
     updateUI();
 
-    // Disable button briefly
-    const btn = document.getElementById('btnAdd');
-    btn.disabled = true;
-    setTimeout(() => { btn.disabled = false; }, 500);
+    // Disable add button briefly (but not during presets)
+    if (!presetRunning) {
+        const btn = document.getElementById('btnAdd');
+        btn.disabled = true;
+        setTimeout(() => { btn.disabled = false; }, 500);
+    }
 }
 
 async function runPreset(count) {
@@ -1442,19 +1802,24 @@ async function runPreset(count) {
     // Disable all buttons
     document.querySelectorAll('.btn').forEach(b => b.disabled = true);
 
-    // First reset if needed
+    // Reset first if needed
     if (rulesAdded > 0) {
-        resetAll();
-        await sleep(500);
+        doReset();
+        await sleep(400);
     }
 
     for (let i = 0; i < Math.min(count, RULES.length); i++) {
         addNextRule();
-        await sleep(350 + Math.random() * 200);
+        await sleep(300 + Math.random() * 200);
     }
 
     presetRunning = false;
+    // Re-enable buttons
     document.querySelectorAll('.btn').forEach(b => b.disabled = false);
+    // But disable add if maxed out
+    if (rulesAdded >= RULES.length) {
+        document.getElementById('btnAdd').disabled = true;
+    }
     updateUI();
 }
 
@@ -1466,31 +1831,24 @@ async function activateCompression() {
     if (isCompressing || isCompressed || rulesAdded < 5) return;
     isCompressing = true;
 
-    // Disable buttons
     document.querySelectorAll('.btn').forEach(b => b.disabled = true);
 
-    // Show BDD stats block
     document.getElementById('bddBlock').style.display = 'block';
     document.getElementById('tauProgressWrap').style.display = 'block';
 
-    // Dramatic pause
     await sleep(500);
 
-    // Flash overlay
     const flash = document.getElementById('flashOverlay');
     flash.classList.add('active');
     await sleep(200);
     flash.classList.remove('active');
 
-    // Start graph compression
     graph.startCompression();
 
-    // Animate BDD counter
     const bddCountEl = document.getElementById('bddCount');
     const tauBar = document.getElementById('tauBar');
     const tauEta = document.getElementById('tauEta');
 
-    // BDD counting animation
     let bddTarget = 600 + Math.floor(Math.random() * 500);
     let bddCurrent = 0;
 
@@ -1503,7 +1861,6 @@ async function activateCompression() {
         bddCountEl.textContent = bddCurrent.toLocaleString('en-US');
     }, 30);
 
-    // Tau progress bar
     let tauProgress = 0;
     const tauInterval = setInterval(() => {
         tauProgress += 2;
@@ -1518,14 +1875,12 @@ async function activateCompression() {
         tauBar.style.width = tauProgress + '%';
     }, 50);
 
-    // Background tint shift to gold
     const tintInterval = setInterval(() => {
         bgTint[0] = bgTint[0] * 0.95 + 30 * 0.05;
         bgTint[1] = bgTint[1] * 0.95 + 25 * 0.05;
         bgTint[2] = bgTint[2] * 0.95 + 0 * 0.05;
     }, 30);
 
-    // After compression completes
     setTimeout(() => {
         clearInterval(tintInterval);
         bgTint[0] = 30;
@@ -1534,17 +1889,16 @@ async function activateCompression() {
         isCompressing = false;
         isCompressed = true;
 
-        // Update state display
         const stateEl = document.getElementById('stateCount');
         stateEl.textContent = formatStateCount(counterTarget);
         stateEl.className = 'stat-value danger';
 
-        // Enable reset
         document.querySelector('.btn-reset').disabled = false;
     }, 4000);
 }
 
-function resetAll() {
+// Internal reset (no button re-enable, used by runPreset)
+function doReset() {
     rulesAdded = 0;
     stateLog10 = Math.log10(2);
     counterTarget = Math.log10(2);
@@ -1554,7 +1908,6 @@ function resetAll() {
     isCompressing = false;
     bgTint = [0, 0, 0];
 
-    // Reset UI
     document.querySelectorAll('.rule-item').forEach(el => el.classList.remove('active'));
     document.getElementById('bddBlock').style.display = 'none';
     document.getElementById('tauProgressWrap').style.display = 'none';
@@ -1564,16 +1917,18 @@ function resetAll() {
     document.getElementById('tauEta').textContent = '--';
     document.getElementById('bddCount').textContent = '--';
 
-    // Enable buttons
-    document.querySelectorAll('.btn').forEach(b => b.disabled = false);
-
-    // Reset graph
     graph.bddMode = false;
     graph.bddProgress = 0;
     graph.mergeAnimations = [];
     graph._initNodes(2);
 
     updateUI();
+}
+
+function resetAll() {
+    doReset();
+    presetRunning = false;
+    document.querySelectorAll('.btn').forEach(b => b.disabled = false);
 }
 
 // ============================================================
@@ -1586,31 +1941,27 @@ function animate(now) {
     lastTime = now;
     animTime = now;
 
-    // Clear canvases
+    // Background canvas (full window)
     bgCtx.fillStyle = COL.bg;
     bgCtx.fillRect(0, 0, canvasW, canvasH);
-    gCtx.clearRect(0, 0, canvasW, canvasH);
 
-    // Update & draw background
     particles.update(dt);
     blobs.update(dt);
     blobs.draw(bgCtx);
     particles.draw(bgCtx);
 
-    // Update & draw graph
+    // Graph canvas (viz container)
+    gCtx.clearRect(0, 0, vizW, vizH);
     graph.update(dt);
     graph.draw(gCtx);
 
-    // Animate counter
     animateCounter();
 
     requestAnimationFrame(animate);
 }
 
-// Initial UI update
+// Initial setup
 updateUI();
-
-// Start animation
 requestAnimationFrame(animate);
 </script>
 </body>

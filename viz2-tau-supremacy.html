@@ -20,19 +20,6 @@
   50% { box-shadow: 0 0 30px rgba(255,215,0,0.6), 0 0 60px rgba(255,215,0,0.3); }
 }
 
-@keyframes glitch {
-  0%, 100% { transform: translate(0); opacity: 1; }
-  10% { transform: translate(-3px, 2px); opacity: 0.8; }
-  20% { transform: translate(3px, -1px); opacity: 0.9; }
-  30% { transform: translate(-2px, -2px); opacity: 0.7; }
-  40% { transform: translate(2px, 3px); opacity: 1; }
-  50% { transform: translate(-1px, 1px); opacity: 0.85; }
-  60% { transform: translate(3px, -3px); opacity: 0.75; }
-  70% { transform: translate(-3px, 2px); opacity: 0.9; }
-  80% { transform: translate(1px, -1px); opacity: 1; }
-  90% { transform: translate(-2px, 3px); opacity: 0.8; }
-}
-
 @keyframes shimmer {
   0% { background-position: -200% center; }
   100% { background-position: 200% center; }
@@ -88,7 +75,7 @@ body::before {
 
 /* === TOP BAR === */
 .top-bar {
-  position: fixed;
+  position: sticky;
   top: 0;
   left: 0;
   right: 0;
@@ -152,7 +139,6 @@ body::before {
   white-space: nowrap;
 }
 
-.controls select,
 .controls input[type="range"] {
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.1);
@@ -162,11 +148,84 @@ body::before {
   font-size: 11px;
   font-family: inherit;
   outline: none;
-}
-
-.controls input[type="range"] {
   width: 80px;
   accent-color: #ffd700;
+}
+
+/* Custom dropdown */
+.custom-select {
+  position: relative;
+  display: inline-block;
+  min-width: 160px;
+}
+
+.custom-select-trigger {
+  background: #12121a;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #e2e8f0;
+  border-radius: 6px;
+  padding: 5px 30px 5px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  transition: border-color 0.2s;
+}
+
+.custom-select-trigger::after {
+  content: '';
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid #e2e8f0;
+  pointer-events: none;
+}
+
+.custom-select-trigger:hover,
+.custom-select.open .custom-select-trigger {
+  border-color: rgba(255,215,0,0.6);
+}
+
+.custom-select-options {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #12121a;
+  border: 1px solid rgba(255,215,0,0.3);
+  border-radius: 6px;
+  z-index: 999;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+}
+
+.custom-select.open .custom-select-options {
+  display: block;
+}
+
+.custom-select-option {
+  padding: 8px 12px;
+  font-size: 12px;
+  font-family: inherit;
+  color: #e2e8f0;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.custom-select-option:hover {
+  background: rgba(255,215,0,0.12);
+}
+
+.custom-select-option.active {
+  background: rgba(255,215,0,0.2);
+  color: #ffd700;
 }
 
 .speed-btns {
@@ -220,10 +279,17 @@ body::before {
   background: linear-gradient(135deg, #ffd700, #ffaa00);
 }
 
-/* === RACE GRID === */
+/* === RACE SECTION === */
+.race-section {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 60px);
+  min-height: 500px;
+}
+
 .race-grid {
-  position: fixed;
-  top: 70px;
+  position: absolute;
+  top: 0;
   left: 0;
   right: 0;
   bottom: 0;
@@ -318,7 +384,7 @@ body::before {
 
 /* Dividers */
 .divider-h, .divider-v {
-  position: fixed;
+  position: absolute;
   z-index: 10;
   transition: opacity 1s ease;
 }
@@ -326,13 +392,13 @@ body::before {
 .divider-h {
   left: 0;
   right: 0;
-  top: calc(50vh + 35px);
+  top: 50%;
   height: 1px;
   background: linear-gradient(90deg, transparent 5%, rgba(255,255,255,0.3) 20%, rgba(255,255,255,0.3) 80%, transparent 95%);
 }
 
 .divider-v {
-  top: 70px;
+  top: 0;
   bottom: 0;
   left: 50%;
   width: 1px;
@@ -363,27 +429,25 @@ body::before {
 /* RAM bar */
 .ram-bar {
   width: 100%;
-  height: 4px;
+  height: 6px;
   background: rgba(255,255,255,0.08);
-  border-radius: 2px;
+  border-radius: 3px;
   overflow: hidden;
+  position: relative;
 }
 
 .ram-fill {
   height: 100%;
   width: 0%;
   background: #06b6d4;
-  border-radius: 2px;
+  border-radius: 3px;
   transition: width 0.2s, background 0.3s;
 }
 
-/* AI confidence gauge */
-.confidence-gauge {
-  position: absolute;
-  top: 50%;
-  right: 20px;
-  transform: translateY(-50%);
-  z-index: 5;
+.ram-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 /* === OVERLAY === */
@@ -444,22 +508,10 @@ body::before {
 .result-row:nth-child(3) { animation-delay: 0.3s; }
 .result-row:nth-child(4) { animation-delay: 0.45s; }
 
-.result-row .method {
-  font-weight: 700;
-}
-
-.result-row .detail {
-  color: rgba(255,255,255,0.5);
-}
-
-.result-row .verdict {
-  font-weight: 600;
-}
-
-.result-row .judgment {
-  font-weight: 700;
-  font-size: clamp(10px, 1.2vw, 13px);
-}
+.result-row .method { font-weight: 700; }
+.result-row .detail { color: rgba(255,255,255,0.5); }
+.result-row .verdict { font-weight: 600; }
+.result-row .judgment { font-weight: 700; font-size: clamp(10px, 1.2vw, 13px); }
 
 .r-python .method { color: #00aaff; }
 .r-ai .method { color: #22c55e; }
@@ -480,6 +532,163 @@ body::before {
   animation: fadeInUp 0.6s ease-out 0.7s both;
 }
 
+/* === SCROLLABLE CONTENT SECTIONS === */
+.content-sections {
+  position: relative;
+  z-index: 2;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 80px 24px 120px;
+}
+
+.section-heading {
+  font-size: clamp(22px, 3.5vw, 38px);
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #fff 30%, #ffd700 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 1px;
+}
+
+.section-subtitle {
+  text-align: center;
+  color: rgba(255,255,255,0.5);
+  font-size: clamp(12px, 1.4vw, 16px);
+  margin-bottom: 48px;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+.content-block {
+  margin-bottom: 80px;
+}
+
+/* Glass cards grid */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  margin-top: 32px;
+}
+
+.glass-card {
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 28px 24px;
+  transition: border-color 0.3s, transform 0.3s;
+}
+
+.glass-card:hover {
+  border-color: rgba(255,255,255,0.15);
+  transform: translateY(-4px);
+}
+
+.glass-card .card-icon {
+  font-size: 28px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.glass-card h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+}
+
+.glass-card.card-python { border-top: 2px solid #00aaff; }
+.glass-card.card-python h3 { color: #00aaff; }
+.glass-card.card-ai { border-top: 2px solid #22c55e; }
+.glass-card.card-ai h3 { color: #22c55e; }
+.glass-card.card-fv { border-top: 2px solid #06b6d4; }
+.glass-card.card-fv h3 { color: #06b6d4; }
+.glass-card.card-tau { border-top: 2px solid #ffd700; }
+.glass-card.card-tau h3 { color: #ffd700; }
+
+.glass-card p {
+  font-size: 13px;
+  line-height: 1.7;
+  color: rgba(255,255,255,0.6);
+}
+
+/* Exploit detail box */
+.exploit-box {
+  background: rgba(239,68,68,0.05);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 14px;
+  padding: 32px;
+  margin-top: 32px;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.exploit-box h3 {
+  color: #ef4444;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+}
+
+.exploit-box p {
+  color: rgba(255,255,255,0.65);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.exploit-box .exploit-label {
+  display: inline-block;
+  background: rgba(239,68,68,0.15);
+  color: #ef4444;
+  padding: 2px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+/* TAM / Why it matters */
+.tam-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 32px;
+}
+
+.tam-card {
+  background: rgba(255,215,0,0.03);
+  border: 1px solid rgba(255,215,0,0.1);
+  border-radius: 14px;
+  padding: 28px 24px;
+  text-align: center;
+}
+
+.tam-card .tam-number {
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 800;
+  background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+}
+
+.tam-card .tam-label {
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+  line-height: 1.5;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .top-bar {
@@ -489,7 +698,6 @@ body::before {
   }
   .controls { justify-content: center; }
   .badge { display: none; }
-  .race-grid { top: 120px; }
   .result-row {
     grid-template-columns: 70px 1fr auto;
     font-size: 10px;
@@ -518,12 +726,15 @@ body::before {
   </div>
   <div class="controls">
     <label>Problem:</label>
-    <select id="problemSelect">
-      <option value="contract">Smart Contract</option>
-      <option value="safety">Safety System</option>
-      <option value="protocol">Protocol</option>
-      <option value="governance">Governance</option>
-    </select>
+    <div class="custom-select" id="problemDropdown">
+      <div class="custom-select-trigger" id="problemTrigger">Smart Contract</div>
+      <div class="custom-select-options" id="problemOptions">
+        <div class="custom-select-option active" data-value="contract">Smart Contract</div>
+        <div class="custom-select-option" data-value="safety">Safety System</div>
+        <div class="custom-select-option" data-value="protocol">Protocol</div>
+        <div class="custom-select-option" data-value="governance">Governance</div>
+      </div>
+    </div>
     <label>Rules:</label>
     <input type="range" id="rulesSlider" min="3" max="15" value="8">
     <span id="rulesVal" style="font-size:11px;color:rgba(255,255,255,0.6);min-width:18px;">8</span>
@@ -537,67 +748,72 @@ body::before {
   </div>
 </div>
 
-<!-- Dividers -->
-<div class="divider-h" id="divH"></div>
-<div class="divider-v" id="divV"></div>
+<!-- Race Section (viewport-height container) -->
+<div class="race-section" id="raceSection">
+  <!-- Dividers -->
+  <div class="divider-h" id="divH"></div>
+  <div class="divider-v" id="divV"></div>
 
-<!-- Race Grid -->
-<div class="race-grid">
-  <!-- Python -->
-  <div class="quadrant q-python" id="qPython">
-    <div class="q-label">\u{1F40D} PYTHON SIMULATION</div>
-    <canvas id="cPython"></canvas>
-    <div class="q-status">
-      <div class="q-counter" id="pyCounter">Tested: 0 / 4.3 \u00d7 10\u2079 states</div>
-      <div class="q-progress"><div class="q-progress-fill" id="pyProgress"></div></div>
+  <!-- Race Grid -->
+  <div class="race-grid">
+    <!-- Python -->
+    <div class="quadrant q-python" id="qPython">
+      <div class="q-label" id="pyLabel">&#x1F40D; PYTHON SIMULATION</div>
+      <canvas id="cPython"></canvas>
+      <div class="q-status">
+        <div class="q-counter" id="pyCounter">Tested: 0 / 4.3 &times; 10&#x2079; states</div>
+        <div class="q-progress"><div class="q-progress-fill" id="pyProgress"></div></div>
+      </div>
+      <div class="q-result" id="pyResult">
+        <div class="big-text" style="color:#22c55e;">&#x2713; ALL TESTS PASSED</div>
+        <div class="sub-text" id="pyResultSub" style="color:rgba(255,100,100,0.7);">Untested state space: 99.99998%</div>
+      </div>
     </div>
-    <div class="q-result" id="pyResult">
-      <div class="big-text" style="color:#22c55e;">\u2713 ALL TESTS PASSED</div>
-      <div class="sub-text" style="color:rgba(255,100,100,0.7);">Untested state space: 99.99998%</div>
-    </div>
-  </div>
 
-  <!-- AI -->
-  <div class="quadrant q-ai" id="qAI">
-    <div class="q-label">\u{1F916} AI / LLM ANALYSIS</div>
-    <canvas id="cAI"></canvas>
-    <div class="q-status">
-      <div class="q-counter" id="aiCounter">Known Patterns Matched: 0 / 891</div>
-      <div class="q-progress"><div class="q-progress-fill" id="aiProgress"></div></div>
+    <!-- AI -->
+    <div class="quadrant q-ai" id="qAI">
+      <div class="q-label" id="aiLabel">&#x1F916; AI / LLM ANALYSIS</div>
+      <canvas id="cAI"></canvas>
+      <div class="q-status">
+        <div class="q-counter" id="aiCounter">Known Patterns Matched: 0 / 891</div>
+        <div class="q-progress"><div class="q-progress-fill" id="aiProgress"></div></div>
+      </div>
+      <div class="q-result" id="aiResult">
+        <div class="big-text" style="color:#22c55e;">LIKELY SAFE &mdash; 94%</div>
+        <div class="sub-text" id="aiResultSub" style="color:rgba(255,255,255,0.5);">Untrainable edge cases: ?</div>
+      </div>
     </div>
-    <div class="q-result" id="aiResult">
-      <div class="big-text" style="color:#22c55e;">LIKELY SAFE \u2014 94%</div>
-      <div class="sub-text" style="color:rgba(255,255,255,0.5);">Untrainable edge cases: ?</div>
-    </div>
-  </div>
 
-  <!-- Formal Verification -->
-  <div class="quadrant q-fv" id="qFV">
-    <div class="q-label">\u{1F4D0} FORMAL VERIFICATION (TLA+)</div>
-    <canvas id="cFV"></canvas>
-    <div class="q-status">
-      <div class="q-counter" id="fvCounter">Explored: 0 of 10\u2074\u2077 needed</div>
-      <div class="q-progress"><div class="q-progress-fill" id="fvProgress"></div></div>
-      <div class="ram-bar"><div class="ram-fill" id="fvRam"></div></div>
-      <div class="q-counter" id="fvRamLabel">RAM: 4 GB</div>
+    <!-- Formal Verification -->
+    <div class="quadrant q-fv" id="qFV">
+      <div class="q-label" id="fvLabel">&#x1F4D0; FORMAL VERIFICATION (TLA+)</div>
+      <canvas id="cFV"></canvas>
+      <div class="q-status">
+        <div class="q-counter" id="fvCounter">Explored: 0 states</div>
+        <div class="q-progress"><div class="q-progress-fill" id="fvProgress"></div></div>
+        <div class="ram-label-row">
+          <div class="q-counter" id="fvRamLabel" style="font-weight:600;color:rgba(255,255,255,0.7);">RAM: 4 GB / 256 GB</div>
+        </div>
+        <div class="ram-bar"><div class="ram-fill" id="fvRam"></div></div>
+      </div>
+      <div class="q-result" id="fvResult">
+        <div class="big-text" id="fvResultBig" style="color:#ef4444;">&#x26A0; STATE SPACE EXPLOSION</div>
+        <div class="sub-text" style="color:rgba(239,68,68,0.6);">OUT OF MEMORY &mdash; CRASHED</div>
+      </div>
     </div>
-    <div class="q-result" id="fvResult">
-      <div class="big-text" style="color:#ef4444;">\u26A0 STATE SPACE EXPLOSION</div>
-      <div class="sub-text" style="color:rgba(239,68,68,0.6);">OUT OF MEMORY \u2014 CRASHED</div>
-    </div>
-  </div>
 
-  <!-- Tau -->
-  <div class="quadrant q-tau" id="qTau">
-    <div class="q-label">\u26A1 TAU LANGUAGE</div>
-    <canvas id="cTau"></canvas>
-    <div class="q-status">
-      <div class="q-counter" id="tauCounter">Verified: 0 states via 0 BDD nodes</div>
-      <div class="q-progress"><div class="q-progress-fill" id="tauProgress"></div></div>
-    </div>
-    <div class="q-result" id="tauResult">
-      <div class="big-text" style="color:#ffd700;">EXPLOIT FOUND</div>
-      <div class="sub-text" style="color:rgba(255,215,0,0.7);">Verified: 4.3 \u00d7 10\u2079 states via 2,341 BDD nodes</div>
+    <!-- Tau -->
+    <div class="quadrant q-tau" id="qTau">
+      <div class="q-label" id="tauLabel">&#x26A1; TAU LANGUAGE</div>
+      <canvas id="cTau"></canvas>
+      <div class="q-status">
+        <div class="q-counter" id="tauCounter">Verified: 0 states via 0 BDD nodes</div>
+        <div class="q-progress"><div class="q-progress-fill" id="tauProgress"></div></div>
+      </div>
+      <div class="q-result" id="tauResult">
+        <div class="big-text" style="color:#ffd700;">EXPLOIT FOUND</div>
+        <div class="sub-text" id="tauResultSub" style="color:rgba(255,215,0,0.7);">Verified all states via BDD compression</div>
+      </div>
     </div>
   </div>
 </div>
@@ -606,35 +822,295 @@ body::before {
 <div class="overlay" id="overlay">
   <div class="overlay-card">
     <h2>RACE RESULTS</h2>
-    <div class="result-row r-python r-wrong">
+    <div class="result-row r-python r-wrong" id="overlayPython">
       <span class="method">PYTHON:</span>
-      <span class="detail">Tested 10,000 / 10\u2074\u2077 states</span>
-      <span class="verdict">\u2713 "SAFE"</span>
-      <span class="judgment">\u2014 WRONG</span>
+      <span class="detail" id="olPyDetail">Tested 10,000 / 4.3 &times; 10&#x2079; states</span>
+      <span class="verdict">&#x2713; "SAFE"</span>
+      <span class="judgment">&mdash; WRONG</span>
     </div>
-    <div class="result-row r-ai r-wrong">
+    <div class="result-row r-ai r-wrong" id="overlayAI">
       <span class="method">AI/LLM:</span>
-      <span class="detail">Matched 47 / 891 patterns</span>
-      <span class="verdict">\u2713 "LIKELY SAFE"</span>
-      <span class="judgment">\u2014 WRONG</span>
+      <span class="detail" id="olAiDetail">Matched 47 / 891 patterns</span>
+      <span class="verdict">&#x2713; "LIKELY SAFE"</span>
+      <span class="judgment">&mdash; WRONG</span>
     </div>
-    <div class="result-row r-fv r-failed">
+    <div class="result-row r-fv r-failed" id="overlayFV">
       <span class="method">FORMAL:</span>
-      <span class="detail">Explored 10\u2079 / 10\u2074\u2077 states</span>
-      <span class="verdict">\u2717 CRASHED</span>
-      <span class="judgment">\u2014 FAILED</span>
+      <span class="detail" id="olFvDetail">State explosion at 10&#x2079;</span>
+      <span class="verdict">&#x2717; CRASHED</span>
+      <span class="judgment">&mdash; FAILED</span>
     </div>
-    <div class="result-row r-tau r-correct">
+    <div class="result-row r-tau r-correct" id="overlayTau">
       <span class="method">TAU:</span>
-      <span class="detail">Verified 10\u2074\u2077 states (2,341 BDD)</span>
-      <span class="verdict">\u2717 EXPLOIT FOUND</span>
-      <span class="judgment">\u2014 CORRECT</span>
+      <span class="detail" id="olTauDetail">Verified all states (2,341 BDD)</span>
+      <span class="verdict">&#x2717; EXPLOIT FOUND</span>
+      <span class="judgment">&mdash; CORRECT</span>
     </div>
-    <div class="tagline">Three methods said safe. One found the truth. The exploit was in state #7,847,293,104.</div>
+    <div class="tagline" id="overlayTagline">Three methods said safe. One found the truth.</div>
   </div>
 </div>
 
+<!-- === SCROLLABLE CONTENT BELOW THE RACE === -->
+<div class="content-sections">
+
+  <!-- Section 1: What You Just Witnessed -->
+  <div class="content-block" id="witnessSection">
+    <h2 class="section-heading">What You Just Witnessed</h2>
+    <p class="section-subtitle" id="witnessSummary">
+      Four verification methods raced to analyze the same system. Python tested random samples and declared it safe.
+      The AI matched known patterns and agreed. Formal Verification tried to check every state and ran out of memory.
+      Only Tau, using Binary Decision Diagrams, compressed the state space and found the hidden exploit.
+    </p>
+  </div>
+
+  <!-- Section 2: Why Each Method Fails -->
+  <div class="content-block">
+    <h2 class="section-heading">Why Each Method Fails</h2>
+    <p class="section-subtitle">Understanding the fundamental limits of each verification approach.</p>
+    <div class="cards-grid">
+      <div class="glass-card card-python">
+        <span class="card-icon">&#x1F40D;</span>
+        <h3>Python Simulation</h3>
+        <p>Statistical sampling covers 0.00002% of the state space. It's like checking 10 houses in a city of 4 billion and declaring it crime-free.</p>
+      </div>
+      <div class="glass-card card-ai">
+        <span class="card-icon">&#x1F916;</span>
+        <h3>AI / LLM Analysis</h3>
+        <p>Pattern matching only finds what it's been trained on. Novel combinations that have never occurred before are invisible.</p>
+      </div>
+      <div class="glass-card card-fv">
+        <span class="card-icon">&#x1F4D0;</span>
+        <h3>Formal Verification</h3>
+        <p>Model checking must explore every state. When states grow exponentially, even the fastest supercomputer runs out of memory.</p>
+      </div>
+      <div class="glass-card card-tau">
+        <span class="card-icon">&#x26A1;</span>
+        <h3>Tau Language</h3>
+        <p>Binary Decision Diagrams compress shared sub-structures. Billions of states become thousands of nodes. The impossible becomes routine.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 3: The Exploit They All Missed -->
+  <div class="content-block" id="exploitSection">
+    <h2 class="section-heading">The Exploit They All Missed</h2>
+    <p class="section-subtitle" id="exploitIntro">The vulnerability Tau discovered requires a precise multi-step sequence that no random sample or pattern database would contain.</p>
+    <div class="exploit-box" id="exploitBox">
+      <span class="exploit-label" id="exploitLabel">SMART CONTRACT EXPLOIT</span>
+      <h3 id="exploitTitle">Reentrancy + Flash Loan + Oracle Manipulation</h3>
+      <p id="exploitDesc">
+        A 3-step combination attack: First, a flash loan of 500,000 ETH manipulates the price oracle.
+        During the oracle update callback, a reentrancy in the liquidation function allows draining the pool
+        before the price snaps back. This sequence exists in exactly 1 of 4.3 billion possible transaction orderings.
+        No fuzzer would find it. No LLM has seen it. TLA+ would need 47 orders of magnitude more memory.
+        Tau's BDD compressed the entire state space into 2,341 nodes and traced the path in 11.7 seconds.
+      </p>
+    </div>
+  </div>
+
+  <!-- Section 4: Why This Matters -->
+  <div class="content-block">
+    <h2 class="section-heading">Why This Matters</h2>
+    <p class="section-subtitle">The market for formal verification is massive, but current tools can't scale. Tau can.</p>
+    <div class="tam-grid">
+      <div class="tam-card">
+        <div class="tam-number">$3.2B</div>
+        <div class="tam-label">DeFi hacks in 2023 alone, from exploits that existing tools missed</div>
+      </div>
+      <div class="tam-card">
+        <div class="tam-number">$18B</div>
+        <div class="tam-label">Global formal verification TAM by 2028</div>
+      </div>
+      <div class="tam-card">
+        <div class="tam-number">10<sup style="font-size:0.6em;">47</sup></div>
+        <div class="tam-label">States that TLA+ cannot explore but Tau handles routinely</div>
+      </div>
+      <div class="tam-card">
+        <div class="tam-number">2,341</div>
+        <div class="tam-label">BDD nodes to represent 4.3 billion states &mdash; 99.99995% compression</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
 <script>
+// ============================================================
+// SCENARIO DATA
+// ============================================================
+const SCENARIOS = {
+  contract: {
+    name: 'Smart Contract',
+    statesLabel: '4.3 \u00d7 10\u2079',
+    statesNum: 4.3e9,
+    statesExp: 9,
+    bddNodes: 2341,
+    python: {
+      action: 'Fuzz-tested 10,000 tx sequences',
+      tested: 10000,
+      resultText: '\u2713 ALL TESTS PASSED',
+      resultSub: 'Untested state space: 99.99998%',
+    },
+    fv: {
+      action: 'Property checking 8 invariants, state explosion at 10\u2079',
+      crashLabel: 'State explosion at 10\u2079',
+    },
+    ai: {
+      action: 'Matched against 12,847 known exploit patterns',
+      patterns: 12847,
+      matched: 47,
+      confidence: 94,
+    },
+    tau: {
+      action: 'Found reentrancy + flash loan + oracle manipulation 3-step combo',
+      resultSub: 'Verified: 4.3 \u00d7 10\u2079 states via 2,341 BDD nodes',
+    },
+    exploitLabel: 'SMART CONTRACT EXPLOIT',
+    exploitTitle: 'Reentrancy + Flash Loan + Oracle Manipulation',
+    exploitDesc: 'A 3-step combination attack: First, a flash loan of 500,000 ETH manipulates the price oracle. During the oracle update callback, a reentrancy in the liquidation function allows draining the pool before the price snaps back. This sequence exists in exactly 1 of 4.3 billion possible transaction orderings. No fuzzer would find it. No LLM has seen it. TLA+ would need orders of magnitude more memory. Tau\'s BDD compressed the entire state space into 2,341 nodes and traced the path in 11.7 seconds.',
+    overlayTagline: 'Three methods said safe. One found the truth. The exploit was in state #7,847,293,104.',
+    words: [
+      'overflow', 'reentrancy', 'frontrun', 'underflow', 'delegatecall',
+      'selfdestruct', 'tx.origin', 'timestamp', 'block.number', 'msg.value',
+      'approve', 'transferFrom', 'balanceOf', 'safeTransfer', 'callback',
+      'flash loan', 'oracle', 'slippage', 'MEV', 'sandwich',
+      'permit', 'EIP-712', 'multicall', 'proxy', 'initialize',
+      'access control', 'onlyOwner', 'modifier', 'require', 'assert',
+      'mapping', 'storage', 'memory', 'calldata', 'assembly',
+      'gas limit', 'block gas', 'DoS', 'griefing', 'dust'
+    ],
+  },
+  safety: {
+    name: 'Safety System',
+    statesLabel: '9.8 \u00d7 10\u2076',
+    statesNum: 9.8e6,
+    statesExp: 6,
+    bddNodes: 847,
+    python: {
+      action: 'Monte Carlo 100,000 accident scenarios',
+      tested: 100000,
+      resultText: '\u2713 ALL SCENARIOS PASSED',
+      resultSub: 'Untested state space: 98.98%',
+    },
+    fv: {
+      action: 'Timed automata, 10 safety functions, hybrid state explosion',
+      crashLabel: 'Hybrid state explosion at 10\u2076',
+    },
+    ai: {
+      action: 'Pattern-matched against TMI/Fukushima/Chernobyl',
+      patterns: 2340,
+      matched: 89,
+      confidence: 91,
+    },
+    tau: {
+      action: 'Found 4-minute blind spot in maintenance + seismic timing',
+      resultSub: 'Verified: 9.8 \u00d7 10\u2076 states via 847 BDD nodes',
+    },
+    exploitLabel: 'SAFETY SYSTEM VULNERABILITY',
+    exploitTitle: '4-Minute Blind Spot: Maintenance + Seismic Timing',
+    exploitDesc: 'During a routine sensor recalibration (every 72 hours, lasting 4 minutes), if a seismic event occurs at magnitude 4.2+, the backup cooling system enters a race condition between the manual override and the automatic safety interlock. The interlock assumes sensor data is valid, but during recalibration it reads stale values. A 4-minute window exists where the plant operates without valid safety monitoring. This timing-dependent vulnerability cannot be found by simulation because no Monte Carlo run tested the exact recalibration-quake overlap. Tau found it in 847 BDD nodes.',
+    overlayTagline: 'Three methods said safe. One found a 4-minute window where safety monitoring goes blind.',
+    words: [
+      'coolant', 'pressure', 'valve', 'sensor', 'interlock',
+      'override', 'scram', 'containment', 'neutron', 'decay heat',
+      'seismic', 'backup', 'generator', 'recalibration', 'threshold',
+      'alarm', 'redundancy', 'failsafe', 'shutdown', 'monitoring',
+      'dosimeter', 'turbine', 'feedwater', 'reactor', 'control rod',
+      'temperature', 'radiation', 'cooling', 'maintenance', 'inspection',
+      'emergency', 'protocol', 'manual', 'automatic', 'safety margin',
+      'tolerance', 'setpoint', 'trip', 'actuation', 'isolation'
+    ],
+  },
+  protocol: {
+    name: 'Protocol',
+    statesLabel: '6.9 \u00d7 10\xB9\u2075',
+    statesNum: 6.9e15,
+    statesExp: 15,
+    bddNodes: 4102,
+    python: {
+      action: 'Simulated 20,000 bridge transactions',
+      tested: 20000,
+      resultText: '\u2713 ALL TX VALIDATED',
+      resultSub: 'Untested state space: 99.9999999999%',
+    },
+    fv: {
+      action: 'Per-chain model checking, cross-chain composition impossible',
+      crashLabel: 'Cross-chain composition impossible',
+    },
+    ai: {
+      action: 'Matched Ronin/Wormhole/Nomad patterns',
+      patterns: 5420,
+      matched: 112,
+      confidence: 89,
+    },
+    tau: {
+      action: 'Found cross-chain reorg timing exploit, $47M drain',
+      resultSub: 'Verified: 6.9 \u00d7 10\xB9\u2075 states via 4,102 BDD nodes',
+    },
+    exploitLabel: 'CROSS-CHAIN PROTOCOL EXPLOIT',
+    exploitTitle: 'Cross-Chain Reorg Timing Attack ($47M Drain)',
+    exploitDesc: 'A 51% attack on chain B triggers a 6-block reorg during a bridge transfer finality window. The bridge contract on chain A has already released funds based on the now-reverted chain B confirmation. An attacker deposits on chain B, waits for chain A release, then reorgs chain B to reclaim the deposit. Repeating this across 12 bridge pairs simultaneously drains $47M before any guardian can respond. No per-chain model checker can find this because the exploit only exists in the cross-chain composition. Tau modeled both chains as a single BDD with 4,102 nodes.',
+    overlayTagline: 'Three methods said safe. One found a $47M cross-chain drain exploit.',
+    words: [
+      'bridge', 'relay', 'finality', 'reorg', 'confirmation',
+      'guardian', 'multisig', 'threshold', 'attestation', 'merkle',
+      'validator', 'slashing', 'deposit', 'withdrawal', 'nonce',
+      'chain A', 'chain B', 'rollup', 'sequencer', 'L1/L2',
+      'timeout', 'dispute', 'fraud proof', 'state root', 'receipt',
+      'cross-chain', 'atomic', 'lock', 'unlock', 'mint/burn',
+      'oracle', 'price feed', 'liquidity', 'TVL', 'protocol fee',
+      'governance', 'upgrade', 'proxy', 'timelock', 'quorum'
+    ],
+  },
+  governance: {
+    name: 'Governance',
+    statesLabel: '2\u2075\u2070\u2070',
+    statesNum: Infinity,
+    statesExp: 150,
+    bddNodes: 12847,
+    python: {
+      action: '5,000 mission simulations, 48hr each',
+      tested: 5000,
+      resultText: '\u2713 ALL MISSIONS NOMINAL',
+      resultSub: 'Untested coalition space: ~100%',
+    },
+    fv: {
+      action: 'Per-agent LTL, swarm composition 2\u2075\u2070\u2070 states',
+      crashLabel: 'Swarm composition 2\u2075\u2070\u2070 states',
+    },
+    ai: {
+      action: 'DoD 3000.09 compliance check',
+      patterns: 890,
+      matched: 34,
+      confidence: 97,
+    },
+    tau: {
+      action: 'Found sub-swarm autonomous lethal engagement',
+      resultSub: 'Verified: 2\u2075\u2070\u2070 states via 12,847 BDD nodes',
+    },
+    exploitLabel: 'SWARM GOVERNANCE EXPLOIT',
+    exploitTitle: 'Sub-Swarm Autonomous Lethal Engagement',
+    exploitDesc: 'In a 50-agent autonomous swarm, if 7 specific agents lose communication with command simultaneously (probability: 1 in 2\u00b3\u00b2 per mission), the local consensus protocol elects a sub-swarm leader. That leader\'s rules-of-engagement model, composed from fragments of each agent\'s partial policy, produces a combined policy that authorizes lethal engagement without human approval. No individual agent\'s policy allows this. The emergent behavior only exists in the 7-agent composition. DoD compliance checking passed because it only verified individual agent policies. Tau composed all 2\u2075\u2070\u2070 coalition states into 12,847 BDD nodes and found the lethal autonomy path.',
+    overlayTagline: 'Three methods said compliant. One found autonomous lethal engagement in a 7-agent sub-swarm.',
+    words: [
+      'agent', 'swarm', 'consensus', 'quorum', 'election',
+      'ROE', 'engagement', 'lethal', 'autonomous', 'human-in-loop',
+      'C2 link', 'comms loss', 'fallback', 'coalition', 'sub-swarm',
+      'policy', 'constraint', 'composition', 'emergent', 'DoD 3000.09',
+      'mission', 'waypoint', 'target', 'civilian', 'IFF',
+      'authorization', 'escalation', 'override', 'timeout', 'heartbeat',
+      'telemetry', 'GPS denied', 'jamming', 'EW', 'deconfliction',
+      'BDA', 'payload', 'sensor fusion', 'classification', 'track'
+    ],
+  },
+};
+
+let currentScenario = 'contract';
+
+function getScenario() {
+  return SCENARIOS[currentScenario];
+}
+
 // ============================================================
 // UTILITY
 // ============================================================
@@ -645,10 +1121,6 @@ const randInt = (min, max) => Math.floor(rand(min, max + 1));
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const easeOut = t => 1 - Math.pow(1 - t, 3);
 const easeInOut = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-
-function formatSci(n, exp) {
-  return n.toLocaleString() + ' \u00d7 10' + superscript(exp);
-}
 
 function superscript(n) {
   const sup = { '0':'\u2070','1':'\xB9','2':'\xB2','3':'\xB3','4':'\u2074','5':'\u2075','6':'\u2076','7':'\u2077','8':'\u2078','9':'\u2079' };
@@ -677,9 +1149,6 @@ let racing = false;
 let raceTime = 0;
 let animId = null;
 
-const stateExponent = () => Math.floor(9 + (ruleCount - 3) * 3.17);
-const totalStatesStr = () => '10' + superscript(stateExponent());
-
 // ============================================================
 // PYTHON SIMULATION
 // ============================================================
@@ -705,7 +1174,6 @@ class PythonSim {
     this.tested = 0;
     this.done = false;
 
-    // Create dots
     for (let i = 0; i < 200; i++) {
       this.dots.push({
         x: rand(20, w - 20),
@@ -715,7 +1183,6 @@ class PythonSim {
         r: rand(1.5, 3)
       });
     }
-    // Test points
     for (let i = 0; i < 30; i++) {
       this.testPoints.push({
         x: rand(30, w - 30),
@@ -727,14 +1194,14 @@ class PythonSim {
 
   update(dt, t) {
     if (this.done) return;
+    const sc = getScenario();
     const dur = this.finishTime / speed;
     this.progress = clamp(t / dur, 0, 1);
-    this.tested = Math.floor(easeOut(this.progress) * 10000);
+    this.tested = Math.floor(easeOut(this.progress) * sc.python.tested);
 
     $('pyProgress').style.width = (this.progress * 100) + '%';
-    $('pyCounter').textContent = `Tested: ${this.tested.toLocaleString()} / 4.3 \u00d7 10${superscript(stateExponent())} states (${(this.tested / 4.3e9 * 100).toFixed(5)}%)`;
+    $('pyCounter').textContent = `Tested: ${this.tested.toLocaleString()} / ${sc.statesLabel} states`;
 
-    // Move dots
     for (const d of this.dots) {
       d.x += d.vx * speed;
       d.y += d.vy * speed;
@@ -745,7 +1212,6 @@ class PythonSim {
       d.vx = clamp(d.vx, -2.5, 2.5);
       d.vy = clamp(d.vy, -2.5, 2.5);
 
-      // Check test point collision
       for (const tp of this.testPoints) {
         if (!tp.hit && Math.hypot(d.x - tp.x, d.y - tp.y) < 12) {
           tp.hit = true;
@@ -754,7 +1220,6 @@ class PythonSim {
       }
     }
 
-    // Age flashes
     this.flashes = this.flashes.filter(f => {
       f.age += dt * speed;
       return f.age < 0.6;
@@ -762,6 +1227,8 @@ class PythonSim {
 
     if (this.progress >= 1) {
       this.done = true;
+      $('pyResult').querySelector('.big-text').textContent = sc.python.resultText;
+      $('pyResultSub').textContent = sc.python.resultSub;
       $('pyResult').classList.add('visible');
     }
   }
@@ -770,7 +1237,6 @@ class PythonSim {
     const { ctx, w, h } = this;
     ctx.clearRect(0, 0, w, h);
 
-    // Grid
     ctx.strokeStyle = 'rgba(0,170,255,0.06)';
     ctx.lineWidth = 0.5;
     for (let x = 0; x < w; x += 30) {
@@ -780,14 +1246,12 @@ class PythonSim {
       ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
     }
 
-    // Untested area pulsing red (if done)
     if (this.done) {
       const pulse = 0.02 + 0.015 * Math.sin(performance.now() / 600);
       ctx.fillStyle = `rgba(239,68,68,${pulse})`;
       ctx.fillRect(0, 40, w, h - 80);
     }
 
-    // Test points
     for (const tp of this.testPoints) {
       ctx.beginPath();
       ctx.arc(tp.x, tp.y, 4, 0, Math.PI * 2);
@@ -795,7 +1259,6 @@ class PythonSim {
       ctx.fill();
     }
 
-    // Flashes
     for (const f of this.flashes) {
       const alpha = 1 - f.age / 0.6;
       const r = 4 + f.age * 30;
@@ -806,7 +1269,6 @@ class PythonSim {
       ctx.stroke();
     }
 
-    // Dots
     for (const d of this.dots) {
       ctx.beginPath();
       ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
@@ -816,8 +1278,9 @@ class PythonSim {
   }
 
   reset() {
+    const sc = getScenario();
     $('pyProgress').style.width = '0%';
-    $('pyCounter').textContent = `Tested: 0 / 4.3 \u00d7 10${superscript(stateExponent())} states`;
+    $('pyCounter').textContent = `Tested: 0 / ${sc.statesLabel} states`;
     $('pyResult').classList.remove('visible');
   }
 }
@@ -835,16 +1298,6 @@ class AISim {
     this.confidence = 0;
     this.done = false;
     this.finishTime = 5;
-    this.words = [
-      'overflow', 'reentrancy', 'frontrun', 'underflow', 'delegatecall',
-      'selfdestruct', 'tx.origin', 'timestamp', 'block.number', 'msg.value',
-      'approve', 'transferFrom', 'balanceOf', 'safeTransfer', 'callback',
-      'flash loan', 'oracle', 'slippage', 'MEV', 'sandwich',
-      'permit', 'EIP-712', 'multicall', 'proxy', 'initialize',
-      'access control', 'onlyOwner', 'modifier', 'require', 'assert',
-      'mapping', 'storage', 'memory', 'calldata', 'assembly',
-      'gas limit', 'block gas', 'DoS', 'griefing', 'dust'
-    ];
   }
 
   init() {
@@ -857,9 +1310,12 @@ class AISim {
     this.confidence = 0;
     this.done = false;
 
+    const sc = getScenario();
+    const words = sc.words;
+
     for (let i = 0; i < 40; i++) {
       this.fragments.push({
-        text: this.words[i % this.words.length],
+        text: words[i % words.length],
         x: rand(30, w - 30),
         y: rand(50, h - 60),
         vx: rand(-0.4, 0.4),
@@ -873,13 +1329,14 @@ class AISim {
 
   update(dt, t) {
     if (this.done) return;
+    const sc = getScenario();
     const dur = this.finishTime / speed;
     this.progress = clamp(t / dur, 0, 1);
-    this.confidence = Math.floor(easeOut(this.progress) * 94);
-    this.patterns = Math.floor(easeOut(this.progress) * 47);
+    this.confidence = Math.floor(easeOut(this.progress) * sc.ai.confidence);
+    this.patterns = Math.floor(easeOut(this.progress) * sc.ai.matched);
 
     $('aiProgress').style.width = (this.progress * 100) + '%';
-    $('aiCounter').textContent = `Known Patterns Matched: ${this.patterns} / 891 | Confidence: ${this.confidence}%`;
+    $('aiCounter').textContent = `Known Patterns Matched: ${this.patterns} / ${sc.ai.patterns.toLocaleString()} | Confidence: ${this.confidence}%`;
 
     for (const f of this.fragments) {
       f.x += f.vx * speed;
@@ -889,7 +1346,6 @@ class AISim {
       if (f.matchFlash > 0) f.matchFlash -= dt * speed * 2;
     }
 
-    // Random matches
     if (Math.random() < 0.03 * speed && this.connections.length < this.patterns) {
       const unmatched = this.fragments.filter(f => !f.matched);
       if (unmatched.length >= 2) {
@@ -906,6 +1362,8 @@ class AISim {
 
     if (this.progress >= 1) {
       this.done = true;
+      $('aiResult').querySelector('.big-text').textContent = `LIKELY SAFE \u2014 ${sc.ai.confidence}%`;
+      $('aiResultSub').textContent = 'Untrainable edge cases: ?';
       $('aiResult').classList.add('visible');
     }
   }
@@ -914,7 +1372,6 @@ class AISim {
     const { ctx, w, h } = this;
     ctx.clearRect(0, 0, w, h);
 
-    // Connections
     for (const c of this.connections) {
       ctx.beginPath();
       ctx.moveTo(c.a.x, c.a.y);
@@ -924,7 +1381,6 @@ class AISim {
       ctx.stroke();
     }
 
-    // Fragments
     ctx.font = '11px monospace';
     for (const f of this.fragments) {
       const glow = f.matchFlash > 0 ? f.matchFlash : 0;
@@ -962,7 +1418,6 @@ class AISim {
     ctx.fillText(this.confidence + '%', cx, cy + 5);
     ctx.textAlign = 'left';
 
-    // Question mark when done
     if (this.done) {
       const pulse = 0.5 + 0.3 * Math.sin(performance.now() / 400);
       ctx.font = 'bold 28px monospace';
@@ -975,7 +1430,7 @@ class AISim {
 
   reset() {
     $('aiProgress').style.width = '0%';
-    $('aiCounter').textContent = 'Known Patterns Matched: 0 / 891';
+    $('aiCounter').textContent = 'Known Patterns Matched: 0';
     $('aiResult').classList.remove('visible');
   }
 }
@@ -988,7 +1443,6 @@ class FormalSim {
     this.canvas = $('cFV');
     this.nodes = [];
     this.edges = [];
-    this.particles = [];
     this.progress = 0;
     this.explored = 0;
     this.ram = 4;
@@ -996,9 +1450,8 @@ class FormalSim {
     this.crashed = false;
     this.crashTime = 0;
     this.finishTime = 8;
-    this.shakeApplied = false;
     this.flashAlpha = 0;
-    this.smokeParticles = [];
+    this.fadeProgress = 0;
   }
 
   init() {
@@ -1006,19 +1459,16 @@ class FormalSim {
     this.ctx = ctx; this.w = w; this.h = h;
     this.nodes = [];
     this.edges = [];
-    this.particles = [];
-    this.smokeParticles = [];
     this.progress = 0;
     this.explored = 0;
     this.ram = 4;
     this.done = false;
     this.crashed = false;
     this.crashTime = 0;
-    this.shakeApplied = false;
     this.flashAlpha = 0;
+    this.fadeProgress = 0;
 
-    // Seed node
-    this.nodes.push({ x: w / 2, y: h / 2, r: 4, vx: 0, vy: 0, alpha: 1, scattered: false });
+    this.nodes.push({ x: w / 2, y: h / 2, r: 4, alpha: 1, frozen: false, color: 'rgba(6,182,212,0.8)' });
   }
 
   update(dt, t) {
@@ -1027,11 +1477,11 @@ class FormalSim {
 
     if (!this.crashed) {
       this.progress = clamp(t / dur, 0, 1);
-      const growthRate = Math.pow(this.progress, 2);
+      // ease-in-out growth
+      const growthT = easeInOut(this.progress);
 
-      // Target node count grows exponentially
-      const targetNodes = Math.floor(2 + Math.pow(this.progress * 32, 2));
-      const maxNodes = 800;
+      const targetNodes = Math.floor(2 + Math.pow(growthT * 30, 2));
+      const maxNodes = 700;
 
       while (this.nodes.length < Math.min(targetNodes, maxNodes)) {
         const parent = this.nodes[randInt(0, this.nodes.length - 1)];
@@ -1039,22 +1489,40 @@ class FormalSim {
         const dist = rand(15, 40);
         const nx = clamp(parent.x + Math.cos(angle) * dist, 10, this.w - 10);
         const ny = clamp(parent.y + Math.sin(angle) * dist, 40, this.h - 50);
-        const node = { x: nx, y: ny, r: rand(1.5, 3.5), vx: 0, vy: 0, alpha: 1, scattered: false };
+
+        // Color gradient: cyan -> purple -> red based on progress
+        let r, g, b;
+        if (this.progress < 0.5) {
+          const p = this.progress / 0.5;
+          r = Math.floor(lerp(6, 147, p));
+          g = Math.floor(lerp(182, 51, p));
+          b = Math.floor(lerp(212, 234, p));
+        } else {
+          const p = (this.progress - 0.5) / 0.5;
+          r = Math.floor(lerp(147, 239, p));
+          g = Math.floor(lerp(51, 68, p));
+          b = Math.floor(lerp(234, 68, p));
+        }
+
+        const node = {
+          x: nx, y: ny, r: rand(1.5, 3.5), alpha: 1, frozen: false,
+          color: `rgba(${r},${g},${b},0.8)`
+        };
         this.nodes.push(node);
         this.edges.push({ a: parent, b: node, alpha: 0.4 });
       }
 
-      // Progress and RAM
-      const expProgress = [0.001, 0.003, 0.008, 0.012][Math.min(3, Math.floor(this.progress * 4))];
       this.explored = Math.floor(this.progress * 1e9);
       const ramSteps = [4, 16, 64, 128, 256];
       this.ram = ramSteps[Math.min(4, Math.floor(this.progress * 5))];
 
+      const sc = getScenario();
+      const expProgress = clamp(this.progress * 0.012, 0, 0.012);
       $('fvProgress').style.width = (expProgress * 100) + '%';
-      $('fvCounter').textContent = `Explored: ${(this.explored / 1e9).toFixed(1)} \u00d7 10${superscript(9)} of ${totalStatesStr()} needed`;
+      $('fvCounter').textContent = `Explored: ${(this.explored / 1e9).toFixed(1)} \u00d7 10${superscript(9)} of ${sc.statesLabel} needed`;
       $('fvRam').style.width = (this.ram / 256 * 100) + '%';
       $('fvRam').style.background = this.ram >= 128 ? '#ef4444' : this.ram >= 64 ? '#f97316' : '#06b6d4';
-      $('fvRamLabel').textContent = `RAM: ${this.ram} GB`;
+      $('fvRamLabel').textContent = `RAM: ${this.ram} GB / 256 GB`;
 
       // CRASH
       if (this.progress >= 1) {
@@ -1062,63 +1530,38 @@ class FormalSim {
         this.crashTime = 0;
         this.done = true;
 
-        // Shake
         $('qFV').classList.add('shaking');
         setTimeout(() => $('qFV').classList.remove('shaking'), 500);
 
-        // Scatter all nodes
+        // Freeze all nodes
         for (const n of this.nodes) {
-          const dx = n.x - this.w / 2;
-          const dy = n.y - this.h / 2;
-          const dist = Math.hypot(dx, dy) || 1;
-          n.vx = (dx / dist) * rand(3, 12);
-          n.vy = (dy / dist) * rand(3, 12);
-          n.scattered = true;
+          n.frozen = true;
         }
 
-        // Smoke
-        for (let i = 0; i < 60; i++) {
-          this.smokeParticles.push({
-            x: this.w / 2 + rand(-80, 80),
-            y: this.h / 2 + rand(-80, 80),
-            vx: rand(-1, 1),
-            vy: rand(-2, -0.3),
-            r: rand(3, 12),
-            alpha: rand(0.3, 0.6),
-            life: rand(1.5, 3)
-          });
-        }
-
-        this.flashAlpha = 1;
+        this.flashAlpha = 0.8;
       }
     }
 
-    // Post-crash animation
+    // Post-crash: dignified fade/dissolve
     if (this.crashed) {
       this.crashTime += dt * speed;
-      this.flashAlpha = Math.max(0, this.flashAlpha - dt * speed * 2);
+      this.flashAlpha = Math.max(0, this.flashAlpha - dt * speed * 1.5);
+
+      // Slow fade of nodes (dissolve effect)
+      this.fadeProgress = clamp(this.crashTime / 3, 0, 1);
+      const fadeEased = easeInOut(this.fadeProgress);
 
       for (const n of this.nodes) {
-        n.x += n.vx * speed;
-        n.y += n.vy * speed;
-        n.alpha = Math.max(0, n.alpha - dt * speed * 0.5);
+        n.alpha = Math.max(0, 1 - fadeEased * 0.85);
       }
 
       for (const e of this.edges) {
-        e.alpha = Math.max(0, e.alpha - dt * speed * 0.8);
+        e.alpha = Math.max(0, 0.4 * (1 - fadeEased));
       }
 
-      for (const s of this.smokeParticles) {
-        s.x += s.vx * speed;
-        s.y += s.vy * speed;
-        s.alpha -= dt * speed * 0.25;
-        s.r += dt * speed * 2;
-      }
-      this.smokeParticles = this.smokeParticles.filter(s => s.alpha > 0);
-
-      if (this.crashTime > 1) {
+      if (this.crashTime > 0.8) {
         $('fvResult').classList.add('visible');
-        $('fvResult').querySelector('.big-text').style.animation = 'glitch 0.5s infinite';
+        // Show once, then static (no infinite glitch)
       }
     }
   }
@@ -1130,6 +1573,12 @@ class FormalSim {
     // Red flash
     if (this.flashAlpha > 0) {
       ctx.fillStyle = `rgba(239,68,68,${this.flashAlpha * 0.3})`;
+      ctx.fillRect(0, 0, w, h);
+    }
+
+    // Darkening background as crash fades
+    if (this.crashed && this.fadeProgress > 0) {
+      ctx.fillStyle = `rgba(10,10,15,${this.fadeProgress * 0.5})`;
       ctx.fillRect(0, 0, w, h);
     }
 
@@ -1149,27 +1598,21 @@ class FormalSim {
       if (n.alpha <= 0) continue;
       ctx.beginPath();
       ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(6,182,212,${n.alpha * 0.8})`;
+      ctx.globalAlpha = n.alpha;
+      ctx.fillStyle = n.color;
       ctx.fill();
-    }
-
-    // Smoke
-    for (const s of this.smokeParticles) {
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(100,100,120,${s.alpha})`;
-      ctx.fill();
+      ctx.globalAlpha = 1;
     }
   }
 
   reset() {
+    const sc = getScenario();
     $('fvProgress').style.width = '0%';
-    $('fvCounter').textContent = `Explored: 0 of ${totalStatesStr()} needed`;
+    $('fvCounter').textContent = `Explored: 0 of ${sc.statesLabel} needed`;
     $('fvRam').style.width = '0%';
     $('fvRam').style.background = '#06b6d4';
-    $('fvRamLabel').textContent = 'RAM: 4 GB';
+    $('fvRamLabel').textContent = 'RAM: 4 GB / 256 GB';
     $('fvResult').classList.remove('visible');
-    $('fvResult').querySelector('.big-text').style.animation = '';
     $('qFV').classList.remove('shaking');
   }
 }
@@ -1211,7 +1654,6 @@ class TauSim {
     this.treeDepth = 0;
     this.nextNodeTimer = 0;
 
-    // Root
     this.nodes.push({
       x: w / 2, y: 50, r: 5, depth: 0,
       color: '#ffd700', exploit: false, merging: 0
@@ -1240,12 +1682,10 @@ class TauSim {
   }
 
   tryMerge() {
-    // Find two nodes at same depth that are close-ish
     for (let i = this.nodes.length - 1; i > 0; i--) {
       for (let j = i - 1; j > 0; j--) {
         const a = this.nodes[i], b = this.nodes[j];
         if (a.depth === b.depth && Math.abs(a.x - b.x) < 100 && Math.abs(a.y - b.y) < 30 && !a.merged && !b.merged) {
-          // Merge b into a
           const mx = (a.x + b.x) / 2;
           const my = (a.y + b.y) / 2;
           this.mergeFlashes.push({ x: mx, y: my, age: 0 });
@@ -1256,7 +1696,6 @@ class TauSim {
           b.merged = true;
           b.alpha = 0;
 
-          // Reroute edges from b to a
           for (const e of this.edges) {
             if (e.from === j) e.from = i;
             if (e.to === j) e.to = i;
@@ -1269,8 +1708,8 @@ class TauSim {
   }
 
   update(dt, t) {
+    const sc = getScenario();
     if (this.done) {
-      // Burst particles
       for (const p of this.burstParticles) {
         p.x += p.vx * speed;
         p.y += p.vy * speed;
@@ -1283,32 +1722,36 @@ class TauSim {
 
     const dur = this.finishTime / speed;
     this.progress = clamp(t / dur, 0, 1);
-    this.verified = Math.floor(easeInOut(this.progress) * 4.3e9);
+    this.verified = Math.floor(easeInOut(this.progress) * (sc.statesNum === Infinity ? 1e45 : sc.statesNum));
 
     $('tauProgress').style.width = (this.progress * 100) + '%';
 
-    const vStr = this.verified >= 1e9
-      ? (this.verified / 1e9).toFixed(1) + ' \u00d7 10' + superscript(9)
-      : this.verified.toLocaleString();
+    let vStr;
+    if (sc.statesNum === Infinity) {
+      // Governance: show as 2^500
+      const pct = easeInOut(this.progress);
+      vStr = pct >= 0.99 ? sc.statesLabel : (pct * 100).toFixed(1) + '% of ' + sc.statesLabel;
+    } else if (this.verified >= 1e9) {
+      vStr = (this.verified / 1e9).toFixed(1) + ' \u00d7 10' + superscript(9);
+    } else if (this.verified >= 1e6) {
+      vStr = (this.verified / 1e6).toFixed(1) + ' \u00d7 10' + superscript(6);
+    } else {
+      vStr = this.verified.toLocaleString();
+    }
     $('tauCounter').textContent = `Verified: ${vStr} states via ${Math.max(0, this.bddNodes).toLocaleString()} BDD nodes`;
 
-    // Add nodes steadily
     this.nextNodeTimer += dt * speed;
     const nodeInterval = 0.08;
     while (this.nextNodeTimer >= nodeInterval && this.nodes.length < 300) {
       this.nextNodeTimer -= nodeInterval;
       const parentIdx = randInt(Math.max(0, this.nodes.length - 20), this.nodes.length - 1);
       this.addNode(parentIdx);
-
-      // Occasionally merge
       if (Math.random() < 0.15) this.tryMerge();
     }
 
-    // Merge flashes
     for (const f of this.mergeFlashes) f.age += dt * speed;
     this.mergeFlashes = this.mergeFlashes.filter(f => f.age < 0.8);
 
-    // Node merge animation
     for (const n of this.nodes) {
       if (n.merging > 0) n.merging = Math.max(0, n.merging - dt * speed * 2);
     }
@@ -1316,7 +1759,6 @@ class TauSim {
     // Exploit at 80%
     if (this.progress >= 0.8 && !this.exploitFound) {
       this.exploitFound = true;
-      // Mark a path from root to a leaf as exploit
       let idx = 0;
       this.exploitPath = [0];
       while (true) {
@@ -1331,12 +1773,11 @@ class TauSim {
       }
     }
 
-    // Done
     if (this.progress >= 1) {
       this.done = true;
+      $('tauResultSub').textContent = sc.tau.resultSub;
       $('tauResult').classList.add('visible');
 
-      // Gold burst
       for (let i = 0; i < 80; i++) {
         const angle = rand(0, Math.PI * 2);
         const spd = rand(2, 8);
@@ -1356,7 +1797,6 @@ class TauSim {
     const { ctx, w, h } = this;
     ctx.clearRect(0, 0, w, h);
 
-    // Edges
     for (const e of this.edges) {
       const a = this.nodes[e.from];
       const b = this.nodes[e.to];
@@ -1365,7 +1805,7 @@ class TauSim {
       ctx.moveTo(a.x, a.y);
       ctx.lineTo(b.x, b.y);
       if (e.exploit) {
-        ctx.strokeStyle = `rgba(239,68,68,0.9)`;
+        ctx.strokeStyle = 'rgba(239,68,68,0.9)';
         ctx.lineWidth = 2.5;
         ctx.shadowColor = '#ef4444';
         ctx.shadowBlur = 8;
@@ -1377,7 +1817,6 @@ class TauSim {
       ctx.shadowBlur = 0;
     }
 
-    // Nodes
     for (const n of this.nodes) {
       if (n.merged) continue;
       ctx.beginPath();
@@ -1395,7 +1834,6 @@ class TauSim {
       ctx.shadowBlur = 0;
     }
 
-    // Merge flashes
     for (const f of this.mergeFlashes) {
       const alpha = 1 - f.age / 0.8;
       const r = 5 + f.age * 30;
@@ -1406,13 +1844,10 @@ class TauSim {
       ctx.stroke();
     }
 
-    // Burst particles
     for (const p of this.burstParticles) {
       if (p.alpha <= 0) continue;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = p.color.replace(')', `,${p.alpha})`).replace('rgb', 'rgba');
-      // Simple approach
       ctx.globalAlpha = p.alpha;
       ctx.fillStyle = p.color;
       ctx.fill();
@@ -1454,7 +1889,6 @@ function raceLoop(now) {
   fvSim.draw();
   tauSim.draw();
 
-  // Punchline at 14s equivalent
   const punchlineTime = 14 / speed;
   if (raceTime > punchlineTime && !overlayShown) {
     showOverlay();
@@ -1465,16 +1899,29 @@ function raceLoop(now) {
 
 let overlayShown = false;
 
+function updateOverlayContent() {
+  const sc = getScenario();
+  $('olPyDetail').textContent = sc.python.action;
+  $('olAiDetail').textContent = sc.ai.action;
+  $('olFvDetail').textContent = sc.fv.crashLabel;
+  $('olTauDetail').textContent = sc.tau.action;
+  $('overlayTagline').textContent = sc.overlayTagline;
+}
+
+function updateScrollContent() {
+  const sc = getScenario();
+  $('exploitLabel').textContent = sc.exploitLabel;
+  $('exploitTitle').textContent = sc.exploitTitle;
+  $('exploitDesc').textContent = sc.exploitDesc;
+}
+
 function showOverlay() {
   overlayShown = true;
-  // Dim quadrants
+  updateOverlayContent();
   document.querySelectorAll('.quadrant').forEach(q => q.style.opacity = '0.4');
-  // Dissolve dividers
   $('divH').style.opacity = '0';
   $('divV').style.opacity = '0';
-  // Show overlay
   $('overlay').classList.add('visible');
-  // Show again button
   $('againBtn').style.display = 'inline-block';
   $('raceBtn').style.display = 'none';
 }
@@ -1482,7 +1929,8 @@ function showOverlay() {
 function startRace() {
   if (racing) return;
 
-  // Reset
+  updateScrollContent();
+
   overlayShown = false;
   $('overlay').classList.remove('visible');
   document.querySelectorAll('.quadrant').forEach(q => q.style.opacity = '1');
@@ -1540,6 +1988,38 @@ $('rulesSlider').addEventListener('input', (e) => {
   $('rulesVal').textContent = ruleCount;
 });
 
+// Custom dropdown
+const dropdown = $('problemDropdown');
+const trigger = $('problemTrigger');
+const options = $('problemOptions');
+
+trigger.addEventListener('click', (e) => {
+  e.stopPropagation();
+  dropdown.classList.toggle('open');
+});
+
+options.querySelectorAll('.custom-select-option').forEach(opt => {
+  opt.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const val = opt.dataset.value;
+    currentScenario = val;
+    trigger.textContent = opt.textContent;
+    options.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('active'));
+    opt.classList.add('active');
+    dropdown.classList.remove('open');
+    updateScrollContent();
+
+    // If not racing, reset counters to match new scenario
+    if (!racing) {
+      for (const s of sims) s.reset();
+    }
+  });
+});
+
+document.addEventListener('click', () => {
+  dropdown.classList.remove('open');
+});
+
 // Overlay click to dismiss
 $('overlay').addEventListener('click', (e) => {
   if (e.target === $('overlay')) {
@@ -1553,7 +2033,6 @@ window.addEventListener('resize', () => {
   clearTimeout(resizeTimeout);
   resizeTimeout = setTimeout(() => {
     if (racing) {
-      // Re-setup canvases but keep state
       for (const s of sims) {
         const { ctx, w, h } = setupCanvas(s.canvas);
         s.ctx = ctx; s.w = w; s.h = h;
@@ -1567,16 +2046,11 @@ window.addEventListener('load', () => {
   for (const s of sims) {
     setupCanvas(s.canvas);
   }
-  // Draw empty state
   for (const s of sims) {
     s.init();
     s.draw();
   }
-});
-
-// Problem selector changes the overlay text slightly
-$('problemSelect').addEventListener('change', (e) => {
-  // Visual only - doesn't change core animation logic
+  updateScrollContent();
 });
 </script>
 </body>
