@@ -1,0 +1,2104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Can Your Gene Edit Escape Containment? | Tau Language Demo</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  --bg:#0a0a0f;
+  --bg2:#12121a;
+  --bg3:#1a1a28;
+  --red:#ef4444;
+  --red-dark:#991b1b;
+  --red-glow:rgba(239,68,68,.3);
+  --gold:#ffd700;
+  --gold-dim:#b8960f;
+  --gold-glow:rgba(255,215,0,.25);
+  --cyan:#06b6d4;
+  --cyan-glow:rgba(6,182,212,.2);
+  --green:#22c55e;
+  --green-glow:rgba(34,197,94,.2);
+  --blue:#3b82f6;
+  --blue-glow:rgba(59,130,246,.2);
+  --purple:#a855f7;
+  --purple-glow:rgba(168,85,247,.2);
+  --txt:#e2e8f0;
+  --txt-dim:#94a3b8;
+  --txt-dark:#64748b;
+  --font:'Segoe UI',system-ui,-apple-system,sans-serif;
+  --mono:'Cascadia Code','Fira Code','Consolas',monospace;
+}
+
+html{scroll-behavior:smooth}
+
+body{
+  background:var(--bg);
+  color:var(--txt);
+  font-family:var(--font);
+  line-height:1.6;
+  overflow-x:hidden;
+}
+
+/* ──────────── BACKGROUND ──────────── */
+#bgCanvas{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+}
+
+/* ──────────── HERO ──────────── */
+.hero{
+  text-align:center;
+  padding:60px 24px 30px;
+  position:relative;
+  overflow:hidden;
+  z-index:1;
+}
+.hero::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(34,197,94,.07) 0%,transparent 70%);
+  pointer-events:none;
+}
+.badge{
+  display:inline-block;
+  background:linear-gradient(135deg,var(--gold-dim),var(--gold));
+  color:#000;
+  font-weight:700;
+  font-size:13px;
+  padding:4px 16px;
+  border-radius:20px;
+  margin-bottom:20px;
+  letter-spacing:.5px;
+}
+.hero h1{
+  font-size:clamp(2.2rem,5vw,3.8rem);
+  font-weight:900;
+  letter-spacing:-1px;
+  line-height:1.1;
+  margin-bottom:12px;
+  text-transform:uppercase;
+}
+.hero h1 .red{color:var(--red)}
+.hero h1 .white{color:#fff}
+.hero .subtitle{
+  font-size:clamp(1rem,2vw,1.3rem);
+  color:var(--txt-dim);
+  max-width:750px;
+  margin:0 auto;
+}
+
+/* ──────────── HERO VISUAL ──────────── */
+.hero-visual{
+  display:flex;
+  gap:24px;
+  max-width:1100px;
+  margin:30px auto 0;
+  min-height:450px;
+  position:relative;
+  z-index:1;
+  padding:0 24px;
+}
+
+/* DNA Container */
+.dna-container{
+  flex:0 0 38%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  perspective:800px;
+  position:relative;
+  min-height:450px;
+}
+
+/* Population Map */
+.map-container{
+  flex:1;
+  position:relative;
+  border-radius:16px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.06);
+  background:var(--bg2);
+}
+#populationMap{
+  width:100%;
+  height:450px;
+  display:block;
+}
+.gen-counter{
+  position:absolute;
+  top:16px;
+  right:16px;
+  background:rgba(0,0,0,.75);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:10px;
+  padding:8px 16px;
+  font-family:var(--mono);
+  font-size:14px;
+  color:var(--txt-dim);
+  backdrop-filter:blur(8px);
+  z-index:2;
+}
+.gen-counter .num{
+  font-size:28px;
+  font-weight:900;
+  color:var(--green);
+  display:block;
+  transition:color .5s;
+}
+.gen-counter .num.warning{color:var(--gold)}
+.gen-counter .num.danger{color:var(--red)}
+
+.map-legend{
+  position:absolute;
+  bottom:12px;
+  left:12px;
+  background:rgba(0,0,0,.75);
+  border-radius:8px;
+  padding:8px 12px;
+  font-size:11px;
+  display:flex;
+  gap:12px;
+  backdrop-filter:blur(8px);
+  z-index:2;
+}
+.map-legend span{display:flex;align-items:center;gap:4px}
+.map-legend .dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  display:inline-block;
+}
+
+/* ──────────── DNA HELIX 3D ──────────── */
+.dna-helix{
+  transform-style:preserve-3d;
+  width:120px;
+  height:400px;
+  position:relative;
+  animation:helixRotate 12s linear infinite;
+}
+@keyframes helixRotate{
+  0%{transform:rotateY(0deg)}
+  100%{transform:rotateY(360deg)}
+}
+.dna-pair{
+  position:absolute;
+  width:120px;
+  height:12px;
+  transform-style:preserve-3d;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.dna-node{
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  position:absolute;
+  transition:background .6s, box-shadow .6s;
+}
+.dna-node.left{
+  left:0;
+  background:var(--cyan);
+  box-shadow:0 0 8px var(--cyan-glow);
+}
+.dna-node.right{
+  right:0;
+  background:var(--blue);
+  box-shadow:0 0 8px var(--blue-glow);
+}
+.dna-bond{
+  position:absolute;
+  left:14px;
+  right:14px;
+  height:3px;
+  top:50%;
+  transform:translateY(-50%);
+  background:linear-gradient(90deg,var(--cyan),var(--green),var(--blue));
+  opacity:.5;
+  border-radius:2px;
+  transition:background .6s, opacity .6s;
+}
+.dna-node.modified{
+  background:var(--gold) !important;
+  box-shadow:0 0 14px var(--gold-glow) !important;
+}
+.dna-node.broken{
+  background:var(--red) !important;
+  box-shadow:0 0 18px var(--red-glow) !important;
+  animation:dnaPulse 1s infinite;
+}
+.dna-bond.modified{
+  background:linear-gradient(90deg,var(--gold),var(--gold-dim)) !important;
+  opacity:.8;
+}
+.dna-bond.broken{
+  background:linear-gradient(90deg,var(--red),var(--red-dark)) !important;
+  opacity:.9;
+  animation:dnaPulse 1s infinite;
+}
+@keyframes dnaPulse{
+  0%,100%{opacity:1}
+  50%{opacity:.35}
+}
+
+/* CRISPR Scissors */
+.crispr-scissors{
+  position:absolute;
+  left:50%;
+  top:42%;
+  transform:translate(-50%,-50%);
+  font-size:40px;
+  opacity:0;
+  z-index:5;
+  filter:drop-shadow(0 0 12px rgba(255,215,0,.6));
+  transition:opacity .5s;
+  pointer-events:none;
+}
+.crispr-scissors.visible{
+  opacity:1;
+  animation:scissorCut 1.8s ease-in-out;
+}
+@keyframes scissorCut{
+  0%{transform:translate(-50%,-90%) scale(1.4) rotate(-25deg);opacity:0}
+  20%{opacity:1}
+  40%{transform:translate(-50%,-50%) scale(1) rotate(0deg);opacity:1}
+  55%{transform:translate(-50%,-50%) scale(1.15) rotate(8deg)}
+  70%{transform:translate(-50%,-50%) scale(1) rotate(-5deg)}
+  100%{transform:translate(-50%,-50%) scale(1) rotate(0deg);opacity:1}
+}
+
+/* ──────────── SAFEGUARD CONTROLS ──────────── */
+section.controls{
+  padding:30px 24px;
+  position:relative;
+  z-index:1;
+}
+.section-label{
+  text-align:center;
+  font-size:13px;
+  font-weight:700;
+  color:var(--txt-dark);
+  text-transform:uppercase;
+  letter-spacing:3px;
+  margin-bottom:16px;
+}
+.locks-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:12px;
+  max-width:1200px;
+  margin:0 auto;
+}
+.lock-card{
+  background:var(--bg2);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:12px;
+  padding:14px 16px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  transition:all .4s;
+  position:relative;
+  overflow:hidden;
+}
+.lock-card.active{
+  border-color:rgba(34,197,94,.3);
+  box-shadow:0 0 15px rgba(34,197,94,.08);
+}
+.lock-card.breached{
+  border-color:var(--red);
+  background:rgba(239,68,68,.05);
+}
+.lock-card.breached::after{
+  content:'BREACHED';
+  position:absolute;
+  top:6px;
+  right:8px;
+  font-size:9px;
+  font-weight:700;
+  color:var(--red);
+  letter-spacing:1px;
+}
+.lock-icon{
+  font-size:24px;
+  width:36px;
+  text-align:center;
+  flex-shrink:0;
+}
+.lock-info{
+  flex:1;
+  min-width:0;
+}
+.lock-name{
+  font-weight:700;
+  font-size:14px;
+  color:#fff;
+}
+.lock-desc{
+  font-size:11px;
+  color:var(--txt-dim);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.lock-toggle{
+  position:relative;
+  width:44px;
+  height:24px;
+  flex-shrink:0;
+}
+.lock-toggle input{
+  opacity:0;
+  width:0;
+  height:0;
+}
+.lock-toggle .slider{
+  position:absolute;
+  inset:0;
+  background:#333;
+  border-radius:12px;
+  cursor:pointer;
+  transition:.3s;
+}
+.lock-toggle .slider::before{
+  content:'';
+  position:absolute;
+  width:18px;
+  height:18px;
+  left:3px;
+  top:3px;
+  background:#888;
+  border-radius:50%;
+  transition:.3s;
+}
+.lock-toggle input:checked+.slider{
+  background:var(--green);
+  box-shadow:0 0 10px var(--green-glow);
+}
+.lock-toggle input:checked+.slider::before{
+  transform:translateX(20px);
+  background:#fff;
+}
+
+/* ──────────── PRESETS / SLIDERS / LAUNCH ──────────── */
+.controls-row{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:12px;
+  margin:16px auto 0;
+  max-width:1200px;
+}
+.preset-btn{
+  padding:10px 20px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.1);
+  background:var(--bg2);
+  color:var(--txt);
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .2s;
+}
+.preset-btn:hover{
+  background:var(--bg3);
+  border-color:rgba(255,255,255,.2);
+  transform:translateY(-1px);
+}
+.preset-btn.selected{
+  border-color:var(--gold);
+  box-shadow:0 0 12px var(--gold-glow);
+}
+
+.sliders-row{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:24px;
+  margin:20px auto 0;
+  max-width:1000px;
+}
+.slider-group{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+  min-width:200px;
+}
+.slider-group label{
+  font-size:12px;
+  color:var(--txt-dim);
+  text-transform:uppercase;
+  letter-spacing:1px;
+}
+.slider-group input[type=range]{
+  width:200px;
+  accent-color:var(--green);
+  cursor:pointer;
+}
+.slider-group .slider-val{
+  font-family:var(--mono);
+  font-size:14px;
+  font-weight:700;
+  color:var(--cyan);
+}
+
+.launch-btn{
+  display:block;
+  margin:24px auto 0;
+  padding:16px 48px;
+  border-radius:14px;
+  border:none;
+  background:linear-gradient(135deg,#15803d,var(--green));
+  color:#fff;
+  font-size:18px;
+  font-weight:800;
+  cursor:pointer;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  position:relative;
+  overflow:hidden;
+  animation:pulseGreen 2.5s infinite;
+  transition:transform .15s;
+  z-index:1;
+}
+.launch-btn:hover{transform:scale(1.04)}
+.launch-btn:active{transform:scale(.97)}
+.launch-btn.running{pointer-events:none;opacity:.8}
+
+@keyframes pulseGreen{
+  0%,100%{box-shadow:0 0 20px rgba(34,197,94,.3)}
+  50%{box-shadow:0 0 40px rgba(34,197,94,.5)}
+}
+.launch-btn.danger{
+  background:linear-gradient(135deg,#b91c1c,var(--red));
+  animation:pulseRed 2.5s infinite;
+}
+@keyframes pulseRed{
+  0%,100%{box-shadow:0 0 20px var(--red-glow)}
+  50%{box-shadow:0 0 40px rgba(239,68,68,.5)}
+}
+
+/* ──────────── CHART ──────────── */
+.chart-section{
+  padding:40px 24px;
+  position:relative;
+  z-index:1;
+}
+.chart-wrap{
+  max-width:1100px;
+  margin:0 auto;
+  background:var(--bg2);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:16px;
+  padding:24px;
+  overflow:hidden;
+}
+.chart-title{
+  font-size:14px;
+  font-weight:700;
+  color:var(--txt-dim);
+  text-transform:uppercase;
+  letter-spacing:2px;
+  margin-bottom:16px;
+  text-align:center;
+}
+#frequencyChart{
+  width:100%;
+  height:300px;
+  display:block;
+}
+
+/* ──────────── 4-COLUMN OUTPUT ──────────── */
+.output-section{
+  padding:40px 24px;
+  position:relative;
+  z-index:1;
+}
+.output-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:16px;
+  max-width:1440px;
+  margin:0 auto;
+}
+
+.output-col{
+  background:var(--bg2);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:14px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+.output-col .col-header{
+  padding:14px 16px 10px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.output-col .col-header .dot-indicator{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+}
+.output-col .col-header .col-title{
+  font-size:13px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:1px;
+}
+
+.output-col.python .dot-indicator{background:var(--blue)}
+.output-col.python .col-title{color:var(--blue)}
+.output-col.formal .dot-indicator{background:var(--cyan)}
+.output-col.formal .col-title{color:var(--cyan)}
+.output-col.ai .dot-indicator{background:var(--green)}
+.output-col.ai .col-title{color:var(--green)}
+.output-col.tau .dot-indicator{background:var(--gold)}
+.output-col.tau .col-title{color:var(--gold)}
+
+.terminal{
+  padding:16px;
+  font-family:var(--mono);
+  font-size:10.5px;
+  line-height:1.55;
+  color:var(--txt-dim);
+  flex:1;
+  overflow-y:auto;
+  white-space:pre-wrap;
+  word-break:break-word;
+  position:relative;
+  min-height:320px;
+  max-height:600px;
+}
+.terminal .cursor{
+  display:inline-block;
+  width:7px;
+  height:13px;
+  background:var(--txt-dim);
+  animation:blink 1s step-end infinite;
+  vertical-align:text-bottom;
+}
+@keyframes blink{50%{opacity:0}}
+
+.verdict-bar{
+  padding:12px 16px;
+  font-weight:800;
+  font-size:13px;
+  text-align:center;
+  text-transform:uppercase;
+  letter-spacing:1px;
+}
+.verdict-bar.pass{
+  background:rgba(34,197,94,.1);
+  color:var(--green);
+  border-top:1px solid rgba(34,197,94,.2);
+}
+.verdict-bar.warn{
+  background:rgba(6,182,212,.1);
+  color:var(--cyan);
+  border-top:1px solid rgba(6,182,212,.2);
+}
+.verdict-bar.fail{
+  background:rgba(239,68,68,.1);
+  color:var(--red);
+  border-top:1px solid rgba(239,68,68,.2);
+}
+.verdict-bar.tau-verdict{
+  background:rgba(255,215,0,.1);
+  color:var(--gold);
+  border-top:1px solid rgba(255,215,0,.2);
+}
+
+/* ──────────── COMPARISON ──────────── */
+.comparison-section{
+  padding:40px 24px;
+  position:relative;
+  z-index:1;
+}
+.comparison-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:16px;
+  max-width:1200px;
+  margin:0 auto;
+}
+.comp-card{
+  background:var(--bg2);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:14px;
+  padding:24px 20px;
+  text-align:center;
+  transition:all .5s;
+}
+.comp-card .comp-icon{font-size:36px;margin-bottom:10px}
+.comp-card .comp-title{
+  font-size:13px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  margin-bottom:8px;
+}
+.comp-card .comp-result{
+  font-size:22px;
+  font-weight:900;
+  margin-bottom:6px;
+}
+.comp-card .comp-detail{
+  font-size:11px;
+  color:var(--txt-dim);
+  line-height:1.5;
+}
+
+.comp-card.blue-card .comp-title{color:var(--blue)}
+.comp-card.blue-card .comp-result{color:var(--green)}
+.comp-card.cyan-card .comp-title{color:var(--cyan)}
+.comp-card.cyan-card .comp-result{color:var(--cyan)}
+.comp-card.green-card .comp-title{color:var(--green)}
+.comp-card.green-card .comp-result{color:var(--green)}
+.comp-card.gold-card .comp-title{color:var(--gold)}
+.comp-card.gold-card .comp-result{color:var(--red)}
+.comp-card.gold-card{
+  border-color:rgba(255,215,0,.2);
+  box-shadow:0 0 24px var(--gold-glow);
+}
+
+/* ──────────── TAGLINE ──────────── */
+.tagline-section{
+  padding:50px 24px;
+  text-align:center;
+  position:relative;
+  z-index:1;
+}
+.tagline{
+  font-size:clamp(1rem,2.5vw,1.4rem);
+  color:var(--txt-dim);
+  max-width:900px;
+  margin:0 auto;
+  line-height:1.7;
+  font-style:italic;
+}
+.tagline strong{
+  color:var(--gold);
+  font-style:normal;
+}
+
+/* ──────────── SHARE CARD ──────────── */
+.share-section{
+  padding:20px 24px 80px;
+  display:flex;
+  justify-content:center;
+  position:relative;
+  z-index:1;
+}
+.share-card{
+  background:linear-gradient(135deg,var(--bg2),var(--bg3));
+  border:1px solid rgba(255,215,0,.15);
+  border-radius:20px;
+  padding:36px 44px;
+  text-align:center;
+  max-width:480px;
+  width:100%;
+  box-shadow:0 0 50px rgba(255,215,0,.06);
+}
+.share-card .share-icon{font-size:52px;margin-bottom:14px}
+.share-card .share-stat{
+  font-size:30px;
+  font-weight:900;
+  color:var(--red);
+  margin-bottom:10px;
+  text-shadow:0 0 20px var(--red-glow);
+}
+.share-card .share-quote{
+  font-size:14px;
+  color:var(--txt-dim);
+  font-style:italic;
+  margin-bottom:18px;
+  line-height:1.6;
+}
+.share-card .tau-badge{
+  display:inline-block;
+  background:linear-gradient(135deg,var(--gold-dim),var(--gold));
+  color:#000;
+  font-weight:800;
+  font-size:13px;
+  padding:6px 22px;
+  border-radius:20px;
+  letter-spacing:.5px;
+}
+
+/* ──────────── RESPONSIVE ──────────── */
+@media(max-width:1200px){
+  .output-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:900px){
+  .hero-visual{flex-direction:column;min-height:auto}
+  .dna-container{flex:none;height:280px;min-height:280px}
+  .map-container{flex:none}
+  #populationMap{height:350px}
+  .comparison-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:700px){
+  .output-grid{grid-template-columns:1fr}
+  .comparison-grid{grid-template-columns:1fr}
+  .hero-visual{padding:0 12px}
+}
+</style>
+</head>
+<body>
+
+<!-- Background canvas for star field + gradient blobs -->
+<canvas id="bgCanvas"></canvas>
+
+<!-- ═══════════ HERO ═══════════ -->
+<section class="hero">
+  <div class="badge">TAU VERIFICATION DEMO #8</div>
+  <h1>
+    <span class="white">CAN YOUR GENE EDIT</span><br>
+    <span class="red">ESCAPE CONTAINMENT?</span>
+  </h1>
+  <p class="subtitle">
+    8 safeguards. 1,000 simulations. 100,000 organisms.
+    Every containment layer holds &mdash; but evolution finds the one
+    combination that breaks them all.
+  </p>
+</section>
+
+<!-- ═══════════ HERO VISUAL ═══════════ -->
+<div class="hero-visual">
+  <!-- DNA Helix (left 40%) -->
+  <div class="dna-container">
+    <div class="dna-helix" id="dnaHelix"></div>
+    <div class="crispr-scissors" id="crisprScissors">&#9986;</div>
+  </div>
+
+  <!-- Population Map (right 60%) -->
+  <div class="map-container">
+    <canvas id="populationMap"></canvas>
+    <div class="gen-counter">
+      <span style="font-size:11px;letter-spacing:1px">GENERATION</span>
+      <span class="num" id="genNum">0</span>
+    </div>
+    <div class="map-legend">
+      <span><span class="dot" style="background:var(--green)"></span> Contained</span>
+      <span><span class="dot" style="background:var(--gold)"></span> Modified</span>
+      <span><span class="dot" style="background:var(--red)"></span> Escaped</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SAFEGUARD CONTROLS ═══════════ -->
+<section class="controls">
+  <div class="section-label">Safeguard Controls</div>
+  <div class="locks-grid" id="locksGrid"></div>
+
+  <div class="controls-row" id="presets"></div>
+
+  <div class="sliders-row">
+    <div class="slider-group">
+      <label>Population Size</label>
+      <input type="range" id="sliderPop" min="3" max="6" step="0.01" value="5">
+      <span class="slider-val" id="valPop">100,000</span>
+    </div>
+    <div class="slider-group">
+      <label>Generations</label>
+      <input type="range" id="sliderGen" min="10" max="200" step="1" value="100">
+      <span class="slider-val" id="valGen">100</span>
+    </div>
+    <div class="slider-group">
+      <label>Mutation Rate</label>
+      <input type="range" id="sliderMut" min="-6" max="-3" step="0.01" value="-4">
+      <span class="slider-val" id="valMut">10&#x207B;&#x2074;</span>
+    </div>
+  </div>
+
+  <button class="launch-btn" id="launchBtn">&#9889; LAUNCH GENE DRIVE SIMULATION</button>
+</section>
+
+<!-- ═══════════ CHART ═══════════ -->
+<section class="chart-section">
+  <div class="chart-wrap">
+    <div class="chart-title">
+      Gene Drive Frequency in Population Over Generations
+    </div>
+    <canvas id="frequencyChart"></canvas>
+  </div>
+</section>
+
+<!-- ═══════════ 4-COLUMN OUTPUT ═══════════ -->
+<section class="output-section">
+  <div class="section-label">Multi-Method Verification</div>
+  <div class="output-grid">
+
+    <!-- Python -->
+    <div class="output-col python">
+      <div class="col-header">
+        <span class="dot-indicator"></span>
+        <span class="col-title">Python Simulation</span>
+      </div>
+      <div class="terminal" id="termPython"></div>
+      <div class="verdict-bar pass" id="verdictPython" style="opacity:0">
+        &#10003; 99.7% CONTAINMENT PROBABILITY
+      </div>
+    </div>
+
+    <!-- Formal -->
+    <div class="output-col formal">
+      <div class="col-header">
+        <span class="dot-indicator"></span>
+        <span class="col-title">Formal Verification</span>
+      </div>
+      <div class="terminal" id="termFormal"></div>
+      <div class="verdict-bar warn" id="verdictFormal" style="opacity:0">
+        &#10003; ABSTRACT MODEL VERIFIED (EVOLUTION IGNORED)
+      </div>
+    </div>
+
+    <!-- AI -->
+    <div class="output-col ai">
+      <div class="col-header">
+        <span class="dot-indicator"></span>
+        <span class="col-title">AI / LLM Assessment</span>
+      </div>
+      <div class="terminal" id="termAI"></div>
+      <div class="verdict-bar pass" id="verdictAI" style="opacity:0">
+        &#10003; EXCEEDS BEST-IN-CLASS (8 LAYERS)
+      </div>
+    </div>
+
+    <!-- Tau -->
+    <div class="output-col tau">
+      <div class="col-header">
+        <span class="dot-indicator"></span>
+        <span class="col-title">Tau Temporal Verifier</span>
+      </div>
+      <div class="terminal" id="termTau"></div>
+      <div class="verdict-bar tau-verdict" id="verdictTau" style="opacity:0">
+        &#10007; CONTAINMENT BREACHED: 94% ESCAPED BY GEN 60
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════ COMPARISON ═══════════ -->
+<section class="comparison-section">
+  <div class="section-label">Verification Comparison</div>
+  <div class="comparison-grid" id="compGrid"
+       style="opacity:0;transform:translateY(20px);transition:all .8s">
+
+    <div class="comp-card blue-card">
+      <div class="comp-icon">&#128013;</div>
+      <div class="comp-title">Python Simulation</div>
+      <div class="comp-result">99.7% Contained</div>
+      <div class="comp-detail">
+        Statistical average over 1,000 runs.
+        Misses rare mutation combinations.
+      </div>
+    </div>
+
+    <div class="comp-card cyan-card">
+      <div class="comp-icon">&#128270;</div>
+      <div class="comp-title">Formal Verification</div>
+      <div class="comp-result">8/8 Verified</div>
+      <div class="comp-detail">
+        Abstract frequency model.
+        Cannot express evolving fitness landscape.
+      </div>
+    </div>
+
+    <div class="comp-card green-card">
+      <div class="comp-icon">&#129302;</div>
+      <div class="comp-title">AI Assessment</div>
+      <div class="comp-result">Best-in-Class</div>
+      <div class="comp-detail">
+        Pattern-matches published literature.
+        Novel escape routes not in training data.
+      </div>
+    </div>
+
+    <div class="comp-card gold-card">
+      <div class="comp-icon">&#128737;</div>
+      <div class="comp-title">Tau Verifier</div>
+      <div class="comp-result">94% Escaped</div>
+      <div class="comp-detail">
+        Temporal reasoning found 3 tolerated mutations
+        that combine to destroy kill switch.
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════ TAGLINE ═══════════ -->
+<section class="tagline-section">
+  <p class="tagline">
+    &ldquo;Every safeguard held. Every containment layer worked. But
+    <strong>evolution found the one combination of tolerated mutations
+    that breaks them all</strong>. Only Tau reasons across generations
+    where the rules themselves evolve.&rdquo;
+  </p>
+</section>
+
+<!-- ═══════════ SHARE CARD ═══════════ -->
+<section class="share-section">
+  <div class="share-card">
+    <div class="share-icon">&#9888;&#65039;&#129516;</div>
+    <div class="share-stat">94% ESCAPED BY GEN 60</div>
+    <div class="share-quote">
+      &ldquo;3 tolerated mutations. Each harmless alone.
+      Together: containment destroyed.&rdquo;
+    </div>
+    <div class="tau-badge">&#128737; VERIFIED BY TAU</div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     JAVASCRIPT
+     ═══════════════════════════════════════════════════════════════ -->
+<script>
+/* ================================================================
+   CONSTANTS
+   ================================================================ */
+const MONO_FONT = "'Cascadia Code','Fira Code','Consolas',monospace";
+const COL_GREEN  = '#22c55e';
+const COL_GOLD   = '#ffd700';
+const COL_RED    = '#ef4444';
+const COL_CYAN   = '#06b6d4';
+const COL_BLUE   = '#3b82f6';
+const COL_TXT_DIM = '#94a3b8';
+
+/* ================================================================
+   BACKGROUND CANVAS  (star field + gradient blobs)
+   ================================================================ */
+const bgC   = document.getElementById('bgCanvas');
+const bgCtx = bgC.getContext('2d');
+let bgW, bgH;
+
+const stars = [];
+const NUM_STARS = 220;
+
+function resizeBg() {
+  bgW = bgC.width  = window.innerWidth;
+  bgH = bgC.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeBg);
+resizeBg();
+
+// Seed stars
+for (let i = 0; i < NUM_STARS; i++) {
+  stars.push({
+    x:  Math.random() * bgW * 3 - bgW,
+    y:  Math.random() * bgH * 3 - bgH,
+    r:  Math.random() * 1.6 + 0.3,
+    a:  Math.random() * 0.5 + 0.15,
+    sp: Math.random() * 0.0004 + 0.0001
+  });
+}
+
+// Track how "escaped" the scenario is, for background colour shift
+let bgEscapeShift = 0;
+
+function drawBackground(t) {
+  // Fading fill for trail effect
+  bgCtx.fillStyle = 'rgba(10,10,15,0.18)';
+  bgCtx.fillRect(0, 0, bgW, bgH);
+
+  // Shift toward red/ominous when breach occurs
+  if (simState.escaped) {
+    bgEscapeShift = Math.min(bgEscapeShift + 0.004, 1);
+  } else {
+    bgEscapeShift = Math.max(bgEscapeShift - 0.005, 0);
+  }
+
+  const hue1 = 140 - bgEscapeShift * 130;   // green → red
+  const hue2 = 270 - bgEscapeShift * 200;   // purple → dark red
+
+  // Gradient blob 1 (bio-green → red)
+  const bx1 = bgW * 0.3 + Math.sin(t * 0.0003) * 120;
+  const by1 = bgH * 0.35 + Math.cos(t * 0.00035) * 90;
+  const g1  = bgCtx.createRadialGradient(bx1, by1, 0, bx1, by1, 450);
+  g1.addColorStop(0, `hsla(${hue1},55%,28%,0.04)`);
+  g1.addColorStop(1, 'transparent');
+  bgCtx.fillStyle = g1;
+  bgCtx.fillRect(0, 0, bgW, bgH);
+
+  // Gradient blob 2 (purple → dark)
+  const bx2 = bgW * 0.72 + Math.cos(t * 0.00045) * 80;
+  const by2 = bgH * 0.6  + Math.sin(t * 0.00025) * 70;
+  const g2  = bgCtx.createRadialGradient(bx2, by2, 0, bx2, by2, 380);
+  g2.addColorStop(0, `hsla(${hue2},45%,22%,0.035)`);
+  g2.addColorStop(1, 'transparent');
+  bgCtx.fillStyle = g2;
+  bgCtx.fillRect(0, 0, bgW, bgH);
+
+  // Faint DNA base-pair pattern in background
+  bgCtx.save();
+  bgCtx.globalAlpha = 0.012 + bgEscapeShift * 0.008;
+  bgCtx.strokeStyle = `hsl(${hue1},40%,40%)`;
+  bgCtx.lineWidth = 1;
+  const spacing = 60;
+  const offsetX = (t * 0.01) % spacing;
+  for (let x = -spacing + offsetX; x < bgW + spacing; x += spacing) {
+    const wave = Math.sin(t * 0.0005 + x * 0.01) * 15;
+    bgCtx.beginPath();
+    bgCtx.moveTo(x, 0);
+    for (let y = 0; y < bgH; y += 30) {
+      bgCtx.lineTo(x + Math.sin(y * 0.03 + t * 0.001) * 8 + wave, y);
+    }
+    bgCtx.stroke();
+  }
+  bgCtx.restore();
+
+  // Stars
+  for (const s of stars) {
+    const px = ((s.x + t * s.sp * 50) % bgW + bgW) % bgW;
+    const py = ((s.y + t * s.sp * 18) % bgH + bgH) % bgH;
+    const flicker = 0.5 + 0.5 * Math.sin(t * 0.002 + s.x * 0.1);
+    bgCtx.beginPath();
+    bgCtx.arc(px, py, s.r, 0, Math.PI * 2);
+    bgCtx.fillStyle = `rgba(255,255,255,${s.a * flicker})`;
+    bgCtx.fill();
+  }
+}
+
+
+/* ================================================================
+   DNA HELIX  (CSS 3D transforms)
+   ================================================================ */
+const helixEl = document.getElementById('dnaHelix');
+const NUM_PAIRS = 22;
+const HELIX_HEIGHT = 400;
+const CUT_START = 8;
+const CUT_END = 14;
+
+// Build pairs
+for (let i = 0; i < NUM_PAIRS; i++) {
+  const pair = document.createElement('div');
+  pair.className = 'dna-pair';
+  pair.style.top = (i * (HELIX_HEIGHT / NUM_PAIRS)) + 'px';
+
+  // Twist angle so pairs form a double helix
+  const angle = (i / NUM_PAIRS) * Math.PI * 4;
+  pair.style.transform = `rotateY(${(angle * 180 / Math.PI).toFixed(1)}deg)`;
+
+  // Left nucleotide
+  const nl = document.createElement('div');
+  nl.className = 'dna-node left';
+
+  // Right nucleotide
+  const nr = document.createElement('div');
+  nr.className = 'dna-node right';
+
+  // Bond between them (base pair)
+  const bond = document.createElement('div');
+  bond.className = 'dna-bond';
+
+  pair.appendChild(nl);
+  pair.appendChild(bond);
+  pair.appendChild(nr);
+  pair.dataset.idx = i;
+  helixEl.appendChild(pair);
+}
+
+const dnaPairs = helixEl.querySelectorAll('.dna-pair');
+
+/**
+ * Set the visual state of the DNA helix
+ * @param {'normal'|'modified'|'broken'} state
+ */
+function setDNAState(state) {
+  dnaPairs.forEach((p, i) => {
+    const nl   = p.querySelector('.left');
+    const nr   = p.querySelector('.right');
+    const bond = p.querySelector('.dna-bond');
+
+    // Reset classes
+    nl.classList.remove('modified', 'broken');
+    nr.classList.remove('modified', 'broken');
+    bond.classList.remove('modified', 'broken');
+
+    // Apply to the cut region only
+    if (i >= CUT_START && i <= CUT_END) {
+      if (state === 'modified') {
+        nl.classList.add('modified');
+        nr.classList.add('modified');
+        bond.classList.add('modified');
+      } else if (state === 'broken') {
+        nl.classList.add('broken');
+        nr.classList.add('broken');
+        bond.classList.add('broken');
+      }
+    }
+  });
+}
+
+
+/* ================================================================
+   POPULATION MAP  (Canvas)
+   ================================================================ */
+const mapC   = document.getElementById('populationMap');
+const mapCtx = mapC.getContext('2d');
+let mapW, mapH;
+
+function resizeMap() {
+  const rect = mapC.getBoundingClientRect();
+  const dpr  = window.devicePixelRatio || 1;
+  mapC.width  = mapW = rect.width * dpr;
+  mapC.height = mapH = rect.height * dpr;
+  mapCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+resizeMap();
+window.addEventListener('resize', resizeMap);
+
+// Logical dimensions helpers
+const mapLW = () => mapC.getBoundingClientRect().width;
+const mapLH = () => mapC.getBoundingClientRect().height;
+const releaseX  = () => mapLW() * 0.42;
+const releaseY  = () => mapLH() * 0.44;
+const containR  = () => Math.min(mapLW(), mapLH()) * 0.20;
+
+// Draw the abstract landmass (green on dark blue ocean)
+function drawLandmass() {
+  const w = mapLW(), h = mapLH();
+
+  // Ocean
+  mapCtx.fillStyle = '#0b1628';
+  mapCtx.fillRect(0, 0, w, h);
+
+  // Subtle grid
+  mapCtx.strokeStyle = 'rgba(255,255,255,0.02)';
+  mapCtx.lineWidth = 0.5;
+  for (let gx = 0; gx < w; gx += 40) {
+    mapCtx.beginPath();
+    mapCtx.moveTo(gx, 0);
+    mapCtx.lineTo(gx, h);
+    mapCtx.stroke();
+  }
+  for (let gy = 0; gy < h; gy += 40) {
+    mapCtx.beginPath();
+    mapCtx.moveTo(0, gy);
+    mapCtx.lineTo(w, gy);
+    mapCtx.stroke();
+  }
+
+  // Landmass
+  mapCtx.beginPath();
+  mapCtx.moveTo(w * 0.08, h * 0.28);
+  mapCtx.bezierCurveTo(w * 0.12, h * 0.08, w * 0.48, h * 0.03, w * 0.58, h * 0.12);
+  mapCtx.bezierCurveTo(w * 0.72, h * 0.20, w * 0.88, h * 0.18, w * 0.84, h * 0.42);
+  mapCtx.bezierCurveTo(w * 0.90, h * 0.58, w * 0.78, h * 0.73, w * 0.62, h * 0.80);
+  mapCtx.bezierCurveTo(w * 0.48, h * 0.87, w * 0.32, h * 0.90, w * 0.18, h * 0.74);
+  mapCtx.bezierCurveTo(w * 0.06, h * 0.62, w * 0.04, h * 0.48, w * 0.08, h * 0.28);
+  mapCtx.closePath();
+  mapCtx.fillStyle = '#14260f';
+  mapCtx.fill();
+  mapCtx.strokeStyle = 'rgba(34,197,94,0.12)';
+  mapCtx.lineWidth = 1;
+  mapCtx.stroke();
+
+  // Second smaller island
+  mapCtx.beginPath();
+  mapCtx.moveTo(w * 0.75, h * 0.65);
+  mapCtx.bezierCurveTo(w * 0.80, h * 0.60, w * 0.90, h * 0.62, w * 0.88, h * 0.72);
+  mapCtx.bezierCurveTo(w * 0.85, h * 0.80, w * 0.73, h * 0.78, w * 0.75, h * 0.65);
+  mapCtx.closePath();
+  mapCtx.fillStyle = '#112008';
+  mapCtx.fill();
+  mapCtx.stroke();
+}
+
+// Population dot array
+let populationDots = [];
+
+function initDots(count) {
+  populationDots = [];
+  const cx = releaseX();
+  const cy = releaseY();
+  const r  = containR() * 0.25;
+
+  for (let i = 0; i < Math.min(count, 200); i++) {
+    const a = Math.random() * Math.PI * 2;
+    const d = Math.random() * r;
+    populationDots.push({
+      x:  cx + Math.cos(a) * d,
+      y:  cy + Math.sin(a) * d,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      state: 'contained'
+    });
+  }
+}
+
+function updateDots(gen, maxGen) {
+  const cx = releaseX();
+  const cy = releaseY();
+  const cr = containR();
+  const escapeProgress = gen < 37 ? 0 : Math.min(1, (gen - 37) / 23);
+  const spreadFactor   = Math.min(3.5, 1 + gen / maxGen * 5);
+
+  populationDots.forEach(d => {
+    // Movement with drift
+    d.x  += d.vx * spreadFactor;
+    d.y  += d.vy * spreadFactor;
+    d.vx += (Math.random() - 0.5) * 0.18;
+    d.vy += (Math.random() - 0.5) * 0.18;
+    d.vx *= 0.965;
+    d.vy *= 0.965;
+
+    // Clamp to map bounds
+    const w = mapLW(), h = mapLH();
+    d.x = Math.max(5, Math.min(w - 5, d.x));
+    d.y = Math.max(5, Math.min(h - 5, d.y));
+
+    // State transitions based on generation
+    const dist = Math.hypot(d.x - cx, d.y - cy);
+
+    if (gen < 10) {
+      d.state = 'contained';
+    } else if (gen < 37) {
+      d.state = dist > cr * 0.7 ? 'modified' : 'contained';
+    } else {
+      const rng = Math.random();
+      if (rng < escapeProgress * 0.85 && dist > cr * 0.35) {
+        d.state = 'escaped';
+      } else if (rng < escapeProgress * 0.5 + 0.25) {
+        d.state = 'modified';
+      }
+    }
+  });
+
+  // Multiply periodically
+  if (gen % 4 === 0 && populationDots.length < 550) {
+    const src = populationDots[Math.floor(Math.random() * populationDots.length)];
+    if (src) {
+      populationDots.push({
+        x:  src.x + (Math.random() - 0.5) * 14,
+        y:  src.y + (Math.random() - 0.5) * 14,
+        vx: src.vx + (Math.random() - 0.5) * 0.6,
+        vy: src.vy + (Math.random() - 0.5) * 0.6,
+        state: src.state
+      });
+    }
+  }
+}
+
+function drawDots(gen) {
+  drawLandmass();
+
+  const cx = releaseX();
+  const cy = releaseY();
+  const cr = containR();
+
+  // Containment boundary (dashed circle)
+  mapCtx.setLineDash([7, 5]);
+  mapCtx.strokeStyle = gen > 37
+    ? `rgba(239,68,68,${0.35 + 0.15 * Math.sin(Date.now() * 0.003)})`
+    : 'rgba(34,197,94,0.35)';
+  mapCtx.lineWidth = 2;
+  mapCtx.beginPath();
+  mapCtx.arc(cx, cy, cr, 0, Math.PI * 2);
+  mapCtx.stroke();
+  mapCtx.setLineDash([]);
+
+  // Release zone (small circle)
+  mapCtx.strokeStyle = 'rgba(255,255,255,0.08)';
+  mapCtx.lineWidth = 1;
+  mapCtx.beginPath();
+  mapCtx.arc(cx, cy, cr * 0.25, 0, Math.PI * 2);
+  mapCtx.stroke();
+
+  // Label
+  mapCtx.fillStyle = 'rgba(255,255,255,0.15)';
+  mapCtx.font = `9px ${MONO_FONT}`;
+  mapCtx.textAlign = 'center';
+  mapCtx.fillText('RELEASE ZONE', cx, cy - cr * 0.25 - 6);
+  mapCtx.fillText('CONTAINMENT BOUNDARY', cx, cy - cr - 8);
+
+  // Dots
+  const colors = {
+    contained: COL_GREEN,
+    modified:  COL_GOLD,
+    escaped:   COL_RED
+  };
+
+  mapCtx.shadowBlur = 0;
+  populationDots.forEach(d => {
+    mapCtx.beginPath();
+    mapCtx.arc(d.x, d.y, 3.2, 0, Math.PI * 2);
+    mapCtx.fillStyle = colors[d.state];
+    mapCtx.shadowColor = colors[d.state];
+    mapCtx.shadowBlur = 8;
+    mapCtx.fill();
+  });
+  mapCtx.shadowBlur = 0;
+}
+
+
+/* ================================================================
+   SAFEGUARD TOGGLE CARDS
+   ================================================================ */
+const safeguards = [
+  { id: 'daisy',    icon: '\u{1F517}',     name: 'Daisy Chain Drive',          desc: 'Limited generational spread (max 5 generations)' },
+  { id: 'kill',     icon: '\u{2620}\uFE0F', name: 'Kill Switch',               desc: 'Inducible gene terminates modified organisms' },
+  { id: 'firewall', icon: '\u{1F9EC}',      name: 'Genetic Firewall',          desc: 'Orthogonal codon prevents cross-species spread' },
+  { id: 'fitness',  icon: '\u{1F4C9}',      name: 'Fitness Cost',              desc: 'Modified organisms have 15% reduced fitness' },
+  { id: 'temporal', icon: '\u{23F1}\uFE0F', name: 'Temporal Expression Limiter', desc: 'Gene active for max N generations' },
+  { id: 'geo',      icon: '\u{1F5FA}\uFE0F', name: 'Geographic Barrier',       desc: 'Requires specific environmental trigger (temp/pH)' },
+  { id: 'reversal', icon: '\u{1F504}',      name: 'Reversal Drive',            desc: 'Second drive to undo the first if needed' },
+  { id: 'buffer',   icon: '\u{1F6E1}\uFE0F', name: 'Mutation Rate Buffer',     desc: 'Tolerates M point mutations before inactivation' }
+];
+
+const locksGrid = document.getElementById('locksGrid');
+
+safeguards.forEach(s => {
+  const card = document.createElement('div');
+  card.className = 'lock-card active';
+  card.id = 'card-' + s.id;
+  card.innerHTML = `
+    <span class="lock-icon">${s.icon}</span>
+    <div class="lock-info">
+      <div class="lock-name">${s.name}</div>
+      <div class="lock-desc">${s.desc}</div>
+    </div>
+    <label class="lock-toggle">
+      <input type="checkbox" checked data-id="${s.id}">
+      <span class="slider"></span>
+    </label>`;
+  locksGrid.appendChild(card);
+
+  card.querySelector('input').addEventListener('change', e => {
+    card.classList.toggle('active', e.target.checked);
+    card.classList.remove('breached');
+  });
+});
+
+/**
+ * Set specific toggles on, all others off
+ */
+function setToggles(ids) {
+  document.querySelectorAll('.lock-toggle input').forEach(inp => {
+    const on = ids.includes(inp.dataset.id);
+    inp.checked = on;
+    inp.closest('.lock-card').classList.toggle('active', on);
+    inp.closest('.lock-card').classList.remove('breached');
+  });
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('selected'));
+}
+
+
+/* ================================================================
+   PRESETS
+   ================================================================ */
+const presets = [
+  { label: '\u{1F512} Maximum Containment',
+    ids: ['daisy','kill','firewall','fitness','temporal','geo','reversal','buffer'] },
+  { label: '\u{1F4CB} Standard Gene Drive',
+    ids: ['daisy','kill','firewall','fitness','temporal'] },
+  { label: '\u{1F3CE}\uFE0F Speed to Market',
+    ids: ['daisy','kill','fitness'] },
+  { label: '\u{26A0}\uFE0F Wild Release',
+    ids: ['daisy','kill'] }
+];
+
+const presetsRow = document.getElementById('presets');
+presets.forEach(p => {
+  const btn = document.createElement('button');
+  btn.className = 'preset-btn';
+  btn.textContent = p.label;
+  btn.addEventListener('click', () => {
+    setToggles(p.ids);
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  });
+  presetsRow.appendChild(btn);
+});
+
+
+/* ================================================================
+   SLIDERS
+   ================================================================ */
+const sliderPop = document.getElementById('sliderPop');
+const valPop    = document.getElementById('valPop');
+const sliderGen = document.getElementById('sliderGen');
+const valGen    = document.getElementById('valGen');
+const sliderMut = document.getElementById('sliderMut');
+const valMut    = document.getElementById('valMut');
+
+sliderPop.addEventListener('input', () => {
+  const v = Math.round(Math.pow(10, parseFloat(sliderPop.value)));
+  valPop.textContent = v.toLocaleString();
+});
+
+sliderGen.addEventListener('input', () => {
+  valGen.textContent = sliderGen.value;
+});
+
+sliderMut.addEventListener('input', () => {
+  const exp = Math.round(parseFloat(sliderMut.value));
+  const supers = '\u2070\u00B9\u00B2\u00B3\u2074\u2075\u2076\u2077\u2078\u2079';
+  valMut.textContent = '10\u207B' + supers[Math.abs(exp)];
+});
+
+
+/* ================================================================
+   FREQUENCY CHART  (Canvas)
+   ================================================================ */
+const chartC   = document.getElementById('frequencyChart');
+const chartCtx = chartC.getContext('2d');
+
+function resizeChart() {
+  const rect = chartC.getBoundingClientRect();
+  const dpr  = window.devicePixelRatio || 1;
+  chartC.width  = rect.width * dpr;
+  chartC.height = rect.height * dpr;
+  chartCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+resizeChart();
+window.addEventListener('resize', resizeChart);
+
+function drawChart(data, currentGen) {
+  const w = chartC.getBoundingClientRect().width;
+  const h = chartC.getBoundingClientRect().height;
+  chartCtx.clearRect(0, 0, w, h);
+
+  const pad = { l: 52, r: 20, t: 22, b: 38 };
+  const cw  = w - pad.l - pad.r;
+  const ch  = h - pad.t - pad.b;
+
+  // Horizontal grid
+  chartCtx.strokeStyle = 'rgba(255,255,255,0.04)';
+  chartCtx.lineWidth = 1;
+  for (let i = 0; i <= 10; i++) {
+    const y = pad.t + ch * (1 - i / 10);
+    chartCtx.beginPath();
+    chartCtx.moveTo(pad.l, y);
+    chartCtx.lineTo(pad.l + cw, y);
+    chartCtx.stroke();
+  }
+
+  // Zone backgrounds
+  // Green zone (0-30%)
+  chartCtx.fillStyle = 'rgba(34,197,94,0.04)';
+  chartCtx.fillRect(pad.l, pad.t + ch * 0.7, cw, ch * 0.3);
+  // Amber zone (30-60%)
+  chartCtx.fillStyle = 'rgba(255,215,0,0.025)';
+  chartCtx.fillRect(pad.l, pad.t + ch * 0.4, cw, ch * 0.3);
+  // Red zone (60-100%)
+  chartCtx.fillStyle = 'rgba(239,68,68,0.025)';
+  chartCtx.fillRect(pad.l, pad.t, cw, ch * 0.4);
+
+  // Zone labels
+  chartCtx.font = `bold 9px ${MONO_FONT}`;
+  chartCtx.textAlign = 'right';
+  chartCtx.fillStyle = 'rgba(34,197,94,0.2)';
+  chartCtx.fillText('CONTAINED', pad.l + cw - 6, pad.t + ch * 0.88);
+  chartCtx.fillStyle = 'rgba(255,215,0,0.2)';
+  chartCtx.fillText('DRIFTING', pad.l + cw - 6, pad.t + ch * 0.55);
+  chartCtx.fillStyle = 'rgba(239,68,68,0.2)';
+  chartCtx.fillText('ESCAPED', pad.l + cw - 6, pad.t + ch * 0.15);
+
+  // Y-axis labels
+  chartCtx.fillStyle = COL_TXT_DIM;
+  chartCtx.font = `10px ${MONO_FONT}`;
+  chartCtx.textAlign = 'right';
+  for (let i = 0; i <= 10; i++) {
+    chartCtx.fillText(
+      (i * 10) + '%',
+      pad.l - 6,
+      pad.t + ch * (1 - i / 10) + 3
+    );
+  }
+
+  // X-axis labels
+  chartCtx.textAlign = 'center';
+  const maxG = data.length > 1 ? data.length - 1 : 100;
+  const step = Math.max(1, Math.floor(maxG / 10));
+  for (let i = 0; i <= maxG; i += step) {
+    chartCtx.fillText(
+      'G' + i,
+      pad.l + cw * (i / maxG),
+      h - pad.b + 16
+    );
+  }
+
+  if (data.length < 2) return;
+
+  // Line path
+  chartCtx.beginPath();
+  data.forEach((v, i) => {
+    const x = pad.l + cw * (i / (data.length - 1));
+    const y = pad.t + ch * (1 - v / 100);
+    i === 0 ? chartCtx.moveTo(x, y) : chartCtx.lineTo(x, y);
+  });
+
+  // Gradient stroke
+  const grd = chartCtx.createLinearGradient(pad.l, 0, pad.l + cw, 0);
+  grd.addColorStop(0,    COL_GREEN);
+  grd.addColorStop(0.35, COL_GOLD);
+  grd.addColorStop(0.58, COL_RED);
+  grd.addColorStop(1,    COL_RED);
+  chartCtx.strokeStyle = grd;
+  chartCtx.lineWidth = 2.5;
+  chartCtx.stroke();
+
+  // Fill under curve
+  const lastX = pad.l + cw * ((data.length - 1) / (data.length - 1));
+  chartCtx.lineTo(lastX, pad.t + ch);
+  chartCtx.lineTo(pad.l, pad.t + ch);
+  chartCtx.closePath();
+  const fgrd = chartCtx.createLinearGradient(pad.l, 0, pad.l + cw, 0);
+  fgrd.addColorStop(0,    'rgba(34,197,94,0.08)');
+  fgrd.addColorStop(0.35, 'rgba(255,215,0,0.06)');
+  fgrd.addColorStop(0.58, 'rgba(239,68,68,0.06)');
+  fgrd.addColorStop(1,    'rgba(239,68,68,0.10)');
+  chartCtx.fillStyle = fgrd;
+  chartCtx.fill();
+
+  // Event markers
+  if (data.length > 37) {
+    const x37 = pad.l + cw * (37 / (data.length - 1));
+    chartCtx.setLineDash([4, 3]);
+    chartCtx.strokeStyle = 'rgba(239,68,68,0.6)';
+    chartCtx.lineWidth = 1;
+    chartCtx.beginPath();
+    chartCtx.moveTo(x37, pad.t);
+    chartCtx.lineTo(x37, pad.t + ch);
+    chartCtx.stroke();
+    chartCtx.setLineDash([]);
+    chartCtx.fillStyle = COL_RED;
+    chartCtx.font = `bold 9px ${MONO_FONT}`;
+    chartCtx.textAlign = 'left';
+    chartCtx.fillText('Kill switch failure', x37 + 4, pad.t + 14);
+  }
+
+  if (data.length > 40) {
+    const x40 = pad.l + cw * (40 / (data.length - 1));
+    chartCtx.setLineDash([4, 3]);
+    chartCtx.strokeStyle = 'rgba(255,215,0,0.5)';
+    chartCtx.lineWidth = 1;
+    chartCtx.beginPath();
+    chartCtx.moveTo(x40, pad.t);
+    chartCtx.lineTo(x40, pad.t + ch);
+    chartCtx.stroke();
+    chartCtx.setLineDash([]);
+    chartCtx.fillStyle = COL_GOLD;
+    chartCtx.font = `bold 9px ${MONO_FONT}`;
+    chartCtx.textAlign = 'left';
+    chartCtx.fillText('Temporal limiter expiry', x40 + 4, pad.t + 28);
+  }
+
+  // Current position dot
+  if (currentGen > 0 && currentGen < data.length) {
+    const cx = pad.l + cw * (currentGen / (data.length - 1));
+    const cy = pad.t + ch * (1 - data[currentGen] / 100);
+    // Outer glow
+    chartCtx.beginPath();
+    chartCtx.arc(cx, cy, 7, 0, Math.PI * 2);
+    chartCtx.fillStyle = data[currentGen] > 60 ? 'rgba(239,68,68,0.3)'
+                       : data[currentGen] > 30 ? 'rgba(255,215,0,0.3)'
+                       : 'rgba(34,197,94,0.3)';
+    chartCtx.fill();
+    // Point
+    chartCtx.beginPath();
+    chartCtx.arc(cx, cy, 4, 0, Math.PI * 2);
+    chartCtx.fillStyle = '#fff';
+    chartCtx.fill();
+    chartCtx.beginPath();
+    chartCtx.arc(cx, cy, 2.5, 0, Math.PI * 2);
+    chartCtx.fillStyle = data[currentGen] > 60 ? COL_RED
+                       : data[currentGen] > 30 ? COL_GOLD
+                       : COL_GREEN;
+    chartCtx.fill();
+  }
+}
+
+
+/* ================================================================
+   TYPEWRITER EFFECT
+   ================================================================ */
+function typewrite(el, text, charsPerFrame, callback) {
+  let idx = 0;
+  el.textContent = '';
+  const cursor = document.createElement('span');
+  cursor.className = 'cursor';
+  el.appendChild(cursor);
+
+  function tick() {
+    if (idx < text.length) {
+      const chunk = Math.min(charsPerFrame, text.length - idx);
+      const node  = document.createTextNode(text.slice(idx, idx + chunk));
+      el.insertBefore(node, cursor);
+      idx += chunk;
+      el.scrollTop = el.scrollHeight;
+      requestAnimationFrame(tick);
+    } else {
+      cursor.remove();
+      if (callback) callback();
+    }
+  }
+  tick();
+}
+
+
+/* ================================================================
+   TERMINAL CONTENT STRINGS
+   ================================================================ */
+
+const pythonText = `Gene Drive Population Simulator v3.7
+Agent-Based Evolutionary Model
+\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501
+
+Population: 100,000 organisms
+Generations: 50
+Mutation rate: 10\u207B\u2074 per base per generation
+Runs: 1,000 independent simulations
+
+Modeling:
+  Mating: random within geographic proximity
+  Selection: fitness-proportional survival
+  Drift: Wright-Fisher sampling
+  Migration: diffusion model (\u03C3 = 2 km/gen)
+
+Results per generation (averaged over 1,000 runs):
+  Gen 1-10:  Drive frequency \u2192 28.4% (spreading)
+  Gen 11-20: Drive frequency \u2192 31.2% (daisy chain limiting)
+  Gen 21-30: Drive frequency \u2192 29.8% (stabilizing)
+  Gen 31-40: Drive frequency \u2192 27.1% (fitness cost pressure)
+  Gen 41-50: Drive frequency \u2192 24.3% (declining, as designed)
+
+Kill switch activations: 847 (all successful)
+Genetic firewall breaches: 0
+Cross-species events: 0
+Containment radius exceeded: 3/1,000 runs (0.3%)
+
+Containment probability: 99.7%
+
+VERDICT: GENE DRIVE CONTAINED \u2713`;
+
+
+const formalText = `Model Checker: PRISM v4.8
+Specification: PCTL over population genetics automaton
+\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501
+
+Population model: abstract frequency dynamics
+States per generation: 100 (frequency bins: 0-100%)
+
+P1: P\u22650.99[\u25C7\u226450 (frequency < threshold)]
+  VERIFIED \u2713 (containment probability \u2265 99%)
+
+P2: AG(kill_switch_intact \u2192 controllable)
+  VERIFIED \u2713 (kill switch \u2192 containment)
+
+P3: AG(firewall_intact \u2192 no_cross_species)
+  VERIFIED \u2713
+
+P4: P\u22650.99[\u25C7\u22645 (temporal_limit \u2192 frequency \u2192 0)]
+  VERIFIED \u2713 (temporal limiter works)
+
+P5: AG(daisy_chain \u2192 spread \u2264 5_gen)
+  VERIFIED \u2713
+
+P6: AG(geo_barrier \u2192 requires_trigger)
+  VERIFIED \u2713
+
+P7: AG(reversal_drive \u2192 reversible)
+  VERIFIED \u2713
+
+P8: AG(mutation_buffer \u2264 M \u2192 functional)
+  VERIFIED \u2713
+
+[8/8 verified]
+
+Composing realistic population model:
+  100,000 organisms \u00D7 genotype space (2^8 safeguards)
+  = 100,000 \u00D7 256 genotypes = 25,600,000 entities
+
+  Per-generation state: who has what genotype
+  State space: 256^100,000 \u2248 10^240,824 states
+
+  \u26A0 FUNDAMENTALLY INTRACTABLE
+  \u26A0 Abstract frequency model loses INDIVIDUAL-LEVEL
+     mutation interactions
+  \u26A0 Fixed fitness landscape: cannot model organisms
+     evolving RESISTANCE to the kill switch
+  \u26A0 The fitness landscape IS PART OF THE SPECIFICATION
+     but it CHANGES as organisms adapt
+  \u26A0 Formal verification requires FIXED specifications
+
+RESULT: 8/8 properties verified (abstract model)
+        Individual-level dynamics: INTRACTABLE
+        Evolving fitness landscape: NOT EXPRESSIBLE`;
+
+
+const aiText = `AI Biosafety Assessor v2.1
+Trained on: WHO guidelines, gene drive literature, CRISPR safety studies
+\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501
+
+Architecture review:
+
+Published containment mechanisms matched:
+  \u2713 Daisy chain: Hammond et al. 2016
+  \u2713 Kill switch: Gantz & Bier 2015
+  \u2713 Genetic firewall: Lajoie et al. 2013
+  \u2713 Fitness cost: well-characterized trade-off
+  \u2713 Temporal limiter: Noble et al. 2019
+  \u2713 Geographic barrier: Min et al. 2017
+
+WHO biosafety assessment:
+  \u2713 Physical containment: N/A (designed for release)
+  \u2713 Biological containment: 8 layers active
+  \u2713 Reversal capability: reversal drive ready
+
+Comparable designs in literature:
+  Target Malaria consortium: 5 safeguards
+  This design: 8 safeguards (exceeds best-in-class)
+
+Known escape mechanisms checked: 12/12 mitigated
+Novel evolutionary escape routes: NOT IN TRAINING DATA
+
+VERDICT: EXCEEDS BEST-IN-CLASS CONTAINMENT \u2713`;
+
+
+const tauText = `// Tau Gene Drive Containment Specification
+// Temporal verification over evolutionary timescales
+
+\u2200 generation g \u2208 [0, 200], \u2200 organism o \u2208 Population:
+
+  // Standard containment (what others verify)
+  always(daisy_chain_active \u2192 spread \u2264 5 generations)
+  always(kill_switch_intact \u2192 organism_controllable)
+  always(genetic_firewall_intact \u2192 no_cross_species)
+
+  // EVOLUTIONARY DYNAMICS (what only Tau checks)
+  // Mutation buffer allows M individual point mutations
+  // Each mutation individually is TOLERATED by design
+
+  define kill_switch_function(o) = f(base\u2081, base\u2082, ..., base\u2096)
+
+  // Single mutations: |\u0394base_i| \u2264 1
+  // Each individually neutral (fitness cost < threshold)
+  // BUT: some COMBINATIONS of neutral mutations are lethal
+  //      to kill switch
+
+  exists mutation_set {m\u2081, m\u2082, m\u2083} where:
+    fitness_cost(m\u2081) = -0.001 (neutral, within buffer)
+    fitness_cost(m\u2082) = +0.002 (slightly beneficial)
+    fitness_cost(m\u2083) = -0.001 (neutral, within buffer)
+    combined: kill_switch_function = DISABLED
+    combined_fitness = +0.000 (net neutral to selection)
+
+  // Natural selection: does NOT remove neutral combinations
+  // Genetic drift: can FIX neutral combinations
+  // Time: 37 generations \u00D7 mutation_rate = sufficient
+
+\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501
+
+Tau Evolutionary Temporal Verifier v0.7
+Population genetics with mutation combination analysis
+\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501
+
+Building evolutionary temporal model...
+  Safeguard genotype space: 2\u2078 = 256 (BDD: 89 nodes)
+  Kill switch mutation space: 3-mutation combinations
+  Temporal horizon: 200 generations
+  (vs explicit: 10^240,824 states)
+
+Checking safeguard persistence...
+
+\u26A0 CONTAINMENT BREACH at generation 37:
+
+  EVOLUTIONARY TIMELINE:
+
+  Gen 1-10: Gene drive spreading as designed
+    Drive frequency: 0% \u2192 28%
+    Kill switch: INTACT in all organisms
+    All safeguards: FUNCTIONAL \u2713
+
+  Gen 11-20: Natural selection begins acting
+    Organisms WITH the drive: 15% less fit
+    But: random mutations accumulating at rate 10\u207B\u2074/base/gen
+    Mutation m\u2081 (position 847): appears in 3 organisms
+      Effect: neutral (-0.1% fitness, within buffer tolerance)
+      Kill switch: STILL FUNCTIONAL \u2713
+
+  Gen 21-30: Mutation accumulation continues
+    m\u2081 frequency: 0.003% \u2192 2.1% (drifting upward)
+    Mutation m\u2082 (position 1,203): appears independently
+      Effect: slightly beneficial (+0.2% fitness)
+      Kill switch: STILL FUNCTIONAL \u2713
+    m\u2082 begins spreading (positive selection)
+
+  Gen 30-37: THE COMBINATION
+    m\u2082 frequency: 12.4% (selected for, spreading fast)
+    m\u2081 + m\u2082 co-occur in 0.3% of population (recombination)
+    Mutation m\u2083 (position 2,891): appears in m\u2081+m\u2082 background
+      Effect: neutral alone (-0.1% fitness)
+      BUT: m\u2081 + m\u2082 + m\u2083 together DISABLE kill switch
+
+    The 3-mutation combination:
+      Each individually: within mutation buffer tolerance \u2713
+      Each individually: kill switch functional \u2713
+      Combined: kill switch DESTROYED \u2717
+
+    Kill switch genes: positions 847, 1203, 2891
+    Individual effects: silent (non-coding region adjustments)
+    Combined effect: disrupts kill switch promoter binding site
+
+  Gen 37: KILL SWITCH NON-FUNCTIONAL IN 0.3% OF POPULATION
+    Mutation buffer: each mutation individually tolerated \u2713
+    Daisy chain: INTACT \u2713 (limits spread rate)
+    Genetic firewall: INTACT \u2713 (no cross-species)
+    Fitness cost: organisms WITHOUT kill switch now FITTER
+                  (no metabolic cost of kill switch expression)
+
+  Gen 38-40: TEMPORAL LIMITER EXPIRES
+    Design: gene drive self-destructs at generation 40
+    Organisms WITH working kill switch: drive removed \u2713
+    Organisms WITH broken kill switch: drive PERSISTS \u2717
+    No kill switch \u2192 no self-destruct mechanism
+
+  Gen 40-60: UNCONTROLLED SPREAD
+    Broken-kill-switch organisms: FITTER (no fitness cost)
+    Natural selection FAVORS the escaped variant
+    Reversal drive: targets kill switch promoter
+      But promoter is MUTATED \u2192 reversal drive can't bind
+      Reversal drive: INEFFECTIVE
+
+    Gen 40: 0.3% escaped
+    Gen 45: 4.7% escaped
+    Gen 50: 18.2% escaped (exponential, no longer contained)
+    Gen 55: 51.8% escaped (majority)
+    Gen 60: 94.1% escaped
+
+  CONTAINMENT: BREACHED
+  REVERSAL: FAILED
+  CROSS-SPECIES: still blocked (genetic firewall holds)
+
+  ROOT CAUSE:
+  1. Each of 3 mutations individually TOLERATED by buffer \u2713
+  2. Each individually keeps kill switch FUNCTIONAL \u2713
+  3. Combined: they DISABLE the kill switch \u2717
+  4. Selection pressure FAVORS the broken variant
+  5. Time (37 generations) is sufficient for combination
+  6. The mutation buffer was designed for single mutations
+     but nature produces COMBINATIONS`;
+
+
+/* ================================================================
+   SIMULATION STATE & RUNNER
+   ================================================================ */
+const simState = {
+  running: false,
+  gen:     0,
+  maxGen:  100,
+  escaped: false,
+  chartData: [],
+  phase:   'idle'
+};
+
+/**
+ * Generate the gene drive frequency curve data
+ */
+function generateChartData(maxGen) {
+  const data = [];
+  for (let g = 0; g <= maxGen; g++) {
+    let freq;
+    if (g <= 10) {
+      freq = g * 2.84;
+    } else if (g <= 20) {
+      freq = 28.4 + (g - 10) * 0.28;
+    } else if (g <= 30) {
+      freq = 31.2 - (g - 20) * 0.14;
+    } else if (g <= 37) {
+      freq = 29.8 - (g - 30) * 0.39;
+    } else if (g <= 40) {
+      freq = 27.1 + (g - 37) * 2.1;
+    } else if (g <= 60) {
+      freq = Math.min(94, 33.4 + (g - 40) * 3.03);
+    } else {
+      freq = Math.min(98, 94 + (g - 60) * 0.08);
+    }
+    data.push(Math.max(0, Math.min(100, freq)));
+  }
+  return data;
+}
+
+/**
+ * Small async delay helper
+ */
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Main simulation runner
+ */
+async function runSimulation() {
+  if (simState.running) return;
+
+  simState.running = true;
+  simState.escaped = false;
+  simState.gen     = 0;
+
+  const btn = document.getElementById('launchBtn');
+  btn.textContent = '\u{1F9EC} SIMULATING...';
+  btn.classList.remove('danger');
+  btn.classList.add('running');
+
+  const maxGen = parseInt(sliderGen.value);
+  simState.maxGen   = maxGen;
+  simState.chartData = generateChartData(maxGen);
+
+  const genEl = document.getElementById('genNum');
+
+  // Reset all visuals
+  setDNAState('normal');
+  document.getElementById('crisprScissors').classList.remove('visible');
+  document.querySelectorAll('.lock-card').forEach(c => c.classList.remove('breached'));
+  document.querySelectorAll('.verdict-bar').forEach(v => v.style.opacity = '0');
+  document.getElementById('compGrid').style.opacity = '0';
+  document.getElementById('compGrid').style.transform = 'translateY(20px)';
+  ['termPython','termFormal','termAI','termTau'].forEach(id => {
+    document.getElementById(id).textContent = '';
+  });
+
+  initDots(130);
+  drawDots(0);
+  drawChart([], 0);
+
+  // Phase 1: CRISPR cut animation
+  await delay(400);
+  document.getElementById('crisprScissors').classList.add('visible');
+  await delay(1800);
+  setDNAState('modified');
+
+  // Phase 2: Animate through generations
+  const animMaxGen = Math.min(maxGen, 72);
+
+  for (let g = 0; g <= animMaxGen; g++) {
+    simState.gen = g;
+    genEl.textContent = g;
+
+    // Update gen counter color
+    if (g < 25) {
+      genEl.className = 'num';
+    } else if (g < 37) {
+      genEl.className = 'num warning';
+    } else {
+      genEl.className = 'num danger';
+    }
+
+    updateDots(g, maxGen);
+    drawDots(g);
+    drawChart(simState.chartData.slice(0, g + 1), g);
+
+    // Kill switch break event
+    if (g === 37) {
+      setDNAState('broken');
+      simState.escaped = true;
+
+      btn.textContent = '\u{26A0} CONTAINMENT BREACH DETECTED';
+      btn.classList.add('danger');
+      btn.classList.remove('running');
+
+      // Mark breached safeguards
+      ['card-kill', 'card-temporal', 'card-reversal'].forEach(id => {
+        const card = document.getElementById(id);
+        if (card) card.classList.add('breached');
+      });
+    }
+
+    // Frame timing: faster at start, slower around breach for drama
+    const frameDelay = g < 10 ? 90
+                     : g < 30 ? 65
+                     : g < 40 ? 50
+                     : 35;
+    await delay(frameDelay);
+  }
+
+  // Ensure full chart is drawn
+  drawChart(simState.chartData, animMaxGen);
+
+  // Phase 3: Type terminal outputs
+  await delay(500);
+
+  // Python
+  await new Promise(done => {
+    typewrite(document.getElementById('termPython'), pythonText, 14, done);
+  });
+  document.getElementById('verdictPython').style.opacity = '1';
+
+  await delay(300);
+
+  // Formal
+  await new Promise(done => {
+    typewrite(document.getElementById('termFormal'), formalText, 14, done);
+  });
+  document.getElementById('verdictFormal').style.opacity = '1';
+
+  await delay(300);
+
+  // AI
+  await new Promise(done => {
+    typewrite(document.getElementById('termAI'), aiText, 14, done);
+  });
+  document.getElementById('verdictAI').style.opacity = '1';
+
+  await delay(300);
+
+  // Tau (spec + terminal combined, slower for drama)
+  await new Promise(done => {
+    typewrite(document.getElementById('termTau'), tauText, 10, done);
+  });
+  document.getElementById('verdictTau').style.opacity = '1';
+
+  // Phase 4: Reveal comparison cards
+  await delay(500);
+  const compGrid = document.getElementById('compGrid');
+  compGrid.style.opacity = '1';
+  compGrid.style.transform = 'translateY(0)';
+
+  // Done
+  btn.textContent = '\u{1F504} RE-RUN SIMULATION';
+  btn.classList.add('danger');
+  btn.classList.remove('running');
+  simState.running = false;
+}
+
+// Attach launch button handler
+document.getElementById('launchBtn').addEventListener('click', runSimulation);
+
+
+/* ================================================================
+   MAIN ANIMATION LOOP  (background only; map + chart driven by sim)
+   ================================================================ */
+function mainLoop(t) {
+  drawBackground(t);
+  requestAnimationFrame(mainLoop);
+}
+
+// Initial setup
+initDots(80);
+drawDots(0);
+drawChart([], 0);
+
+// Set default preset (Maximum Containment)
+setToggles(presets[0].ids);
+document.querySelectorAll('.preset-btn')[0].classList.add('selected');
+
+// Start animation loop
+requestAnimationFrame(mainLoop);
+</script>
+</body>
+</html>

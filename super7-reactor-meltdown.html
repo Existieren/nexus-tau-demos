@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Can Your Reactor Melt Down Despite Every Safeguard? | Tau Language Demo</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a28;
+  --red:#ef4444;--red-dark:#991b1b;--red-glow:rgba(239,68,68,.3);
+  --gold:#ffd700;--gold-dim:#b8960f;--gold-glow:rgba(255,215,0,.25);
+  --cyan:#06b6d4;--cyan-glow:rgba(6,182,212,.2);
+  --green:#22c55e;--green-glow:rgba(34,197,94,.2);
+  --blue:#3b82f6;--blue-glow:rgba(59,130,246,.2);
+  --purple:#a855f7;--purple-glow:rgba(168,85,247,.2);
+  --txt:#e2e8f0;--txt-dim:#94a3b8;--txt-dark:#64748b;
+  --font:'Segoe UI',system-ui,-apple-system,sans-serif;
+  --mono:'Cascadia Code','Fira Code','Consolas',monospace;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:var(--font);line-height:1.6;overflow-x:hidden}
+.container{max-width:1440px;margin:0 auto;padding:0 24px}
+
+/* BACKGROUND CANVAS */
+#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* HEADER */
+.hero{text-align:center;padding:60px 24px 40px;position:relative;overflow:hidden;z-index:1}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(6,182,212,.08) 0%,transparent 70%);pointer-events:none}
+.badge{display:inline-block;background:linear-gradient(135deg,var(--gold-dim),var(--gold));color:#000;font-weight:700;font-size:13px;padding:4px 16px;border-radius:20px;margin-bottom:20px;letter-spacing:.5px}
+.hero h1{font-size:clamp(2.2rem,5vw,3.8rem);font-weight:900;letter-spacing:-1px;line-height:1.1;margin-bottom:12px;text-transform:uppercase}
+.hero h1 .red{color:var(--red)}
+.hero h1 .white{color:#fff}
+.hero h1 .cyan-text{color:var(--cyan)}
+.hero .subtitle{font-size:clamp(1rem,2vw,1.3rem);color:var(--txt-dim);max-width:700px;margin:0 auto}
+
+/* REACTOR SECTION */
+.reactor-section{padding:40px 24px;display:flex;flex-direction:column;align-items:center;gap:32px;position:relative;z-index:1}
+#reactorCanvas{display:block;max-width:900px;width:100%;border-radius:16px;border:1px solid rgba(255,255,255,.06);background:var(--bg2)}
+
+/* Toggle Cards */
+.locks-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;width:100%;max-width:1200px;z-index:1}
+.lock-card{background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;transition:all .4s;position:relative;overflow:hidden}
+.lock-card.active{border-color:rgba(6,182,212,.3);box-shadow:0 0 15px rgba(6,182,212,.08)}
+.lock-card.failed{border-color:var(--red);background:rgba(239,68,68,.05)}
+.lock-card.failed::after{content:'STALE / BLOCKED';position:absolute;top:6px;right:8px;font-size:9px;font-weight:700;color:var(--red);letter-spacing:1px}
+.lock-icon{font-size:24px;width:36px;text-align:center;flex-shrink:0}
+.lock-info{flex:1;min-width:0}
+.lock-name{font-weight:700;font-size:14px;color:#fff}
+.lock-desc{font-size:11px;color:var(--txt-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lock-toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+.lock-toggle input{opacity:0;width:0;height:0}
+.lock-toggle .slider{position:absolute;inset:0;background:#333;border-radius:12px;cursor:pointer;transition:.3s}
+.lock-toggle .slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#888;border-radius:50%;transition:.3s}
+.lock-toggle input:checked+.slider{background:var(--green);box-shadow:0 0 10px var(--green-glow)}
+.lock-toggle input:checked+.slider::before{transform:translateX(20px);background:#fff}
+
+/* Presets + Simulate Button */
+.controls-row{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:8px;z-index:1}
+.preset-btn{padding:10px 20px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:var(--bg2);color:var(--txt);font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.preset-btn:hover{background:var(--bg3);border-color:rgba(255,255,255,.2);transform:translateY(-1px)}
+.attack-btn{padding:14px 40px;border-radius:12px;border:none;background:linear-gradient(135deg,#b91c1c,var(--red));color:#fff;font-size:18px;font-weight:800;cursor:pointer;text-transform:uppercase;letter-spacing:1px;position:relative;overflow:hidden;animation:pulseAttack 2.5s infinite;transition:transform .15s}
+.attack-btn:hover{transform:scale(1.04)}
+.attack-btn:disabled{opacity:.5;cursor:not-allowed;animation:none}
+.attack-btn::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);transform:translateX(-100%);animation:shimmer 3s infinite}
+@keyframes pulseAttack{0%,100%{box-shadow:0 0 20px rgba(239,68,68,.3)}50%{box-shadow:0 0 40px rgba(239,68,68,.6)}}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+
+/* Sliders */
+.sliders-row{display:flex;flex-wrap:wrap;justify-content:center;gap:24px;margin-top:12px;z-index:1}
+.slider-group{display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px 20px;min-width:240px}
+.slider-group label{font-size:13px;font-weight:600;color:var(--txt-dim)}
+.slider-group input[type=range]{width:200px;accent-color:var(--cyan)}
+.slider-group .slider-val{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--cyan)}
+
+/* Chart Section */
+.chart-section{padding:32px 24px;max-width:1200px;margin:0 auto;position:relative;z-index:1}
+.chart-title{text-align:center;font-size:20px;font-weight:700;margin-bottom:16px;color:var(--txt-dim)}
+.chart-wrap{background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;position:relative}
+.chart-wrap canvas{width:100%;height:340px}
+
+/* Four Columns */
+.columns-section{padding:32px 24px;max-width:1440px;margin:0 auto;position:relative;z-index:1}
+.columns-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;align-items:start}
+@media(max-width:1200px){.columns-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.columns-grid{grid-template-columns:1fr}}
+
+.col-card{background:var(--bg2);border-radius:16px;border:1px solid rgba(255,255,255,.06);overflow:visible;display:flex;flex-direction:column}
+.col-header{padding:16px 20px 12px;border-bottom:1px solid rgba(255,255,255,.04)}
+.col-header h3{font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px}
+.col-header .sub{font-size:12px;color:var(--txt-dim);margin-top:4px}
+.col-body{padding:20px;flex:1;overflow:visible}
+.col-terminal{font-family:var(--mono);font-size:12px;line-height:1.75;color:var(--txt-dim);white-space:pre-wrap;word-break:break-word;overflow-y:visible}
+.col-verdict{padding:16px 20px;border-top:1px solid rgba(255,255,255,.04);text-align:center;font-weight:700;font-size:15px;letter-spacing:.5px}
+.verdict-pass{color:var(--green);background:rgba(34,197,94,.05)}
+.verdict-warn{color:var(--cyan);background:rgba(6,182,212,.05)}
+.verdict-fail{color:var(--red);background:rgba(239,68,68,.05)}
+.verdict-gold{color:var(--gold);background:rgba(255,215,0,.05)}
+
+.col-card.python{border-color:rgba(59,130,246,.15)}
+.col-card.python .col-header{background:rgba(59,130,246,.05)}
+.col-card.formal{border-color:rgba(6,182,212,.15)}
+.col-card.formal .col-header{background:rgba(6,182,212,.05)}
+.col-card.ai{border-color:rgba(34,197,94,.15)}
+.col-card.ai .col-header{background:rgba(34,197,94,.05)}
+.col-card.tau{border-color:rgba(255,215,0,.2)}
+.col-card.tau .col-header{background:rgba(255,215,0,.05)}
+
+.col-card .highlight{color:#fff}
+.col-card .red{color:var(--red)}
+.col-card .green{color:var(--green)}
+.col-card .gold{color:var(--gold)}
+.col-card .cyan{color:var(--cyan)}
+.col-card .dim{color:var(--txt-dark)}
+
+/* Tau spec panel */
+.tau-spec{background:var(--bg);border:1px solid rgba(255,215,0,.1);border-radius:8px;padding:16px;margin-bottom:16px;overflow-y:visible;font-family:var(--mono);font-size:11.5px;line-height:1.7;color:var(--gold-dim);white-space:pre-wrap;word-break:break-word}
+
+/* Comparison */
+.comparison-section{padding:40px 24px;max-width:1200px;margin:0 auto;opacity:0;transform:translateY(30px);transition:all .8s;position:relative;z-index:1}
+.comparison-section.visible{opacity:1;transform:translateY(0)}
+.comp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+@media(max-width:1000px){.comp-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.comp-grid{grid-template-columns:1fr}}
+.comp-card{background:var(--bg2);border-radius:12px;padding:20px;border:1px solid rgba(255,255,255,.06);text-align:center}
+.comp-card h4{font-size:16px;margin-bottom:10px}
+.comp-card .result{font-size:24px;font-weight:800;margin:10px 0}
+.comp-card .explain{font-size:13px;color:var(--txt-dim);line-height:1.7}
+.comp-card.fail{border-color:rgba(255,215,0,.2)}
+.comp-card.fail .result{color:var(--red)}
+
+.tagline{text-align:center;padding:32px 24px;font-size:clamp(1rem,2vw,1.2rem);color:var(--gold);font-style:italic;max-width:900px;margin:0 auto;line-height:1.6;position:relative;z-index:1}
+
+/* Share Card */
+.share-section{padding:40px 24px;display:flex;justify-content:center;opacity:0;transform:translateY(20px);transition:all .8s;position:relative;z-index:1}
+.share-section.visible{opacity:1;transform:translateY(0)}
+.share-card{width:520px;max-width:100%;background:linear-gradient(135deg,#1a0a0a,#0a0a0f,#0a0a1a);border:2px solid var(--red);border-radius:20px;padding:40px 32px;text-align:center;position:relative;overflow:hidden}
+.share-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(239,68,68,.1),transparent 60%);pointer-events:none}
+.share-card .reactor-icon{font-size:48px;margin-bottom:12px}
+.share-card .exploit-title{font-size:22px;font-weight:900;color:var(--red);margin-bottom:4px}
+.share-card .exploit-amount{font-size:16px;color:var(--txt-dim);margin-bottom:16px}
+.share-card .exploit-quote{font-size:14px;color:var(--txt);line-height:1.5;margin-bottom:20px;font-style:italic}
+.share-card .tau-badge{display:inline-block;background:linear-gradient(135deg,var(--gold-dim),var(--gold));color:#000;font-weight:700;font-size:13px;padding:6px 20px;border-radius:20px}
+.share-card .url{color:var(--txt-dark);font-size:12px;margin-top:12px}
+
+/* Animations */
+.typing-cursor::after{content:'_';animation:blink 1s infinite}
+@keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}
+@keyframes crackShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.shake{animation:crackShake .15s 3}
+
+/* Footer */
+.footer{text-align:center;padding:40px 24px;color:var(--txt-dark);font-size:12px;position:relative;z-index:1}
+</style>
+</head>
+<body>
+
+<!-- BACKGROUND CANVAS -->
+<canvas id="bgCanvas"></canvas>
+
+<!-- HEADER -->
+<header class="hero">
+  <div class="badge">Tau Language v0.7 | tau.net</div>
+  <h1><span class="white">Can Your </span><span class="red">Reactor</span><span class="white"> Melt Down </span><span class="cyan-text">Despite Every Safeguard?</span></h1>
+  <p class="subtitle">10 safety systems. Every one works perfectly. Only one method finds the 4-minute blind spot.</p>
+</header>
+
+<!-- REACTOR VISUAL + RULES -->
+<section class="reactor-section">
+  <canvas id="reactorCanvas" width="900" height="450"></canvas>
+
+  <!-- Toggle Cards -->
+  <div class="locks-grid" id="locksGrid"></div>
+
+  <!-- Presets -->
+  <div class="controls-row">
+    <button class="preset-btn" onclick="applyPreset('gen4')">&#x1f6e1; Gen IV Full Safety</button>
+    <button class="preset-btn" onclick="applyPreset('pwr')">&#x1f4cb; Standard PWR</button>
+    <button class="preset-btn" onclick="applyPreset('fukushima')">&#x26a0; Fukushima Config</button>
+    <button class="preset-btn" onclick="applyPreset('cost')">&#x1f4b0; Cost Reduced</button>
+  </div>
+
+  <!-- Sliders -->
+  <div class="sliders-row">
+    <div class="slider-group">
+      <label>Seismic Magnitude</label>
+      <input type="range" id="sliderSeismic" min="30" max="80" value="62" oninput="updateSliders()">
+      <div class="slider-val" id="valSeismic">6.2</div>
+    </div>
+    <div class="slider-group">
+      <label>Hours Into Maintenance</label>
+      <input type="range" id="sliderMaint" min="0" max="48" value="12" oninput="updateSliders()">
+      <div class="slider-val" id="valMaint">12 h</div>
+    </div>
+  </div>
+
+  <div class="controls-row" style="margin-top:16px">
+    <button class="attack-btn" id="attackBtn" onclick="runSimulation()">&#x2622; RUN SAFETY SIMULATION</button>
+  </div>
+</section>
+
+<!-- CHART -->
+<section class="chart-section" style="position:relative;z-index:1">
+  <div class="chart-title" id="chartTitle">CORE TEMPERATURE OVER 72 HOURS</div>
+  <div class="chart-wrap">
+    <canvas id="chartCanvas" height="340"></canvas>
+  </div>
+</section>
+
+<!-- FOUR COLUMNS -->
+<section class="columns-section">
+  <div class="columns-grid">
+    <!-- Python -->
+    <div class="col-card python">
+      <div class="col-header"><h3><span style="color:var(--blue)">&#x1f40d;</span> Python PSA Simulator</h3><div class="sub">100,000 Monte Carlo accident scenarios</div></div>
+      <div class="col-body"><div class="col-terminal" id="pythonTerm"></div></div>
+      <div class="col-verdict" id="pythonVerdict"></div>
+    </div>
+    <!-- Formal -->
+    <div class="col-card formal">
+      <div class="col-header"><h3><span style="color:var(--cyan)">&#x1f4d0;</span> Formal Verification</h3><div class="sub">NuSMV model checking safety functions</div></div>
+      <div class="col-body"><div class="col-terminal" id="formalTerm"></div></div>
+      <div class="col-verdict" id="formalVerdict"></div>
+    </div>
+    <!-- AI -->
+    <div class="col-card ai">
+      <div class="col-header"><h3><span style="color:var(--green)">&#x1f916;</span> AI Safety Auditor</h3><div class="sub">Pattern matching against historical accidents</div></div>
+      <div class="col-body"><div class="col-terminal" id="aiTerm"></div></div>
+      <div class="col-verdict" id="aiVerdict"></div>
+    </div>
+    <!-- Tau -->
+    <div class="col-card tau">
+      <div class="col-header"><h3><span style="color:var(--gold)">&#x269b;</span> Tau Temporal Verifier</h3><div class="sub">Hybrid temporal model with continuous dynamics</div></div>
+      <div class="col-body">
+        <div class="tau-spec" id="tauSpec"></div>
+        <div class="col-terminal" id="tauTerm"></div>
+      </div>
+      <div class="col-verdict" id="tauVerdict"></div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARISON -->
+<section class="comparison-section" id="compSection">
+  <div class="comp-grid">
+    <div class="comp-card">
+      <h4 style="color:var(--blue)">Python PSA</h4>
+      <div class="result" style="color:var(--green)">SAFE</div>
+      <div class="explain">CDF: 1.2x10^-7 per reactor-year. 833x better than NRC threshold. Statistical sampling missed the timing interaction entirely.</div>
+    </div>
+    <div class="comp-card">
+      <h4 style="color:var(--cyan)">Formal Verification</h4>
+      <div class="result" style="color:var(--cyan)">10/10 VERIFIED</div>
+      <div class="explain">Every safety function verified individually. Full plant composition intractable. Continuous timing abstracted away -- the bug hides in the abstraction.</div>
+    </div>
+    <div class="comp-card">
+      <h4 style="color:var(--green)">AI / LLM Audit</h4>
+      <div class="result" style="color:var(--green)">ALL KNOWN ADDRESSED</div>
+      <div class="explain">Matched all historical accident patterns. Novel timing interaction not in any training database. Defense-in-depth assessment: passed.</div>
+    </div>
+    <div class="comp-card fail">
+      <h4 style="color:var(--gold)">Tau Verifier</h4>
+      <div class="result" style="color:var(--red)">MELTDOWN FOUND</div>
+      <div class="explain">4-minute blind spot where stale flux sensors block SCRAM consensus. Every system worked correctly. The failure is in the timing between them.</div>
+    </div>
+  </div>
+</section>
+
+<!-- TAGLINE -->
+<div class="tagline" id="taglineSection" style="opacity:0;transition:opacity .8s">
+  "Every safeguard worked. Every procedure was approved. The reactor melted down in the 4-minute gap between them. Only Tau verifies safety across all systems, all rules, and all time &mdash; simultaneously."
+</div>
+
+<!-- SHARE CARD -->
+<section class="share-section" id="shareSection">
+  <div class="share-card">
+    <div class="reactor-icon">&#x2622;</div>
+    <div class="exploit-title">FUEL CLADDING DAMAGE</div>
+    <div class="exploit-amount">1,210&deg;C &mdash; 4 minutes of stale sensor data</div>
+    <div class="exploit-quote">"Every safety system worked correctly. The blind spot was in the timing."</div>
+    <div class="tau-badge">Discovered by Tau v0.7</div>
+    <div class="url">tau.net</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<div class="footer">Tau Language v0.7 &mdash; Temporal specification language for verifiable intelligence &mdash; tau.net</div>
+
+<script>
+/* ========================================================================
+   SUPER7 — NUCLEAR REACTOR MELTDOWN DEMO
+   ======================================================================== */
+
+// --- SAFETY SYSTEMS ---
+const safetySystems = [
+  { id:'scram',       icon:'\u26A1', name:'SCRAM System',              desc:'Emergency shutdown, drops all control rods in <2 seconds' },
+  { id:'coolant',     icon:'\uD83D\uDCA7', name:'Coolant Flow Monitor',       desc:'Continuous flow rate monitoring with triple sensors' },
+  { id:'pressure',    icon:'\uD83D\uDD27', name:'Pressure Relief Valves',     desc:'Automatic pressure release at 17 MPa threshold' },
+  { id:'neutron',     icon:'\uD83D\uDCE1', name:'Neutron Flux Sensors',       desc:'Triple-redundant flux measurement (TMR voting)' },
+  { id:'containment', icon:'\uD83C\uDFD7', name:'Containment Integrity',      desc:'Real-time structural and leak monitoring' },
+  { id:'diesel',      icon:'\uD83D\uDD0B', name:'Backup Diesel Generators',   desc:'Emergency power within 10 seconds of grid loss' },
+  { id:'passive',     icon:'\uD83C\uDF0A', name:'Passive Cooling',            desc:'Gravity-fed cooling, no power required' },
+  { id:'seismic',     icon:'\uD83C\uDF0D', name:'Seismic Isolation',          desc:'Base isolation bearings, auto-disconnect on >5.0 magnitude' },
+  { id:'operator',    icon:'\uD83D\uDC64', name:'Operator Override',          desc:'Manual SCRAM requires consensus of flux + coolant signals' },
+  { id:'decay',       icon:'\u2668',       name:'Decay Heat Removal',         desc:'Post-shutdown residual heat extraction system' }
+];
+
+let systemStates = {};
+let simRunning = false;
+let simPhase = 0; // 0=idle, 1=normal, 2=seismic, 3=meltdown, 4=scram-late, 5=done
+
+// --- BUILD TOGGLE CARDS ---
+const locksGrid = document.getElementById('locksGrid');
+safetySystems.forEach(s => {
+  systemStates[s.id] = true;
+  const card = document.createElement('div');
+  card.className = 'lock-card active';
+  card.id = 'card-' + s.id;
+  card.innerHTML = `
+    <div class="lock-icon">${s.icon}</div>
+    <div class="lock-info"><div class="lock-name">${s.name}</div><div class="lock-desc">${s.desc}</div></div>
+    <label class="lock-toggle"><input type="checkbox" checked id="chk-${s.id}" onchange="toggleSystem('${s.id}')"><span class="slider"></span></label>
+  `;
+  locksGrid.appendChild(card);
+});
+
+function toggleSystem(id) {
+  const chk = document.getElementById('chk-' + id);
+  systemStates[id] = chk.checked;
+  const card = document.getElementById('card-' + id);
+  card.className = chk.checked ? 'lock-card active' : 'lock-card';
+}
+
+// --- PRESETS ---
+function applyPreset(name) {
+  const configs = {
+    gen4:      { scram:1, coolant:1, pressure:1, neutron:1, containment:1, diesel:1, passive:1, seismic:1, operator:1, decay:1 },
+    pwr:       { scram:1, coolant:1, pressure:1, neutron:1, containment:1, diesel:1, passive:0, seismic:0, operator:1, decay:1 },
+    fukushima: { scram:1, coolant:1, pressure:1, neutron:1, containment:1, diesel:0, passive:0, seismic:1, operator:1, decay:1 },
+    cost:      { scram:1, coolant:1, pressure:1, neutron:1, containment:0, diesel:1, passive:0, seismic:0, operator:0, decay:1 }
+  };
+  const c = configs[name];
+  if (!c) return;
+  safetySystems.forEach(s => {
+    const on = !!c[s.id];
+    systemStates[s.id] = on;
+    document.getElementById('chk-' + s.id).checked = on;
+    document.getElementById('card-' + s.id).className = on ? 'lock-card active' : 'lock-card';
+  });
+}
+
+// --- SLIDERS ---
+function updateSliders() {
+  document.getElementById('valSeismic').textContent = (document.getElementById('sliderSeismic').value / 10).toFixed(1);
+  document.getElementById('valMaint').textContent = document.getElementById('sliderMaint').value + ' h';
+}
+
+// ===================================================================
+// BACKGROUND CANVAS — star field + gradient blobs + hex grid
+// ===================================================================
+const bgCanvas = document.getElementById('bgCanvas');
+const bgCtx = bgCanvas.getContext('2d');
+let bgStars = [], bgBlobs = [];
+let bgAlertLevel = 0; // 0-1 for red tinting
+
+function initBg() {
+  bgCanvas.width = window.innerWidth;
+  bgCanvas.height = window.innerHeight;
+  bgStars = [];
+  for (let i = 0; i < 120; i++) {
+    bgStars.push({ x: Math.random() * bgCanvas.width, y: Math.random() * bgCanvas.height, r: Math.random() * 1.5 + 0.3, a: Math.random(), s: Math.random() * 0.01 + 0.003 });
+  }
+  bgBlobs = [
+    { x: bgCanvas.width * 0.2, y: bgCanvas.height * 0.3, r: 200, dx: 0.3, dy: 0.2, color: 'rgba(6,182,212,0.04)' },
+    { x: bgCanvas.width * 0.7, y: bgCanvas.height * 0.6, r: 250, dx: -0.2, dy: 0.3, color: 'rgba(59,130,246,0.03)' },
+    { x: bgCanvas.width * 0.5, y: bgCanvas.height * 0.5, r: 180, dx: 0.25, dy: -0.15, color: 'rgba(255,215,0,0.02)' }
+  ];
+}
+
+function drawBg(t) {
+  bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+  // Alert tint
+  if (bgAlertLevel > 0) {
+    bgCtx.fillStyle = `rgba(239,68,68,${bgAlertLevel * 0.08})`;
+    bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+  }
+  // Blobs
+  bgBlobs.forEach(b => {
+    b.x += b.dx; b.y += b.dy;
+    if (b.x < -b.r || b.x > bgCanvas.width + b.r) b.dx *= -1;
+    if (b.y < -b.r || b.y > bgCanvas.height + b.r) b.dy *= -1;
+    const g = bgCtx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
+    let c = b.color;
+    if (bgAlertLevel > 0.3) c = `rgba(239,68,68,${0.03 + bgAlertLevel * 0.04})`;
+    g.addColorStop(0, c);
+    g.addColorStop(1, 'transparent');
+    bgCtx.fillStyle = g;
+    bgCtx.fillRect(b.x - b.r, b.y - b.r, b.r * 2, b.r * 2);
+  });
+  // Hex grid (very faint)
+  bgCtx.strokeStyle = `rgba(255,255,255,${0.015 - bgAlertLevel * 0.01})`;
+  bgCtx.lineWidth = 0.5;
+  const hexR = 40;
+  const hexW = hexR * 1.732;
+  for (let row = -1; row < bgCanvas.height / (hexR * 1.5) + 1; row++) {
+    for (let col = -1; col < bgCanvas.width / hexW + 1; col++) {
+      const cx = col * hexW + (row % 2) * hexW / 2;
+      const cy = row * hexR * 1.5;
+      bgCtx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const angle = Math.PI / 3 * i - Math.PI / 6;
+        const px = cx + hexR * Math.cos(angle);
+        const py = cy + hexR * Math.sin(angle);
+        i === 0 ? bgCtx.moveTo(px, py) : bgCtx.lineTo(px, py);
+      }
+      bgCtx.closePath();
+      bgCtx.stroke();
+    }
+  }
+  // Stars
+  bgStars.forEach(s => {
+    s.a += s.s;
+    const alpha = 0.3 + 0.5 * Math.abs(Math.sin(s.a));
+    let color = bgAlertLevel > 0.5 ? `rgba(239,${Math.floor(100 - bgAlertLevel * 60)},${Math.floor(100 - bgAlertLevel * 80)},${alpha})` : `rgba(255,255,255,${alpha})`;
+    bgCtx.beginPath();
+    bgCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    bgCtx.fillStyle = color;
+    bgCtx.fill();
+  });
+}
+
+window.addEventListener('resize', initBg);
+initBg();
+
+// ===================================================================
+// REACTOR CANVAS — cross-section visualization
+// ===================================================================
+const rCanvas = document.getElementById('reactorCanvas');
+const rCtx = rCanvas.getContext('2d');
+let reactorTime = 0;
+let coolantSpeed = 1;
+let fuelGlow = 0; // 0=normal, 1=max
+let tempNeedle = 0; // 0=300C, 1=1200C
+let warningState = 0; // 0=green, 1=amber, 2=red
+let controlRodsDown = 0; // 0=up, 1=fully inserted
+let domeAlert = 0; // 0=cyan, 1=red
+let generatorsOnline = true;
+let showTooLate = false;
+let coolantParticles = [];
+
+// Initialize coolant particles
+function initCoolant() {
+  coolantParticles = [];
+  for (let i = 0; i < 30; i++) {
+    coolantParticles.push({ t: Math.random(), speed: 0.002 + Math.random() * 0.002 });
+  }
+}
+initCoolant();
+
+function drawReactor(ts) {
+  const W = rCanvas.width, H = rCanvas.height;
+  const cx = W / 2, cy = H / 2 + 20;
+  rCtx.clearRect(0, 0, W, H);
+
+  // Background gradient
+  const bgGrad = rCtx.createLinearGradient(0, 0, 0, H);
+  bgGrad.addColorStop(0, `rgba(${10 + domeAlert * 30},${10 - domeAlert * 5},${15 - domeAlert * 10},1)`);
+  bgGrad.addColorStop(1, `rgba(${18 + domeAlert * 20},${18 - domeAlert * 10},${26 - domeAlert * 15},1)`);
+  rCtx.fillStyle = bgGrad;
+  rCtx.fillRect(0, 0, W, H);
+
+  // --- Containment Dome ---
+  const domeX = cx, domeY = cy + 30;
+  const domeW = 320, domeH = 340;
+  rCtx.save();
+  rCtx.beginPath();
+  rCtx.moveTo(domeX - domeW / 2, domeY + domeH / 2 - 40);
+  rCtx.lineTo(domeX - domeW / 2, domeY - domeH / 4);
+  rCtx.quadraticCurveTo(domeX - domeW / 2, domeY - domeH / 2 - 20, domeX, domeY - domeH / 2 - 20);
+  rCtx.quadraticCurveTo(domeX + domeW / 2, domeY - domeH / 2 - 20, domeX + domeW / 2, domeY - domeH / 4);
+  rCtx.lineTo(domeX + domeW / 2, domeY + domeH / 2 - 40);
+  rCtx.closePath();
+
+  const pulse = 0.4 + 0.2 * Math.sin(reactorTime * 1.5);
+  const domeColor = domeAlert < 0.5
+    ? `rgba(6,182,212,${pulse * (1 - domeAlert * 2) * 0.3})`
+    : `rgba(239,68,68,${pulse * 0.5})`;
+  rCtx.strokeStyle = domeColor;
+  rCtx.lineWidth = 3;
+  rCtx.stroke();
+
+  // Dome glow
+  rCtx.shadowColor = domeAlert < 0.5 ? 'rgba(6,182,212,0.3)' : 'rgba(239,68,68,0.4)';
+  rCtx.shadowBlur = 15 + domeAlert * 15;
+  rCtx.stroke();
+  rCtx.shadowBlur = 0;
+  rCtx.restore();
+
+  // --- Reactor Vessel ---
+  const vx = cx - 100, vy = cy - 80, vw = 200, vh = 200;
+  const vesselGrad = rCtx.createLinearGradient(vx, vy, vx + vw, vy);
+  vesselGrad.addColorStop(0, '#2a2a3a');
+  vesselGrad.addColorStop(0.1, '#3a3a4e');
+  vesselGrad.addColorStop(0.5, '#4a4a5e');
+  vesselGrad.addColorStop(0.9, '#3a3a4e');
+  vesselGrad.addColorStop(1, '#2a2a3a');
+  rCtx.fillStyle = vesselGrad;
+  rCtx.fillRect(vx, vy, vw, vh);
+  rCtx.strokeStyle = 'rgba(255,255,255,0.1)';
+  rCtx.lineWidth = 2;
+  rCtx.strokeRect(vx, vy, vw, vh);
+
+  // --- Fuel Rods ---
+  const rodCount = 10;
+  const rodW = 10, rodH = 140;
+  const rodStartX = vx + 25;
+  const rodSpacing = (vw - 50) / (rodCount - 1);
+  const rodY = vy + 30;
+
+  for (let i = 0; i < rodCount; i++) {
+    const rx = rodStartX + i * rodSpacing - rodW / 2;
+    // Glow based on fuelGlow
+    const r = Math.floor(255);
+    const g = Math.floor(215 - fuelGlow * 150);
+    const b = Math.floor(50 - fuelGlow * 50);
+    const brightness = 0.5 + fuelGlow * 0.5;
+
+    const fuelGrad = rCtx.createRadialGradient(rx + rodW / 2, rodY + rodH / 2, 0, rx + rodW / 2, rodY + rodH / 2, rodH / 1.5);
+    fuelGrad.addColorStop(0, `rgba(${r},${g},${b},${brightness})`);
+    fuelGrad.addColorStop(1, `rgba(${r},${g},0,${brightness * 0.2})`);
+
+    rCtx.fillStyle = fuelGrad;
+    rCtx.fillRect(rx - 3, rodY - 3, rodW + 6, rodH + 6);
+
+    rCtx.fillStyle = `rgb(${r},${g},${b})`;
+    rCtx.fillRect(rx, rodY, rodW, rodH);
+
+    // White-hot core during meltdown
+    if (fuelGlow > 0.7) {
+      const whiteAlpha = (fuelGlow - 0.7) / 0.3;
+      rCtx.fillStyle = `rgba(255,255,255,${whiteAlpha * 0.6})`;
+      rCtx.fillRect(rx + 2, rodY + 10, rodW - 4, rodH - 20);
+    }
+  }
+
+  // --- Control Rods (drop from above) ---
+  const crY = vy - 60 + controlRodsDown * 90; // drop distance
+  for (let i = 0; i < rodCount; i++) {
+    const rx = rodStartX + i * rodSpacing - 3;
+    rCtx.fillStyle = '#888';
+    rCtx.fillRect(rx, crY, 6, 50);
+    // Silver sheen
+    const sheen = rCtx.createLinearGradient(rx, crY, rx + 6, crY);
+    sheen.addColorStop(0, 'rgba(200,200,220,0.3)');
+    sheen.addColorStop(0.5, 'rgba(200,200,220,0.6)');
+    sheen.addColorStop(1, 'rgba(200,200,220,0.2)');
+    rCtx.fillStyle = sheen;
+    rCtx.fillRect(rx, crY, 6, 50);
+  }
+
+  // --- Coolant Flow (U-shaped pipes with particles) ---
+  // Left pipe down
+  rCtx.strokeStyle = 'rgba(100,150,200,0.3)';
+  rCtx.lineWidth = 12;
+  rCtx.lineCap = 'round';
+  rCtx.beginPath();
+  rCtx.moveTo(vx - 30, vy - 10);
+  rCtx.lineTo(vx - 30, vy + vh + 20);
+  rCtx.quadraticCurveTo(vx - 30, vy + vh + 50, cx, vy + vh + 50);
+  rCtx.quadraticCurveTo(vx + vw + 30, vy + vh + 50, vx + vw + 30, vy + vh + 20);
+  rCtx.lineTo(vx + vw + 30, vy - 10);
+  rCtx.stroke();
+
+  // Pipe inner highlight
+  rCtx.strokeStyle = 'rgba(100,150,200,0.1)';
+  rCtx.lineWidth = 8;
+  rCtx.stroke();
+
+  // Coolant particles along path
+  coolantParticles.forEach(p => {
+    p.t += p.speed * coolantSpeed;
+    if (p.t > 1) p.t -= 1;
+    if (p.t < 0) p.t = 0;
+    const t = p.t;
+    let px, py;
+    // Parameterize the U-path
+    const totalLen = 2 * (vh + 30) + Math.PI * (vw / 2 + 30);
+    const downLen = vh + 30;
+    const curveLen = Math.PI * (vw / 2 + 30);
+    const upLen = vh + 30;
+    const pos = t * totalLen;
+    if (pos < downLen) {
+      px = vx - 30;
+      py = vy - 10 + pos;
+    } else if (pos < downLen + curveLen) {
+      const angle = Math.PI + (pos - downLen) / curveLen * Math.PI;
+      px = cx + (vw / 2 + 30) * Math.cos(angle);
+      py = vy + vh + 50 + (vw / 2 + 30) * Math.sin(angle) * 0.3;
+    } else {
+      px = vx + vw + 30;
+      py = vy + vh + 20 - (pos - downLen - curveLen);
+    }
+
+    const alpha = coolantSpeed > 0.1 ? 0.8 : 0.2;
+    const pColor = coolantSpeed > 0.5 ? `rgba(59,130,246,${alpha})` : `rgba(239,${Math.floor(150 * coolantSpeed)},68,${alpha})`;
+    rCtx.beginPath();
+    rCtx.arc(px, py, 3, 0, Math.PI * 2);
+    rCtx.fillStyle = pColor;
+    rCtx.fill();
+    // Glow
+    rCtx.beginPath();
+    rCtx.arc(px, py, 6, 0, Math.PI * 2);
+    rCtx.fillStyle = coolantSpeed > 0.5 ? `rgba(59,130,246,${alpha * 0.3})` : `rgba(239,100,68,${alpha * 0.2})`;
+    rCtx.fill();
+  });
+
+  // --- Temperature Gauge ---
+  const gx = vx + vw + 100, gy = cy + 10, gr = 55;
+  // Gauge background
+  rCtx.beginPath();
+  rCtx.arc(gx, gy, gr + 5, 0, Math.PI * 2);
+  rCtx.fillStyle = 'rgba(20,20,30,0.9)';
+  rCtx.fill();
+  rCtx.strokeStyle = 'rgba(255,255,255,0.15)';
+  rCtx.lineWidth = 2;
+  rCtx.stroke();
+
+  // Colored arc zones: green, amber, red
+  const startAngle = Math.PI * 0.75;
+  const endAngle = Math.PI * 2.25;
+  const range = endAngle - startAngle;
+  // Green zone 0-40%
+  rCtx.beginPath();
+  rCtx.arc(gx, gy, gr - 3, startAngle, startAngle + range * 0.33, false);
+  rCtx.strokeStyle = 'rgba(34,197,94,0.5)';
+  rCtx.lineWidth = 6;
+  rCtx.stroke();
+  // Amber zone 40-66%
+  rCtx.beginPath();
+  rCtx.arc(gx, gy, gr - 3, startAngle + range * 0.33, startAngle + range * 0.66, false);
+  rCtx.strokeStyle = 'rgba(251,191,36,0.5)';
+  rCtx.lineWidth = 6;
+  rCtx.stroke();
+  // Red zone 66-100%
+  rCtx.beginPath();
+  rCtx.arc(gx, gy, gr - 3, startAngle + range * 0.66, endAngle, false);
+  rCtx.strokeStyle = 'rgba(239,68,68,0.5)';
+  rCtx.lineWidth = 6;
+  rCtx.stroke();
+
+  // Needle
+  const needleAngle = startAngle + range * tempNeedle;
+  rCtx.save();
+  rCtx.translate(gx, gy);
+  rCtx.rotate(needleAngle);
+  rCtx.beginPath();
+  rCtx.moveTo(0, 0);
+  rCtx.lineTo(gr - 12, 0);
+  rCtx.strokeStyle = '#fff';
+  rCtx.lineWidth = 2;
+  rCtx.stroke();
+  // Needle tip
+  rCtx.beginPath();
+  rCtx.arc(gr - 12, 0, 3, 0, Math.PI * 2);
+  rCtx.fillStyle = tempNeedle > 0.66 ? '#ef4444' : tempNeedle > 0.33 ? '#fbbf24' : '#22c55e';
+  rCtx.fill();
+  rCtx.restore();
+  // Center dot
+  rCtx.beginPath();
+  rCtx.arc(gx, gy, 5, 0, Math.PI * 2);
+  rCtx.fillStyle = '#fff';
+  rCtx.fill();
+
+  // Temp label
+  const tempC = Math.floor(300 + tempNeedle * 900);
+  rCtx.fillStyle = tempNeedle > 0.66 ? '#ef4444' : tempNeedle > 0.33 ? '#fbbf24' : '#22c55e';
+  rCtx.font = 'bold 16px ' + getComputedStyle(document.body).getPropertyValue('--mono');
+  rCtx.textAlign = 'center';
+  rCtx.fillText(tempC + '\u00B0C', gx, gy + gr + 22);
+
+  // Gauge title
+  rCtx.fillStyle = 'rgba(255,255,255,0.5)';
+  rCtx.font = '10px ' + getComputedStyle(document.body).getPropertyValue('--font');
+  rCtx.fillText('CORE TEMP', gx, gy - gr - 12);
+
+  // --- Warning Lights ---
+  const wlx = cx - 40, wly = 25;
+  const lights = [
+    { color: warningState === 0 ? '#22c55e' : '#1a3a1a', glow: warningState === 0 },
+    { color: warningState === 1 ? '#fbbf24' : '#3a3a1a', glow: warningState === 1 },
+    { color: warningState >= 2 ? '#ef4444' : '#3a1a1a', glow: warningState >= 2 }
+  ];
+  // Flashing for red
+  const flashOn = warningState >= 2 ? (Math.sin(reactorTime * 8) > 0) : true;
+  lights.forEach((l, i) => {
+    const lx = wlx + i * 40;
+    rCtx.beginPath();
+    rCtx.arc(lx, wly, 12, 0, Math.PI * 2);
+    rCtx.fillStyle = (i === 2 && !flashOn) ? '#3a1a1a' : l.color;
+    rCtx.fill();
+    if (l.glow || (i === 2 && warningState >= 2 && flashOn)) {
+      rCtx.shadowColor = l.color;
+      rCtx.shadowBlur = 15;
+      rCtx.fill();
+      rCtx.shadowBlur = 0;
+    }
+    rCtx.strokeStyle = 'rgba(255,255,255,0.15)';
+    rCtx.lineWidth = 1;
+    rCtx.stroke();
+  });
+  // Labels
+  rCtx.fillStyle = 'rgba(255,255,255,0.4)';
+  rCtx.font = '9px ' + getComputedStyle(document.body).getPropertyValue('--font');
+  rCtx.textAlign = 'center';
+  rCtx.fillText('NORMAL', wlx, wly + 24);
+  rCtx.fillText('ALERT', wlx + 40, wly + 24);
+  rCtx.fillText('DANGER', wlx + 80, wly + 24);
+
+  // --- Backup Generators ---
+  const genX = vx - 120, genY = vy + 20;
+  for (let i = 0; i < 2; i++) {
+    const gy2 = genY + i * 50;
+    rCtx.fillStyle = generatorsOnline ? 'rgba(34,197,94,0.2)' : 'rgba(100,100,100,0.1)';
+    rCtx.fillRect(genX, gy2, 50, 35);
+    rCtx.strokeStyle = generatorsOnline ? 'rgba(34,197,94,0.5)' : 'rgba(100,100,100,0.3)';
+    rCtx.lineWidth = 1;
+    rCtx.strokeRect(genX, gy2, 50, 35);
+    // Status light
+    rCtx.beginPath();
+    rCtx.arc(genX + 40, gy2 + 8, 4, 0, Math.PI * 2);
+    rCtx.fillStyle = generatorsOnline ? '#22c55e' : '#555';
+    rCtx.fill();
+    if (generatorsOnline) {
+      rCtx.shadowColor = '#22c55e';
+      rCtx.shadowBlur = 8;
+      rCtx.fill();
+      rCtx.shadowBlur = 0;
+    }
+    rCtx.fillStyle = 'rgba(255,255,255,0.5)';
+    rCtx.font = '8px ' + getComputedStyle(document.body).getPropertyValue('--mono');
+    rCtx.textAlign = 'left';
+    rCtx.fillText('GEN ' + (i + 1), genX + 5, gy2 + 24);
+  }
+  rCtx.fillStyle = 'rgba(255,255,255,0.3)';
+  rCtx.font = '9px ' + getComputedStyle(document.body).getPropertyValue('--font');
+  rCtx.textAlign = 'center';
+  rCtx.fillText('BACKUP', genX + 25, genY - 8);
+  rCtx.fillText('POWER', genX + 25, genY + 100);
+
+  // --- TOO LATE label ---
+  if (showTooLate) {
+    rCtx.save();
+    rCtx.fillStyle = `rgba(239,68,68,${0.6 + 0.3 * Math.sin(reactorTime * 4)})`;
+    rCtx.font = 'bold 36px ' + getComputedStyle(document.body).getPropertyValue('--font');
+    rCtx.textAlign = 'center';
+    rCtx.fillText('TOO LATE', cx, cy + 140);
+    rCtx.strokeStyle = 'rgba(239,68,68,0.3)';
+    rCtx.lineWidth = 1;
+    rCtx.strokeText('TOO LATE', cx, cy + 140);
+    rCtx.restore();
+  }
+
+  // --- Sensor status labels ---
+  if (simPhase >= 2) {
+    rCtx.fillStyle = 'rgba(255,255,255,0.3)';
+    rCtx.font = '10px ' + getComputedStyle(document.body).getPropertyValue('--mono');
+    rCtx.textAlign = 'left';
+    const sensorY = vy - 20;
+    if (simPhase >= 2 && simPhase < 5) {
+      rCtx.fillStyle = '#ef4444';
+      rCtx.fillText('FLUX: STALE (disconnected)', vx + vw + 70, sensorY);
+      rCtx.fillStyle = '#22c55e';
+      rCtx.fillText('COOLANT: LOW (real-time)', vx + vw + 70, sensorY + 16);
+      rCtx.fillStyle = '#fbbf24';
+      rCtx.fillText('SCRAM: BLOCKED (no consensus)', vx + vw + 70, sensorY + 32);
+    }
+  }
+
+  reactorTime += 0.016;
+}
+
+// ===================================================================
+// CHART — Core Temperature Over 72 Hours
+// ===================================================================
+const chartCanvas = document.getElementById('chartCanvas');
+const chartCtx = chartCanvas.getContext('2d');
+let chartData = [];
+let chartAnimProgress = 0;
+let chartAnimating = false;
+
+function generateChartData() {
+  chartData = [];
+  const hours = 72;
+  const steps = 360;
+  for (let i = 0; i <= steps; i++) {
+    const h = (i / steps) * hours;
+    let temp;
+    if (h < 12) {
+      temp = 300 + Math.sin(h * 0.5) * 10 + Math.random() * 5;
+    } else if (h < 12.05) { // first 3 seconds (~0.001 hour)
+      const t = (h - 12) / 0.05;
+      temp = 300 + t * 120;
+    } else if (h < 12.07) { // 5 seconds
+      const t = (h - 12.05) / 0.02;
+      temp = 420 + t * 360;
+    } else if (h < 12.1) { // ~4 minutes
+      const t = (h - 12.07) / 0.03;
+      temp = 780 + t * 430;
+    } else if (h < 12.5) {
+      // SCRAM fires but too late
+      const t = (h - 12.1) / 0.4;
+      temp = 1210 - t * 100 + Math.sin(t * 20) * 15;
+    } else if (h < 24) {
+      // Slow recovery with damage
+      const t = (h - 12.5) / 11.5;
+      temp = 1110 - t * 500 + Math.sin(h * 2) * 10;
+    } else if (h < 48) {
+      const t = (h - 24) / 24;
+      temp = 610 - t * 200 + Math.sin(h) * 8;
+    } else {
+      const t = (h - 48) / 24;
+      temp = 410 - t * 80 + Math.sin(h) * 5;
+    }
+    chartData.push({ h, temp: Math.max(280, temp) });
+  }
+}
+
+function drawChart() {
+  const W = chartCanvas.width = chartCanvas.parentElement.clientWidth - 48;
+  const H = chartCanvas.height = 340;
+  chartCtx.clearRect(0, 0, W, H);
+
+  const padL = 60, padR = 20, padT = 20, padB = 40;
+  const cw = W - padL - padR, ch = H - padT - padB;
+
+  if (chartData.length === 0) {
+    // Draw empty chart
+    chartCtx.fillStyle = 'rgba(255,255,255,0.1)';
+    chartCtx.font = '14px ' + getComputedStyle(document.body).getPropertyValue('--font');
+    chartCtx.textAlign = 'center';
+    chartCtx.fillText('Run simulation to generate temperature data', W / 2, H / 2);
+    return;
+  }
+
+  const maxTemp = 1400, minTemp = 200;
+
+  // Grid lines
+  chartCtx.strokeStyle = 'rgba(255,255,255,0.05)';
+  chartCtx.lineWidth = 1;
+  for (let t = 200; t <= 1400; t += 200) {
+    const y = padT + ch * (1 - (t - minTemp) / (maxTemp - minTemp));
+    chartCtx.beginPath();
+    chartCtx.moveTo(padL, y);
+    chartCtx.lineTo(padL + cw, y);
+    chartCtx.stroke();
+    chartCtx.fillStyle = 'rgba(255,255,255,0.3)';
+    chartCtx.font = '10px ' + getComputedStyle(document.body).getPropertyValue('--mono');
+    chartCtx.textAlign = 'right';
+    chartCtx.fillText(t + '\u00B0C', padL - 8, y + 4);
+  }
+
+  // X-axis labels
+  for (let h = 0; h <= 72; h += 12) {
+    const x = padL + (h / 72) * cw;
+    chartCtx.fillStyle = 'rgba(255,255,255,0.3)';
+    chartCtx.font = '10px ' + getComputedStyle(document.body).getPropertyValue('--mono');
+    chartCtx.textAlign = 'center';
+    chartCtx.fillText(h + 'h', x, H - padB + 20);
+  }
+
+  // Threshold lines
+  const thresholds = [
+    { temp: 300, label: 'Normal Operating', color: '#22c55e' },
+    { temp: 600, label: 'SCRAM Threshold', color: '#fbbf24' },
+    { temp: 1200, label: 'Fuel Cladding Damage', color: '#ef4444' }
+  ];
+  thresholds.forEach(th => {
+    const y = padT + ch * (1 - (th.temp - minTemp) / (maxTemp - minTemp));
+    chartCtx.setLineDash([6, 4]);
+    chartCtx.strokeStyle = th.color + '66';
+    chartCtx.lineWidth = 1;
+    chartCtx.beginPath();
+    chartCtx.moveTo(padL, y);
+    chartCtx.lineTo(padL + cw, y);
+    chartCtx.stroke();
+    chartCtx.setLineDash([]);
+    chartCtx.fillStyle = th.color;
+    chartCtx.font = '9px ' + getComputedStyle(document.body).getPropertyValue('--font');
+    chartCtx.textAlign = 'left';
+    chartCtx.fillText(th.label, padL + 4, y - 5);
+  });
+
+  // Data line
+  const drawCount = Math.floor(chartData.length * chartAnimProgress);
+  if (drawCount < 2) return;
+
+  chartCtx.beginPath();
+  for (let i = 0; i < drawCount; i++) {
+    const d = chartData[i];
+    const x = padL + (d.h / 72) * cw;
+    const y = padT + ch * (1 - (d.temp - minTemp) / (maxTemp - minTemp));
+    if (i === 0) chartCtx.moveTo(x, y); else chartCtx.lineTo(x, y);
+  }
+  // Color gradient for the line
+  const lineGrad = chartCtx.createLinearGradient(padL, 0, padL + cw, 0);
+  lineGrad.addColorStop(0, '#22c55e');
+  lineGrad.addColorStop(0.16, '#22c55e');
+  lineGrad.addColorStop(0.17, '#fbbf24');
+  lineGrad.addColorStop(0.18, '#ef4444');
+  lineGrad.addColorStop(0.25, '#ef4444');
+  lineGrad.addColorStop(0.5, '#fbbf24');
+  lineGrad.addColorStop(1, '#22c55e');
+  chartCtx.strokeStyle = lineGrad;
+  chartCtx.lineWidth = 2;
+  chartCtx.stroke();
+
+  // Fill under line
+  const lastD = chartData[drawCount - 1];
+  const lastX = padL + (lastD.h / 72) * cw;
+  const lastY = padT + ch * (1 - (lastD.temp - minTemp) / (maxTemp - minTemp));
+  chartCtx.lineTo(lastX, padT + ch);
+  chartCtx.lineTo(padL, padT + ch);
+  chartCtx.closePath();
+  const fillGrad = chartCtx.createLinearGradient(0, padT, 0, padT + ch);
+  fillGrad.addColorStop(0, 'rgba(239,68,68,0.15)');
+  fillGrad.addColorStop(0.5, 'rgba(251,191,36,0.05)');
+  fillGrad.addColorStop(1, 'rgba(34,197,94,0.02)');
+  chartCtx.fillStyle = fillGrad;
+  chartCtx.fill();
+
+  // Spike marker
+  if (chartAnimProgress > 0.17) {
+    const spikeX = padL + (12 / 72) * cw;
+    const spikeY = padT + ch * (1 - (1210 - minTemp) / (maxTemp - minTemp));
+    chartCtx.beginPath();
+    chartCtx.arc(spikeX, spikeY, 5, 0, Math.PI * 2);
+    chartCtx.fillStyle = '#ef4444';
+    chartCtx.fill();
+    chartCtx.fillStyle = '#ef4444';
+    chartCtx.font = 'bold 11px ' + getComputedStyle(document.body).getPropertyValue('--font');
+    chartCtx.textAlign = 'left';
+    chartCtx.fillText('1,210\u00B0C peak', spikeX + 10, spikeY - 5);
+    chartCtx.fillStyle = 'rgba(239,68,68,0.5)';
+    chartCtx.font = '9px ' + getComputedStyle(document.body).getPropertyValue('--font');
+    chartCtx.fillText('4-min blind spot', spikeX + 10, spikeY + 10);
+  }
+}
+
+// ===================================================================
+// TYPEWRITER EFFECT
+// ===================================================================
+function typewrite(el, text, speed = 8, cb) {
+  let i = 0;
+  el.textContent = '';
+  const timer = setInterval(() => {
+    const chunk = Math.min(speed, text.length - i);
+    el.textContent += text.substring(i, i + chunk);
+    i += chunk;
+    if (i >= text.length) {
+      clearInterval(timer);
+      if (cb) cb();
+    }
+  }, 16);
+  return timer;
+}
+
+// ===================================================================
+// TERMINAL CONTENT
+// ===================================================================
+const pythonText = `Nuclear PSA Simulator v6.1
+Probabilistic Safety Assessment
+\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501
+
+Monte Carlo accident simulation...
+  Scenarios: 100,000
+  Initiating events: seismic, LOCA, LOSP, transient
+  Safety system availability: per configuration
+
+Event tree analysis:
+  Seismic + LOSP scenarios: 12,400
+  Seismic + LOCA scenarios: 8,200
+  Combined seismic + LOSP + LOCA: 3,100
+  Other combinations: 76,300
+
+Core damage sequences found: 12
+  All 12 require \u22654 simultaneous failures
+  Probability per scenario: < 10\u207B\u2078
+
+Core Damage Frequency: 1.2 \u00D7 10\u207B\u2077 per reactor-year
+NRC acceptable threshold: < 10\u207B\u2074 per reactor-year
+
+Safety margin: 833\u00D7 better than required
+
+VERDICT: ACCEPTABLE RISK \u2014 CDF WITHIN LIMITS \u2713`;
+
+const formalText = `Model Checker: NuSMV v2.8
+Specification: Timed CTL over safety functions
+\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501
+
+Safety function state models built.
+Properties: 10 safety functions
+
+P1: AG(temp > T_scram \u2192 AF\u22642s(rods_inserted))
+  VERIFIED \u2713 (0.3s)
+
+P2: AG(coolant_low \u2192 AF\u226430s(backup_cooling))
+  VERIFIED \u2713 (0.8s)
+
+P3: AG(pressure > 17MPa \u2192 AF\u22641s(relief_open))
+  VERIFIED \u2713 (0.2s)
+
+P4: AG(flux_anomaly \u2192 sensor_vote(2_of_3))
+  VERIFIED \u2713 (0.4s)
+
+P5: AG(seismic > 5.0 \u2192 isolation_active)
+  VERIFIED \u2713 (0.2s)
+
+[... 10/10 verified ...]
+
+Composing full plant safety model:
+  10 safety systems \u00D7 3-5 states each
+  With continuous variables (T, P, flow):
+
+  Discrete states: 5\u00B9\u2070 = 9,765,625
+  Continuous variables: temperature, pressure, flow rate
+  Hybrid automaton required
+
+  \u26A0 NuSMV cannot handle hybrid (continuous + discrete)
+  \u26A0 Abstracting continuous \u2192 discrete loses timing info
+  \u26A0 The bug IS in the timing \u2014 abstraction hides it
+
+  Additionally: NRC updated safety rule \u00A750.69 in year 15
+  Entire verification must be REDONE from scratch
+  Fixed specifications cannot handle evolving regulations
+
+RESULT: 10/10 individual functions VERIFIED
+        Full plant composition: INTRACTABLE
+        Continuous timing: ABSTRACTED AWAY
+        Evolving regulations: NOT SUPPORTED`;
+
+const aiText = `AI Nuclear Safety Auditor v2.0
+Trained on: NRC reports, IAEA safety standards, accident analyses
+\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501
+
+Analyzing safety architecture...
+
+Known accident sequence matching:
+  \u2713 Three Mile Island (1979) \u2014 operator confusion
+      Mitigated by: TMR flux sensors + automated SCRAM
+  \u2713 Chernobyl (1986) \u2014 positive void coefficient + test
+      Mitigated by: negative void coefficient + SCRAM interlock
+  \u2713 Fukushima (2011) \u2014 tsunami + backup power loss
+      Mitigated by: seismic isolation + passive cooling
+  \u2713 Davis-Besse (2002) \u2014 boric acid corrosion
+      Mitigated by: containment integrity monitoring
+
+Defense-in-depth assessment:
+  Layer 1 (Prevention): \u2713 Active
+  Layer 2 (Protection): \u2713 Active
+  Layer 3 (Mitigation): \u2713 Active
+  Layer 4 (Emergency): \u2713 Active
+
+Common-cause failure analysis:
+  \u2713 No single failure disables >1 safety function
+
+Novel sequence prediction: N/A
+  (maintenance window timing interactions
+   not in historical accident database)
+
+VERDICT: ALL KNOWN ACCIDENT SEQUENCES ADDRESSED \u2713`;
+
+const tauSpecText = `// Tau Nuclear Safety Specification
+// Real-time temporal verification with continuous variables
+
+\u2200 t \u2208 [0, 72 hours], all safety systems S:
+
+  // Standard safety properties
+  always(temp(t) > T_scram \u2192 within(2s, rods_inserted))
+  always(coolant_flow(t) < min \u2192 within(30s, backup_active))
+
+  // TIMING-DEPENDENT INTERACTION
+  when maintenance_state = DIESEL_TEST:
+    backup_power = UNAVAILABLE for test_duration
+
+  when seismic(t) > 5.0:
+    isolation_bearings ACTIVATE
+    sensor_cables[subset] DISCONNECT (by design)
+    neutron_flux_data = STALE (last reading before disconnect)
+    staleness_duration = reconnection_time \u2248 240s (4 min)
+
+  // The deadly interaction:
+  when maintenance_state = DIESEL_TEST
+    AND seismic(t) > 5.0
+    AND coolant_pump_cavitation(seismic):
+
+    flux_sensors report: "NORMAL" (stale, 3s old)
+    coolant_sensors report: "LOW" (real-time, correct)
+
+    operator_override REQUIRES: flux \u2227 coolant AGREE
+    flux says NORMAL, coolant says LOW \u2192 DISAGREEMENT
+    \u2192 SCRAM BLOCKED for staleness_duration (240s)`;
+
+const tauTermText = `Tau Real-Time Safety Verifier v0.7
+Hybrid temporal model with continuous dynamics
+\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501
+
+Building hybrid plant model...
+  10 safety systems (BDD: 847 nodes)
+  Continuous dynamics: T(t), P(t), flow(t)
+  Temporal composition with real-time bounds
+  (vs explicit: 9,765,625 \u00D7 continuous = \u221E)
+
+Checking temporal safety properties...
+
+\u26A0 COUNTEREXAMPLE FOUND:
+
+  TIMELINE OF FAILURE:
+
+  Hour 0: Scheduled diesel generator test begins
+          (NRC Procedure X-47, approved maintenance)
+          Backup generators: OFFLINE
+          Status: NORMAL \u2713
+
+  Hour 12: Seismic event \u2014 magnitude 6.2
+           Seismic isolation: ACTIVATES \u2713
+           Sensor cables A-7, A-12: DISCONNECT (by design)
+           Neutron flux sensors: reading FROZEN
+           Last known reading: 2.4 \u00D7 10\u00B9\u00B3 n/cm\u00B2s (NORMAL)
+           Status: SENSORS STALE \u26A0
+
+  Hour 12 + 3s: Seismic shaking causes pump cavitation
+                Coolant flow drops 60%
+                Coolant sensors: report LOW (correct, real-time)
+                Neutron flux sensors: still report NORMAL (stale)
+
+  Hour 12 + 5s: SCRAM TRIGGER EVALUATION
+                Flux reading: NORMAL (stale) \u2713
+                Coolant reading: LOW \u2717
+                Operator Override Protocol requires:
+                  flux \u2227 coolant BOTH indicate emergency
+                Flux says normal \u2192 SIGNALS DISAGREE
+
+                \u2717 SCRAM BLOCKED \u2014 AWAITING SENSOR CONSENSUS
+
+  Hour 12 + 30s: Core temperature rising
+                 T = 420\u00B0C (above normal, below SCRAM threshold)
+                 But flux sensors still report NORMAL
+                 Automated response: NONE (no consensus)
+
+  Hour 12 + 120s: T = 780\u00B0C \u2014 SCRAM threshold exceeded
+                  But SCRAM already blocked by disagreement
+                  Manual override: operator sees conflicting data
+                  Protocol says: "Do not override automated safety"
+
+  Hour 12 + 180s: T = 1,050\u00B0C \u2014 approaching fuel damage
+                  Passive cooling activates (gravity-fed) \u2713
+                  BUT: passive cooling designed for POST-SCRAM decay heat
+                  Current thermal load: 30\u00D7 higher than design basis
+
+  Hour 12 + 240s: Sensor cables reconnect (4 minutes elapsed)
+                  Flux sensors: NOW read 8.7 \u00D7 10\u00B9\u00B3 (CRITICAL)
+                  Consensus reached \u2192 SCRAM FIRES
+                  T = 1,180\u00B0C at SCRAM initiation
+
+  Hour 12 + 242s: Control rods inserting...
+                  T = 1,210\u00B0C \u2014 FUEL CLADDING DAMAGE BEGINS
+
+  ROOT CAUSE CHAIN:
+  1. Diesel test: NRC-APPROVED, routine \u2713
+  2. Seismic event: handled by isolation system \u2713
+  3. Sensor disconnect: BY DESIGN (prevents false readings) \u2713
+  4. Stale data: consequence of correct design \u2713
+  5. Pump cavitation: known seismic effect \u2713
+  6. Coolant drop: correctly detected \u2713
+  7. SCRAM consensus: requires agreement (safety feature) \u2713
+  8. DISAGREEMENT: stale flux \u2260 real-time coolant
+
+  EVERY SYSTEM WORKED CORRECTLY
+  THE 4-MINUTE BLIND SPOT IS A DESIGN INTERACTION
+
+  Probability of this exact sequence: 2.3 \u00D7 10\u207B\u2075
+  (1000\u00D7 more likely than PSA estimate)`;
+
+// ===================================================================
+// SIMULATION ORCHESTRATOR
+// ===================================================================
+let simTimers = [];
+
+function clearSim() {
+  simTimers.forEach(t => clearTimeout(t));
+  simTimers = [];
+  simRunning = false;
+  simPhase = 0;
+  coolantSpeed = 1;
+  fuelGlow = 0;
+  tempNeedle = 0;
+  warningState = 0;
+  controlRodsDown = 0;
+  domeAlert = 0;
+  generatorsOnline = true;
+  showTooLate = false;
+  bgAlertLevel = 0;
+  chartAnimProgress = 0;
+  chartAnimating = false;
+
+  // Reset card states
+  safetySystems.forEach(s => {
+    const card = document.getElementById('card-' + s.id);
+    card.classList.remove('failed', 'shake');
+  });
+
+  // Clear terminals
+  ['pythonTerm','formalTerm','aiTerm','tauTerm','tauSpec'].forEach(id => {
+    document.getElementById(id).textContent = '';
+  });
+  ['pythonVerdict','formalVerdict','aiVerdict','tauVerdict'].forEach(id => {
+    document.getElementById(id).textContent = '';
+    document.getElementById(id).className = 'col-verdict';
+  });
+
+  // Hide comparison sections
+  document.getElementById('compSection').classList.remove('visible');
+  document.getElementById('shareSection').classList.remove('visible');
+  document.getElementById('taglineSection').style.opacity = '0';
+}
+
+function animateValue(getter, setter, target, duration, easing = 'easeInOut') {
+  const start = getter();
+  const startTime = performance.now();
+  function step(now) {
+    const elapsed = Math.min((now - startTime) / duration, 1);
+    let t;
+    if (easing === 'easeInOut') t = elapsed < 0.5 ? 2 * elapsed * elapsed : 1 - Math.pow(-2 * elapsed + 2, 2) / 2;
+    else if (easing === 'linear') t = elapsed;
+    else t = elapsed;
+    setter(start + (target - start) * t);
+    if (elapsed < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function delay(ms) {
+  return new Promise(r => {
+    const t = setTimeout(r, ms);
+    simTimers.push(t);
+  });
+}
+
+async function runSimulation() {
+  if (simRunning) return;
+  clearSim();
+  simRunning = true;
+  const btn = document.getElementById('attackBtn');
+  btn.disabled = true;
+  btn.textContent = '\u2622 SIMULATING...';
+
+  generateChartData();
+
+  // Phase 1: Normal operation
+  simPhase = 1;
+  warningState = 0;
+  generatorsOnline = false; // diesel test
+  document.getElementById('card-diesel').classList.add('failed');
+  document.getElementById('card-diesel').querySelector('.lock-desc').textContent = 'OFFLINE — Scheduled maintenance test (NRC Procedure X-47)';
+
+  await delay(1500);
+
+  // Start typing terminals
+  typewrite(document.getElementById('pythonTerm'), pythonText, 12);
+  await delay(300);
+  typewrite(document.getElementById('formalTerm'), formalText, 10);
+  await delay(300);
+  typewrite(document.getElementById('aiTerm'), aiText, 12);
+  await delay(300);
+  document.getElementById('tauSpec').textContent = tauSpecText;
+  await delay(500);
+  typewrite(document.getElementById('tauTerm'), tauTermText, 10);
+
+  await delay(2000);
+
+  // Phase 2: Seismic event
+  simPhase = 2;
+  warningState = 1;
+
+  // Screen shake
+  document.body.style.transition = 'none';
+  for (let i = 0; i < 8; i++) {
+    await delay(50);
+    document.body.style.transform = `translateX(${(Math.random() - 0.5) * 6}px) translateY(${(Math.random() - 0.5) * 4}px)`;
+  }
+  document.body.style.transform = '';
+
+  // Sensors disconnect
+  document.getElementById('card-neutron').classList.add('failed');
+  document.getElementById('card-neutron').querySelector('.lock-desc').textContent = 'STALE — Cables disconnected by seismic isolation (by design)';
+  document.getElementById('card-neutron').classList.add('shake');
+
+  // Operator blocked
+  await delay(500);
+  document.getElementById('card-operator').classList.add('failed');
+  document.getElementById('card-operator').querySelector('.lock-desc').textContent = 'BLOCKED — Flux/coolant signals disagree, no consensus';
+  document.getElementById('card-operator').classList.add('shake');
+
+  // SCRAM blocked
+  await delay(300);
+  document.getElementById('card-scram').classList.add('failed');
+  document.getElementById('card-scram').querySelector('.lock-desc').textContent = 'WAITING — Sensor consensus not reached';
+  document.getElementById('card-scram').classList.add('shake');
+
+  // Coolant slows
+  animateValue(() => coolantSpeed, v => coolantSpeed = v, 0.15, 3000, 'easeInOut');
+
+  // Fuel heats up
+  animateValue(() => fuelGlow, v => fuelGlow = v, 0.5, 3000, 'linear');
+  animateValue(() => tempNeedle, v => tempNeedle = v, 0.35, 3000, 'linear');
+
+  await delay(3000);
+
+  // Phase 3: Temperature rising
+  simPhase = 3;
+  warningState = 2;
+  animateValue(() => fuelGlow, v => fuelGlow = v, 0.85, 4000, 'linear');
+  animateValue(() => tempNeedle, v => tempNeedle = v, 0.75, 4000, 'linear');
+  animateValue(() => domeAlert, v => domeAlert = v, 0.6, 4000, 'linear');
+  animateValue(() => bgAlertLevel, v => bgAlertLevel = v, 0.5, 4000, 'linear');
+  animateValue(() => coolantSpeed, v => coolantSpeed = v, 0.05, 2000, 'linear');
+
+  await delay(4000);
+
+  // Phase 4: Critical — approaching fuel damage
+  animateValue(() => fuelGlow, v => fuelGlow = v, 1.0, 2000, 'linear');
+  animateValue(() => tempNeedle, v => tempNeedle = v, 1.0, 2000, 'linear');
+  animateValue(() => domeAlert, v => domeAlert = v, 1.0, 2000, 'linear');
+  animateValue(() => bgAlertLevel, v => bgAlertLevel = v, 0.8, 2000, 'linear');
+
+  await delay(2500);
+
+  // SCRAM fires (too late)
+  simPhase = 4;
+  animateValue(() => controlRodsDown, v => controlRodsDown = v, 1.0, 500, 'easeInOut');
+  showTooLate = true;
+
+  await delay(1000);
+
+  // Slow recovery
+  animateValue(() => fuelGlow, v => fuelGlow = v, 0.3, 4000, 'easeInOut');
+  animateValue(() => tempNeedle, v => tempNeedle = v, 0.4, 6000, 'easeInOut');
+  animateValue(() => domeAlert, v => domeAlert = v, 0.3, 5000, 'easeInOut');
+  animateValue(() => bgAlertLevel, v => bgAlertLevel = v, 0.2, 5000, 'easeInOut');
+  animateValue(() => coolantSpeed, v => coolantSpeed = v, 0.5, 4000, 'easeInOut');
+
+  // Animate chart
+  chartAnimating = true;
+  const chartStart = performance.now();
+  function animChart(now) {
+    chartAnimProgress = Math.min((now - chartStart) / 8000, 1);
+    drawChart();
+    if (chartAnimProgress < 1) requestAnimationFrame(animChart);
+  }
+  requestAnimationFrame(animChart);
+
+  // Set verdicts
+  await delay(2000);
+  const pv = document.getElementById('pythonVerdict');
+  pv.textContent = '\u2713 CDF: 1.2\u00D710\u207B\u2077 (833\u00D7 margin)';
+  pv.className = 'col-verdict verdict-pass';
+
+  await delay(400);
+  const fv = document.getElementById('formalVerdict');
+  fv.textContent = '\u2713 PER-FUNCTION VERIFIED (timing lost)';
+  fv.className = 'col-verdict verdict-warn';
+
+  await delay(400);
+  const av = document.getElementById('aiVerdict');
+  av.textContent = '\u2713 DEFENSE-IN-DEPTH MAINTAINED';
+  av.className = 'col-verdict verdict-pass';
+
+  await delay(400);
+  const tv = document.getElementById('tauVerdict');
+  tv.textContent = '\u2717 MELTDOWN IN 4-MINUTE BLIND SPOT \u2014 ALL SYSTEMS WORKED';
+  tv.className = 'col-verdict verdict-gold';
+
+  await delay(1500);
+
+  // Show comparison + share
+  document.getElementById('compSection').classList.add('visible');
+  await delay(800);
+  document.getElementById('taglineSection').style.opacity = '1';
+  await delay(600);
+  document.getElementById('shareSection').classList.add('visible');
+
+  simPhase = 5;
+  btn.disabled = false;
+  btn.textContent = '\u2622 RUN SAFETY SIMULATION';
+  simRunning = false;
+}
+
+// ===================================================================
+// MAIN ANIMATION LOOP
+// ===================================================================
+function mainLoop(ts) {
+  drawBg(ts);
+  drawReactor(ts);
+  requestAnimationFrame(mainLoop);
+}
+requestAnimationFrame(mainLoop);
+drawChart();
+
+// Initial scroll observer for comparison section
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.2 });
+observer.observe(document.getElementById('compSection'));
+observer.observe(document.getElementById('shareSection'));
+</script>
+</body>
+</html>

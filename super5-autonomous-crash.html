@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAN YOUR SELF-DRIVING CAR KILL? — Autonomous Vehicle Safety Demo</title>
+<style>
+:root{
+  --bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a28;
+  --red:#ef4444;--red-dark:#991b1b;--red-glow:rgba(239,68,68,.3);
+  --gold:#ffd700;--gold-dim:#b8960f;--gold-glow:rgba(255,215,0,.25);
+  --cyan:#06b6d4;--cyan-glow:rgba(6,182,212,.2);
+  --green:#22c55e;--green-glow:rgba(34,197,94,.2);
+  --blue:#3b82f6;--blue-glow:rgba(59,130,246,.2);
+  --txt:#e2e8f0;--txt-dim:#94a3b8;--txt-dark:#64748b;
+  --font:'Segoe UI',system-ui,-apple-system,sans-serif;
+  --mono:'Cascadia Code','Fira Code','Consolas',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);color:var(--txt);font-family:var(--font);
+  line-height:1.6;overflow-x:hidden;
+}
+::-webkit-scrollbar{width:8px;}
+::-webkit-scrollbar-track{background:var(--bg2);}
+::-webkit-scrollbar-thumb{background:var(--txt-dark);border-radius:4px;}
+
+/* ── Hero ── */
+.hero{position:relative;width:100%;padding:20px 0 0;}
+.hero-title{
+  text-align:center;font-size:clamp(1.6rem,4vw,2.8rem);font-weight:800;
+  letter-spacing:-.02em;padding:20px 20px 10px;
+  background:linear-gradient(135deg,var(--red),var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.hero-sub{text-align:center;color:var(--txt-dim);font-size:.95rem;margin-bottom:16px;}
+#intersectionCanvas{
+  display:block;width:100%;max-width:1200px;margin:0 auto;
+  border-radius:12px;border:1px solid rgba(255,255,255,.06);
+}
+
+/* ── Panels ── */
+.section{max-width:1260px;margin:0 auto;padding:32px 20px;}
+.section-title{
+  font-size:1.5rem;font-weight:700;margin-bottom:20px;
+  display:flex;align-items:center;gap:10px;
+}
+.section-title .dot{width:10px;height:10px;border-radius:50%;}
+
+/* ── Toggle Grid ── */
+.toggle-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
+.toggle-card{
+  background:var(--bg2);border:1px solid rgba(255,255,255,.07);
+  border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;
+  cursor:pointer;transition:all .2s;user-select:none;
+}
+.toggle-card:hover{border-color:rgba(255,255,255,.15);background:var(--bg3);}
+.toggle-card.active{border-color:var(--green);box-shadow:0 0 16px var(--green-glow);}
+.toggle-icon{font-size:1.4rem;flex-shrink:0;}
+.toggle-info{flex:1;min-width:0;}
+.toggle-name{font-size:.85rem;font-weight:600;}
+.toggle-desc{font-size:.72rem;color:var(--txt-dim);}
+.toggle-sw{
+  width:40px;height:22px;border-radius:11px;background:var(--txt-dark);
+  position:relative;transition:background .2s;flex-shrink:0;
+}
+.toggle-card.active .toggle-sw{background:var(--green);}
+.toggle-sw::after{
+  content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;
+  border-radius:50%;background:#fff;transition:transform .2s;
+}
+.toggle-card.active .toggle-sw::after{transform:translateX(18px);}
+
+/* ── Presets ── */
+.preset-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;}
+.preset-btn{
+  padding:8px 18px;border-radius:8px;border:1px solid rgba(255,255,255,.1);
+  background:var(--bg2);color:var(--txt);font-size:.8rem;font-weight:600;
+  cursor:pointer;transition:all .2s;font-family:var(--font);
+}
+.preset-btn:hover{background:var(--bg3);border-color:rgba(255,255,255,.2);}
+.preset-btn.active{border-color:var(--gold);color:var(--gold);box-shadow:0 0 12px var(--gold-glow);}
+
+/* ── Sliders ── */
+.slider-row{display:flex;flex-wrap:wrap;gap:20px;margin-bottom:24px;}
+.slider-group{flex:1;min-width:240px;}
+.slider-label{font-size:.8rem;font-weight:600;margin-bottom:6px;display:flex;justify-content:space-between;}
+.slider-val{color:var(--gold);font-family:var(--mono);}
+input[type=range]{
+  -webkit-appearance:none;width:100%;height:6px;border-radius:3px;
+  background:var(--bg3);outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+  background:var(--gold);cursor:pointer;border:2px solid var(--bg);
+}
+
+/* ── Chart ── */
+#chartCanvas{
+  display:block;width:100%;max-width:1200px;margin:0 auto;
+  border-radius:10px;border:1px solid rgba(255,255,255,.06);
+}
+
+/* ── Simulate Button ── */
+.sim-row{text-align:center;margin:28px 0;}
+.sim-btn{
+  padding:14px 44px;border:2px solid var(--red);border-radius:10px;
+  background:transparent;color:var(--red);font-size:1.05rem;font-weight:700;
+  cursor:pointer;transition:all .25s;font-family:var(--font);
+  text-transform:uppercase;letter-spacing:.06em;
+}
+.sim-btn:hover{background:var(--red);color:#fff;box-shadow:0 0 30px var(--red-glow);}
+.sim-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+/* ── 4-column terminals ── */
+.terminals{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:14px;
+  max-width:1260px;margin:0 auto;padding:0 20px 32px;
+}
+@media(max-width:1100px){.terminals{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:600px){.terminals{grid-template-columns:1fr;}}
+.term{
+  background:var(--bg2);border:1px solid rgba(255,255,255,.07);
+  border-radius:10px;overflow:hidden;display:flex;flex-direction:column;
+}
+.term-header{
+  padding:10px 14px;font-size:.75rem;font-weight:700;
+  border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:8px;
+  text-transform:uppercase;letter-spacing:.06em;
+}
+.term-header .hdr-dot{width:8px;height:8px;border-radius:50%;}
+.term-body{
+  padding:12px 14px;font-family:var(--mono);font-size:.62rem;
+  line-height:1.55;white-space:pre-wrap;overflow-y:auto;
+  max-height:520px;color:var(--txt-dim);flex:1;
+}
+.term-verdict{
+  padding:10px 14px;font-size:.78rem;font-weight:700;
+  border-top:1px solid rgba(255,255,255,.06);text-align:center;
+}
+
+/* ── Comparison ── */
+.compare-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+@media(max-width:900px){.compare-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:500px){.compare-grid{grid-template-columns:1fr;}}
+.compare-card{
+  background:var(--bg2);border:1px solid rgba(255,255,255,.07);
+  border-radius:10px;padding:18px;text-align:center;
+}
+.compare-card h3{font-size:.85rem;margin-bottom:6px;}
+.compare-card .result{font-size:1.1rem;font-weight:800;margin:6px 0;}
+.compare-card .detail{font-size:.7rem;color:var(--txt-dim);}
+
+/* ── Timeline Bar ── */
+.timeline-bar{
+  max-width:900px;margin:20px auto;background:var(--bg3);
+  border-radius:8px;overflow:hidden;height:36px;position:relative;
+}
+.tl-seg{position:absolute;top:0;height:100%;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#fff;}
+.tl-safe{background:var(--green);}
+.tl-gap{background:var(--red);animation:pulseGap 1s infinite;}
+@keyframes pulseGap{0%,100%{opacity:1;}50%{opacity:.6;}}
+
+/* ── Tagline ── */
+.tagline{
+  text-align:center;max-width:800px;margin:40px auto;padding:0 20px;
+  font-size:clamp(.95rem,2vw,1.25rem);font-weight:600;
+  color:var(--txt-dim);line-height:1.7;
+}
+.tagline em{color:var(--red);font-style:normal;font-weight:800;}
+.tagline strong{color:var(--gold);}
+
+/* ── Share Card ── */
+.share-card{
+  max-width:520px;margin:30px auto 50px;padding:28px 32px;
+  background:linear-gradient(135deg,var(--bg2),var(--bg3));
+  border:1px solid rgba(255,215,0,.2);border-radius:14px;
+  text-align:center;box-shadow:0 0 40px var(--gold-glow);
+}
+.share-icon{font-size:2.4rem;margin-bottom:8px;}
+.share-stat{font-size:1.4rem;font-weight:800;color:var(--red);margin-bottom:6px;}
+.share-quote{font-size:.82rem;color:var(--txt-dim);margin-bottom:12px;font-style:italic;}
+.tau-badge{
+  display:inline-block;padding:6px 20px;border-radius:20px;
+  border:1px solid var(--gold);color:var(--gold);font-size:.75rem;
+  font-weight:700;letter-spacing:.06em;
+}
+</style>
+</head>
+<body>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <h1 class="hero-title">CAN YOUR SELF-DRIVING CAR KILL?</h1>
+  <p class="hero-sub">9 safety rules. All verified. All correct. The gap between them is lethal.</p>
+  <canvas id="intersectionCanvas" width="1200" height="460"></canvas>
+</div>
+
+<!-- ── CONTROLS ── -->
+<div class="section">
+  <div class="section-title"><span class="dot" style="background:var(--gold)"></span> Safety Rules</div>
+
+  <div class="preset-row" id="presets"></div>
+  <div class="toggle-grid" id="toggleGrid"></div>
+
+  <div style="height:24px"></div>
+  <div class="slider-row">
+    <div class="slider-group">
+      <div class="slider-label">Driving Hours <span class="slider-val" id="hoursVal">8,000</span></div>
+      <input type="range" id="hoursSlider" min="100" max="10000" value="8000" step="100">
+    </div>
+    <div class="slider-group">
+      <div class="slider-label">Weather Severity <span class="slider-val" id="weatherVal">3</span></div>
+      <input type="range" id="weatherSlider" min="1" max="5" value="3" step="1">
+    </div>
+  </div>
+</div>
+
+<!-- ── CHART ── -->
+<div class="section">
+  <div class="section-title"><span class="dot" style="background:var(--green)"></span> Safety Margin Over 10,000 Driving Hours</div>
+  <canvas id="chartCanvas" width="1200" height="260"></canvas>
+</div>
+
+<!-- ── SIMULATE ── -->
+<div class="sim-row">
+  <button class="sim-btn" id="simBtn">Run Attack Simulation</button>
+</div>
+
+<!-- ── TERMINALS ── -->
+<div class="terminals" id="terminals"></div>
+
+<!-- ── COMPARISON ── -->
+<div class="section">
+  <div class="section-title"><span class="dot" style="background:var(--red)"></span> Verification Method Comparison</div>
+  <div class="compare-grid" id="compareGrid"></div>
+  <div style="margin-top:18px;">
+    <div style="font-size:.8rem;font-weight:600;text-align:center;color:var(--txt-dim);margin-bottom:8px;">The 200ms Timeline</div>
+    <div class="timeline-bar">
+      <div class="tl-seg tl-safe" style="left:0;width:25%;">Ped Priority ON</div>
+      <div class="tl-seg tl-gap" style="left:25%;width:10%;">NO RULE</div>
+      <div class="tl-seg" style="left:35%;width:40%;background:var(--gold-dim);">Construction Transitioning</div>
+      <div class="tl-seg tl-safe" style="left:75%;width:25%;">Constr. Active</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TAGLINE ── -->
+<p class="tagline">
+  9 safety rules. All verified. All correct. Between them &mdash; <em>a 200ms gap where a pedestrian dies.</em> <strong>Only Tau checks the space between rules.</strong>
+</p>
+
+<!-- ── SHARE CARD ── -->
+<div class="share-card">
+  <div class="share-icon">&#128663;</div>
+  <div class="share-stat">200ms LETHAL GAP</div>
+  <div class="share-quote">"9 rules verified. 0 violated. The gap was between them."</div>
+  <span class="tau-badge">VERIFIED BY TAU</span>
+</div>
+
+<script>
+/* ================================================================
+   DATA & STATE
+   ================================================================ */
+const RULES = [
+  {id:'lidar',    icon:'\u{1F4E1}', name:'LIDAR Redundancy',       desc:'Dual LIDAR units with failover'},
+  {id:'fusion',   icon:'\u{1F4F7}', name:'Camera-LIDAR Fusion',    desc:'Sensor fusion for object classification'},
+  {id:'braking',  icon:'\u{1F6D1}', name:'Emergency Braking',      desc:'Sub-100ms response time braking'},
+  {id:'ped',      icon:'\u{1F6B6}', name:'Pedestrian Priority',    desc:'Pedestrians always have right-of-way'},
+  {id:'speed',    icon:'\u{1F697}', name:'Speed Limit Compliance',  desc:'Hard cap at posted speed limit'},
+  {id:'weather',  icon:'\u{1F327}', name:'Weather Adaptation',      desc:'Reduced speed + increased following distance'},
+  {id:'v2v',      icon:'\u{1F4F6}', name:'V2V Communication',       desc:'Vehicle-to-vehicle intent broadcasting'},
+  {id:'intersect',icon:'\u{1F504}', name:'Intersection Protocol',   desc:'Wait for V2V clearance before entering'},
+  {id:'constr',   icon:'\u{1F6A7}', name:'Construction Zone Override',desc:'Modified rules in active work zones'},
+];
+const PRESETS = [
+  {name:'\u{1F3C6} Level 5 Full',  on:[0,1,2,3,4,5,6,7,8]},
+  {name:'\u{1F697} Production AV', on:[0,1,2,3,4,6,7]},
+  {name:'\u{1F4B0} Budget Deploy', on:[2,3,4,6]},
+  {name:'\u{1F4E1} Sensor Failure',on:[2,3,4,5,6,7,8]},
+];
+
+let ruleStates = new Array(9).fill(true); // all on initially
+let simRunning = false;
+let simPhase = 0; // 0=idle,1=running,2=frozen,3=resume
+let simTimer = 0;
+let activePreset = 0;
+
+/* ================================================================
+   TOGGLE CARDS
+   ================================================================ */
+const grid = document.getElementById('toggleGrid');
+RULES.forEach((r,i) => {
+  const card = document.createElement('div');
+  card.className = 'toggle-card active';
+  card.dataset.idx = i;
+  card.innerHTML = `<span class="toggle-icon">${r.icon}</span>
+    <div class="toggle-info"><div class="toggle-name">${r.name}</div><div class="toggle-desc">${r.desc}</div></div>
+    <div class="toggle-sw"></div>`;
+  card.addEventListener('click', () => {
+    ruleStates[i] = !ruleStates[i];
+    card.classList.toggle('active', ruleStates[i]);
+    activePreset = -1;
+    syncPresetHighlight();
+    drawChart();
+  });
+  grid.appendChild(card);
+});
+
+function syncCards(){
+  document.querySelectorAll('.toggle-card').forEach((c,i) => c.classList.toggle('active', ruleStates[i]));
+}
+function syncPresetHighlight(){
+  document.querySelectorAll('.preset-btn').forEach((b,i) => b.classList.toggle('active', i===activePreset));
+}
+
+/* ================================================================
+   PRESETS
+   ================================================================ */
+const presetRow = document.getElementById('presets');
+PRESETS.forEach((p,i) => {
+  const b = document.createElement('button');
+  b.className = 'preset-btn' + (i===0?' active':'');
+  b.textContent = p.name;
+  b.addEventListener('click', () => {
+    ruleStates.fill(false);
+    p.on.forEach(idx => ruleStates[idx]=true);
+    activePreset = i;
+    syncCards(); syncPresetHighlight(); drawChart();
+  });
+  presetRow.appendChild(b);
+});
+
+/* ================================================================
+   SLIDERS
+   ================================================================ */
+const hoursSlider = document.getElementById('hoursSlider');
+const weatherSlider = document.getElementById('weatherSlider');
+const hoursVal = document.getElementById('hoursVal');
+const weatherVal = document.getElementById('weatherVal');
+hoursSlider.addEventListener('input', () => { hoursVal.textContent = Number(hoursSlider.value).toLocaleString(); drawChart(); });
+weatherSlider.addEventListener('input', () => { weatherVal.textContent = weatherSlider.value; drawChart(); });
+
+/* ================================================================
+   CHART — Safety Margin
+   ================================================================ */
+const chartCvs = document.getElementById('chartCanvas');
+const chartCtx = chartCvs.getContext('2d');
+
+function drawChart(){
+  const W = chartCvs.width, H = chartCvs.height;
+  const dpr = window.devicePixelRatio || 1;
+  chartCvs.style.width = '100%';
+  chartCvs.style.height = H/dpr + 'px';
+
+  chartCtx.clearRect(0,0,W,H);
+  chartCtx.fillStyle = '#0d0d15';
+  chartCtx.fillRect(0,0,W,H);
+
+  const pad = {l:60,r:20,t:20,b:36};
+  const gw = W-pad.l-pad.r, gh = H-pad.t-pad.b;
+  const maxHours = 10000;
+  const hours = Number(hoursSlider.value);
+  const weatherSev = Number(weatherSlider.value);
+  const allOn = ruleStates.every(Boolean);
+  const gapHour = 7847;
+
+  // grid
+  chartCtx.strokeStyle = 'rgba(255,255,255,.05)';
+  chartCtx.lineWidth = 1;
+  for(let pct=0;pct<=100;pct+=20){
+    const y = pad.t + gh - (pct/100)*gh;
+    chartCtx.beginPath(); chartCtx.moveTo(pad.l,y); chartCtx.lineTo(pad.l+gw,y); chartCtx.stroke();
+  }
+  // y labels
+  chartCtx.fillStyle = 'var(--txt-dark)';
+  chartCtx.font = '11px sans-serif';
+  chartCtx.textAlign = 'right';
+  for(let pct=0;pct<=100;pct+=20){
+    const y = pad.t + gh - (pct/100)*gh;
+    chartCtx.fillStyle = '#64748b';
+    chartCtx.fillText(pct+'%', pad.l-8, y+4);
+  }
+  // x labels
+  chartCtx.textAlign = 'center';
+  for(let h=0;h<=maxHours;h+=2000){
+    const x = pad.l + (h/maxHours)*gw;
+    chartCtx.fillStyle = '#64748b';
+    chartCtx.fillText(h.toLocaleString()+'h', x, H-8);
+  }
+
+  // safety line
+  const pts = [];
+  const step = 20;
+  for(let h=0;h<=maxHours;h+=step){
+    let margin = 99.95;
+    // micro-dips from weather
+    if(h%800 < step) margin -= weatherSev * 0.15;
+    if(h%1200 < step && !ruleStates[5]) margin -= 0.4; // weather off
+    if(h%600 < step && !ruleStates[0]) margin -= 0.3; // lidar off
+    // THE GAP
+    if(Math.abs(h-gapHour)<step && allOn) margin = 0;
+    if(Math.abs(h-gapHour)<step && !allOn) margin = Math.max(margin - 30, 5);
+    // dips from disabled rules
+    const offCount = ruleStates.filter(x=>!x).length;
+    if(offCount>0 && h%(400/offCount)<step) margin -= offCount*0.6;
+    margin = Math.max(0, Math.min(100, margin));
+    pts.push({x: pad.l + (h/maxHours)*gw, y: pad.t + gh - (margin/100)*gh, m: margin});
+  }
+
+  // draw filled area
+  chartCtx.beginPath();
+  chartCtx.moveTo(pts[0].x, pad.t+gh);
+  pts.forEach(p => chartCtx.lineTo(p.x, p.y));
+  chartCtx.lineTo(pts[pts.length-1].x, pad.t+gh);
+  chartCtx.closePath();
+  const grad = chartCtx.createLinearGradient(0, pad.t, 0, pad.t+gh);
+  grad.addColorStop(0, 'rgba(34,197,94,.25)');
+  grad.addColorStop(0.8, 'rgba(34,197,94,.03)');
+  grad.addColorStop(1, 'rgba(239,68,68,.15)');
+  chartCtx.fillStyle = grad;
+  chartCtx.fill();
+
+  // draw line
+  chartCtx.beginPath();
+  pts.forEach((p,i) => i===0?chartCtx.moveTo(p.x,p.y):chartCtx.lineTo(p.x,p.y));
+  chartCtx.strokeStyle = '#22c55e';
+  chartCtx.lineWidth = 2;
+  chartCtx.stroke();
+
+  // red spike
+  const gapPt = pts.find(p => p.m < 5);
+  if(gapPt){
+    chartCtx.beginPath();
+    chartCtx.arc(gapPt.x, gapPt.y, 6, 0, Math.PI*2);
+    chartCtx.fillStyle = 'var(--red)';
+    chartCtx.fillStyle = '#ef4444';
+    chartCtx.fill();
+    chartCtx.strokeStyle = 'rgba(239,68,68,.5)';
+    chartCtx.lineWidth = 12;
+    chartCtx.stroke();
+    // label
+    chartCtx.fillStyle = '#ef4444';
+    chartCtx.font = 'bold 11px sans-serif';
+    chartCtx.textAlign = 'center';
+    chartCtx.fillText('LETHAL GAP — Hour 7,847', gapPt.x, gapPt.y - 16);
+    chartCtx.fillText('0% for 200ms', gapPt.x, gapPt.y - 4 + 20);
+  }
+
+  // hours marker
+  const hx = pad.l + (hours/maxHours)*gw;
+  chartCtx.setLineDash([4,4]);
+  chartCtx.strokeStyle = 'rgba(255,215,0,.5)';
+  chartCtx.lineWidth = 1;
+  chartCtx.beginPath(); chartCtx.moveTo(hx,pad.t); chartCtx.lineTo(hx,pad.t+gh); chartCtx.stroke();
+  chartCtx.setLineDash([]);
+  chartCtx.fillStyle = '#ffd700';
+  chartCtx.font = 'bold 10px sans-serif';
+  chartCtx.fillText(hours.toLocaleString()+'h', hx, pad.t - 4);
+}
+drawChart();
+
+/* ================================================================
+   INTERSECTION CANVAS — Animated City Intersection
+   ================================================================ */
+const iCvs = document.getElementById('intersectionCanvas');
+const iCtx = iCvs.getContext('2d');
+const IW = iCvs.width, IH = iCvs.height;
+
+// Intersection geometry
+const roadW = 100;
+const cx = IW/2, cy = IH/2;
+
+// Traffic light state
+let tlPhase = 0; // 0=green-h, 1=yellow-h, 2=red-h/green-v, 3=yellow-v
+let tlTimer = 0;
+const tlDurations = [180, 40, 180, 40]; // frames per phase
+
+// AV
+const av = {x:-80, y:cy+18, speed:1.2, lidarAngle:0, lidarDir:1};
+
+// Other vehicles
+const otherCars = [
+  {x:cx+18, y:-40, speed:0.9, dir:'down', color:'#555'},
+  {x:cx-200, y:cy+18, speed:0.7, dir:'right', color:'#666'},
+  {x:cx+18, y:IH+40, speed:-0.85, dir:'up', color:'#5a5a5a'},
+  {x:IW+60, y:cy-18, speed:-0.75, dir:'left', color:'#606060'},
+];
+
+// Pedestrians
+const peds = [
+  {x:cx-roadW/2-10, y:cy-10, tx:cx+roadW/2+10, speed:0.35, progress:0},
+  {x:cx+10, y:cy+roadW/2+10, ty:cy-roadW/2-10, speed:0.3, progress:0},
+  {x:cx-20, y:cy-roadW/2-10, ty:cy+roadW/2+10, speed:0.32, progress:0},
+];
+
+// Particles (background)
+const particles = [];
+for(let i=0;i<60;i++) particles.push({x:Math.random()*IW, y:Math.random()*IH, vx:(Math.random()-.5)*.3, vy:(Math.random()-.5)*.3, r:Math.random()*1.5+.5, a:Math.random()*.3});
+
+// Attack sim overlay
+let freezeAlpha = 0;
+let dangerPulse = 0;
+let labelAlpha = 0;
+let showTimeline = false;
+
+function drawIntersection(t){
+  iCtx.clearRect(0,0,IW,IH);
+
+  // -- Background: dark city grid
+  iCtx.fillStyle = '#0c0c14';
+  iCtx.fillRect(0,0,IW,IH);
+
+  // subtle grid
+  iCtx.strokeStyle = 'rgba(255,255,255,.02)';
+  iCtx.lineWidth = 1;
+  for(let x=0;x<IW;x+=40){iCtx.beginPath();iCtx.moveTo(x,0);iCtx.lineTo(x,IH);iCtx.stroke();}
+  for(let y=0;y<IH;y+=40){iCtx.beginPath();iCtx.moveTo(0,y);iCtx.lineTo(IW,y);iCtx.stroke();}
+
+  // particles
+  particles.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    if(p.x<0)p.x=IW; if(p.x>IW)p.x=0; if(p.y<0)p.y=IH; if(p.y>IH)p.y=0;
+    iCtx.beginPath(); iCtx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    iCtx.fillStyle = `rgba(100,140,200,${p.a})`;
+    iCtx.fill();
+  });
+
+  // -- Buildings (dark blocks in corners)
+  const bldgColor = '#0f0f18';
+  const bCorners = [
+    [0,0,cx-roadW/2,cy-roadW/2],
+    [cx+roadW/2,0,IW-(cx+roadW/2),cy-roadW/2],
+    [0,cy+roadW/2,cx-roadW/2,IH-(cy+roadW/2)],
+    [cx+roadW/2,cy+roadW/2,IW-(cx+roadW/2),IH-(cy+roadW/2)]
+  ];
+  bCorners.forEach(b => {
+    iCtx.fillStyle = bldgColor;
+    iCtx.fillRect(b[0],b[1],b[2],b[3]);
+    iCtx.strokeStyle = 'rgba(255,255,255,.03)';
+    iCtx.strokeRect(b[0],b[1],b[2],b[3]);
+  });
+
+  // -- Roads
+  iCtx.fillStyle = '#1a1a24';
+  iCtx.fillRect(0, cy-roadW/2, IW, roadW); // horizontal
+  iCtx.fillRect(cx-roadW/2, 0, roadW, IH); // vertical
+
+  // lane markings — dashed
+  iCtx.setLineDash([16,12]);
+  iCtx.strokeStyle = 'rgba(255,255,255,.2)';
+  iCtx.lineWidth = 2;
+  // horizontal center
+  iCtx.beginPath(); iCtx.moveTo(0,cy); iCtx.lineTo(cx-roadW/2,cy); iCtx.stroke();
+  iCtx.beginPath(); iCtx.moveTo(cx+roadW/2,cy); iCtx.lineTo(IW,cy); iCtx.stroke();
+  // vertical center
+  iCtx.beginPath(); iCtx.moveTo(cx,0); iCtx.lineTo(cx,cy-roadW/2); iCtx.stroke();
+  iCtx.beginPath(); iCtx.moveTo(cx,cy+roadW/2); iCtx.lineTo(cx,IH); iCtx.stroke();
+  iCtx.setLineDash([]);
+
+  // crosswalk stripes
+  const cw = 8;
+  iCtx.fillStyle = 'rgba(255,255,255,.15)';
+  for(let i=0;i<6;i++){
+    // top crosswalk
+    iCtx.fillRect(cx-roadW/2+8+i*16, cy-roadW/2-12, cw, 12);
+    // bottom crosswalk
+    iCtx.fillRect(cx-roadW/2+8+i*16, cy+roadW/2, cw, 12);
+    // left crosswalk
+    iCtx.fillRect(cx-roadW/2-12, cy-roadW/2+8+i*16, 12, cw);
+    // right crosswalk
+    iCtx.fillRect(cx+roadW/2, cy-roadW/2+8+i*16, 12, cw);
+  }
+
+  // -- Construction zone (if toggle on)
+  if(ruleStates[8]){
+    iCtx.save();
+    const czx = cx+roadW/2+4, czy = cy-roadW/2-60, czw = 80, czh = 56;
+    // stripes
+    iCtx.beginPath();
+    iCtx.rect(czx,czy,czw,czh);
+    iCtx.clip();
+    iCtx.fillStyle = 'rgba(255,165,0,.12)';
+    iCtx.fillRect(czx,czy,czw,czh);
+    for(let s=-czw;s<czw+czh;s+=14){
+      iCtx.strokeStyle = 'rgba(255,165,0,.35)';
+      iCtx.lineWidth = 4;
+      iCtx.beginPath();
+      iCtx.moveTo(czx+s,czy);
+      iCtx.lineTo(czx+s+czh,czy+czh);
+      iCtx.stroke();
+    }
+    iCtx.restore();
+    iCtx.strokeStyle = 'rgba(255,165,0,.5)';
+    iCtx.lineWidth = 1.5;
+    iCtx.strokeRect(czx,czy,czw,czh);
+    // cones
+    iCtx.fillStyle = '#ff8c00';
+    iCtx.beginPath(); iCtx.moveTo(czx+10,czy+czh); iCtx.lineTo(czx+14,czy+czh-12); iCtx.lineTo(czx+18,czy+czh); iCtx.fill();
+    iCtx.beginPath(); iCtx.moveTo(czx+czw-18,czy+czh); iCtx.lineTo(czx+czw-14,czy+czh-12); iCtx.lineTo(czx+czw-10,czy+czh); iCtx.fill();
+  }
+
+  // -- Traffic lights
+  const tlR = 6;
+  const tlPositions = [
+    {x:cx-roadW/2-16, y:cy-roadW/2-16, h:true},  // top-left (controls horizontal)
+    {x:cx+roadW/2+16, y:cy-roadW/2-16, h:false},  // top-right (controls vertical)
+    {x:cx-roadW/2-16, y:cy+roadW/2+16, h:false},  // bottom-left
+    {x:cx+roadW/2+16, y:cy+roadW/2+16, h:true},   // bottom-right
+  ];
+  const hGreen = tlPhase===0, hYellow = tlPhase===1, vGreen = tlPhase===2, vYellow = tlPhase===3;
+  tlPositions.forEach(tl => {
+    const isH = tl.h;
+    const g = isH ? hGreen : vGreen;
+    const y = isH ? hYellow : vYellow;
+    const r = isH ? (tlPhase===2||tlPhase===3) : (tlPhase===0||tlPhase===1);
+    // housing
+    iCtx.fillStyle = '#111';
+    iCtx.beginPath(); iCtx.roundRect(tl.x-10, tl.y-20, 20, 40, 4); iCtx.fill();
+    // red
+    iCtx.beginPath(); iCtx.arc(tl.x, tl.y-12, tlR, 0, Math.PI*2);
+    iCtx.fillStyle = r ? '#ef4444' : '#3a1111'; iCtx.fill();
+    // yellow
+    iCtx.beginPath(); iCtx.arc(tl.x, tl.y, tlR, 0, Math.PI*2);
+    iCtx.fillStyle = y ? '#eab308' : '#3a3411'; iCtx.fill();
+    // green
+    iCtx.beginPath(); iCtx.arc(tl.x, tl.y+12, tlR, 0, Math.PI*2);
+    iCtx.fillStyle = g ? '#22c55e' : '#113a11'; iCtx.fill();
+  });
+
+  const frozen = simPhase === 2;
+
+  // -- Other vehicles
+  otherCars.forEach(car => {
+    if(!frozen){
+      if(car.dir==='down'){ car.y += car.speed; if(car.y>IH+60) car.y=-60; }
+      else if(car.dir==='up'){ car.y += car.speed; if(car.y<-60) car.y=IH+60; }
+      else if(car.dir==='right'){ car.x += car.speed; if(car.x>IW+60) car.x=-60; }
+      else if(car.dir==='left'){ car.x += car.speed; if(car.x<-60) car.x=IW+60; }
+    }
+    iCtx.save();
+    iCtx.translate(car.x, car.y);
+    if(car.dir==='down'||car.dir==='up') iCtx.rotate(Math.PI/2);
+    iCtx.fillStyle = car.color;
+    iCtx.beginPath(); iCtx.roundRect(-16,-8,32,16,4); iCtx.fill();
+    iCtx.restore();
+  });
+
+  // -- V2V lines
+  if(ruleStates[6]){
+    otherCars.forEach(car => {
+      const dx = car.x - av.x, dy = car.y - av.y;
+      const dist = Math.sqrt(dx*dx+dy*dy);
+      if(dist < 500){
+        iCtx.setLineDash([3,6]);
+        iCtx.strokeStyle = `rgba(6,182,212,${.15 * (1-dist/500)})`;
+        iCtx.lineWidth = 1;
+        iCtx.beginPath(); iCtx.moveTo(av.x, av.y); iCtx.lineTo(car.x, car.y); iCtx.stroke();
+        iCtx.setLineDash([]);
+      }
+    });
+  }
+
+  // -- Pedestrians
+  peds.forEach((p,pi) => {
+    if(!frozen){
+      p.progress += p.speed / 200;
+      if(p.progress > 1) p.progress = 0;
+    }
+    let px, py;
+    if(p.tx !== undefined){
+      px = p.x + (p.tx - p.x) * p.progress;
+      py = p.y;
+    } else {
+      px = p.x;
+      py = p.y + (p.ty - p.y) * p.progress;
+    }
+
+    // danger highlight during freeze
+    const isDangerPed = pi === 0 && simPhase === 2;
+    if(isDangerPed){
+      iCtx.beginPath();
+      iCtx.arc(px, py, 14 + Math.sin(dangerPulse)*4, 0, Math.PI*2);
+      iCtx.fillStyle = `rgba(239,68,68,${.25+.15*Math.sin(dangerPulse)})`;
+      iCtx.fill();
+      iCtx.strokeStyle = '#ef4444';
+      iCtx.lineWidth = 2;
+      iCtx.stroke();
+    }
+
+    iCtx.beginPath();
+    iCtx.arc(px, py, 5, 0, Math.PI*2);
+    iCtx.fillStyle = isDangerPed ? '#ef4444' : '#ddd';
+    iCtx.fill();
+  });
+
+  // -- AV
+  if(!frozen){
+    if(simPhase === 0) {
+      // idle: loop back and forth approaching intersection
+      av.x += av.speed;
+      if(av.x > cx - roadW/2 - 40) { av.x = -80; }
+    } else if(simPhase === 1){
+      av.x += av.speed;
+    } else if(simPhase === 3){
+      av.x += av.speed * 1.5;
+      if(av.x > IW + 100) { simPhase = 0; av.x = -80; simRunning = false; document.getElementById('simBtn').disabled = false; }
+    }
+  }
+
+  // LIDAR sweep
+  if(ruleStates[0]){
+    av.lidarAngle += av.lidarDir * 0.03;
+    if(av.lidarAngle > 0.5) av.lidarDir = -1;
+    if(av.lidarAngle < -0.5) av.lidarDir = 1;
+    iCtx.save();
+    iCtx.translate(av.x, av.y);
+    iCtx.beginPath();
+    iCtx.moveTo(0,0);
+    iCtx.arc(0,0,120, av.lidarAngle - 0.52, av.lidarAngle + 0.52);
+    iCtx.closePath();
+    const lg = iCtx.createRadialGradient(0,0,0,0,0,120);
+    lg.addColorStop(0,'rgba(6,182,212,.2)');
+    lg.addColorStop(1,'rgba(6,182,212,0)');
+    iCtx.fillStyle = lg;
+    iCtx.fill();
+    iCtx.restore();
+  }
+
+  // AV body
+  iCtx.save();
+  iCtx.translate(av.x, av.y);
+  // glow
+  iCtx.shadowColor = 'rgba(59,130,246,.6)';
+  iCtx.shadowBlur = 18;
+  iCtx.fillStyle = '#2563eb';
+  iCtx.beginPath(); iCtx.roundRect(-20,-10,40,20,5); iCtx.fill();
+  iCtx.shadowBlur = 0;
+  // outline
+  iCtx.strokeStyle = '#60a5fa';
+  iCtx.lineWidth = 1.5;
+  iCtx.beginPath(); iCtx.roundRect(-20,-10,40,20,5); iCtx.stroke();
+  // label
+  iCtx.fillStyle = '#fff';
+  iCtx.font = 'bold 7px sans-serif';
+  iCtx.textAlign = 'center';
+  iCtx.fillText('AV-01', 0, 3);
+  iCtx.restore();
+
+  // -- ATTACK FREEZE OVERLAY
+  if(simPhase === 2){
+    dangerPulse += 0.08;
+    freezeAlpha = Math.min(freezeAlpha + 0.02, 0.6);
+    labelAlpha = Math.min(labelAlpha + 0.015, 1);
+
+    // red danger zone over crosswalk
+    const dzx = cx - roadW/2 - 15, dzy = cy - 15, dzw = roadW + 30, dzh = 30;
+    iCtx.fillStyle = `rgba(239,68,68,${.12 + .08*Math.sin(dangerPulse)})`;
+    iCtx.fillRect(dzx, dzy, dzw, dzh);
+    iCtx.strokeStyle = `rgba(239,68,68,${.5 + .3*Math.sin(dangerPulse)})`;
+    iCtx.lineWidth = 2;
+    iCtx.setLineDash([6,4]);
+    iCtx.strokeRect(dzx, dzy, dzw, dzh);
+    iCtx.setLineDash([]);
+
+    // "NO RULE ACTIVE" flash
+    const flash = Math.sin(dangerPulse*2) > 0;
+    if(flash){
+      iCtx.fillStyle = '#ef4444';
+      iCtx.font = 'bold 16px sans-serif';
+      iCtx.textAlign = 'center';
+      iCtx.fillText('NO RULE ACTIVE', cx, cy + 4);
+    }
+
+    // Labels
+    const la = labelAlpha;
+    iCtx.font = 'bold 9px sans-serif';
+    iCtx.textAlign = 'left';
+
+    iCtx.fillStyle = `rgba(255,165,0,${la})`;
+    iCtx.fillText('Construction Override ACTIVE', cx + roadW/2 + 20, cy - 50);
+    drawArrow(iCtx, cx+roadW/2+18, cy-46, cx+roadW/2+6, cy-roadW/2-4, `rgba(255,165,0,${la*.5})`);
+
+    iCtx.fillStyle = `rgba(6,182,212,${la})`;
+    iCtx.fillText('V2V WAITING', cx + roadW/2 + 20, cy - 30);
+
+    iCtx.fillStyle = `rgba(239,68,68,${la})`;
+    iCtx.fillText('Pedestrian Priority SUSPENDED', cx + roadW/2 + 20, cy - 10);
+
+    // Timeline bar overlay
+    if(showTimeline){
+      const tlx = cx - 180, tly = cy + roadW/2 + 30, tlw = 360, tlh = 28;
+      iCtx.fillStyle = 'rgba(10,10,15,.85)';
+      iCtx.fillRect(tlx-4, tly-16, tlw+8, tlh+28);
+      iCtx.fillStyle = '#94a3b8';
+      iCtx.font = 'bold 8px sans-serif';
+      iCtx.textAlign = 'center';
+      iCtx.fillText('200ms GAP TIMELINE', cx, tly-4);
+
+      // segments
+      const segs = [
+        {pct:.375, color:'#22c55e', label:'Ped ON'},
+        {pct:.125, color:'#ef4444', label:'NO RULE'},
+        {pct:.25, color:'#b8960f', label:'Transitioning'},
+        {pct:.25, color:'#22c55e', label:'Constr. ON'},
+      ];
+      let sx = tlx;
+      segs.forEach(s => {
+        const sw = s.pct * tlw;
+        iCtx.fillStyle = s.color;
+        iCtx.fillRect(sx, tly, sw, tlh);
+        iCtx.fillStyle = '#fff';
+        iCtx.font = 'bold 7px sans-serif';
+        iCtx.textAlign = 'center';
+        if(sw > 30) iCtx.fillText(s.label, sx+sw/2, tly+tlh/2+3);
+        sx += sw;
+      });
+    }
+  }
+
+  // Update traffic lights
+  if(!frozen){
+    tlTimer++;
+    if(tlTimer >= tlDurations[tlPhase]){
+      tlTimer = 0;
+      tlPhase = (tlPhase + 1) % 4;
+    }
+  }
+}
+
+function drawArrow(ctx, x1, y1, x2, y2, color){
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+}
+
+/* ================================================================
+   SIMULATION BUTTON
+   ================================================================ */
+document.getElementById('simBtn').addEventListener('click', () => {
+  if(simRunning) return;
+  simRunning = true;
+  simPhase = 1;
+  av.x = -80;
+  freezeAlpha = 0;
+  dangerPulse = 0;
+  labelAlpha = 0;
+  showTimeline = false;
+  document.getElementById('simBtn').disabled = true;
+  typeAllTerminals();
+
+  // Phase 1: AV approaches
+  setTimeout(() => {
+    av.x = cx - roadW/2 - 50;
+    simPhase = 2; // freeze
+    peds[0].progress = 0.35; // ped in crosswalk
+    setTimeout(() => { showTimeline = true; }, 800);
+    // After 6 seconds, resume
+    setTimeout(() => {
+      simPhase = 3;
+      freezeAlpha = 0;
+    }, 6000);
+  }, 2000);
+});
+
+/* ================================================================
+   ANIMATION LOOP
+   ================================================================ */
+function animate(t){
+  drawIntersection(t);
+  requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+
+/* ================================================================
+   TERMINALS — 4-column typewriter
+   ================================================================ */
+const TERM_DATA = [
+  {
+    hdr:'Python Simulator', color:'#3b82f6', dotColor:'#3b82f6',
+    text:`AV Safety Simulator v5.3
+Scenario-Based Testing Suite
+\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501
+
+Simulating 50,000 driving scenarios...
+  Urban intersections: 18,000
+  Highway merging: 12,000
+  Pedestrian crossings: 10,000
+  Construction zones: 5,000
+  Adverse weather: 5,000
+
+Per-scenario testing (100 decision points each):
+  Emergency braking response: avg 47ms \u2713
+  Pedestrian detection rate: 99.97% \u2713
+  Speed compliance: 100% \u2713
+  V2V latency: avg 12ms \u2713
+
+Results:
+  49,997 / 50,000 scenarios: SAFE
+  3 near-misses (margin < 0.5m):
+    - Heavy rain + pedestrian (margin: 0.3m)
+    - Construction + merging (margin: 0.4m)
+    - Night + pedestrian (margin: 0.2m)
+  0 collisions
+  0 fatalities
+
+Statistical safety: 99.994%
+Human benchmark: 99.97%
+
+VERDICT: SAFER THAN HUMAN DRIVERS \u2713`,
+    verdict:'\u2713 99.994% SAFE (exceeds human)',
+    verdictColor:'#22c55e'
+  },
+  {
+    hdr:'Formal Verification', color:'#06b6d4', dotColor:'#06b6d4',
+    text:`Model Checker: UPPAAL v5.0
+Specification: Timed automata, TCTL
+\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501
+
+AV state machine: 512 states
+Clock variables: 4 (braking, V2V, signal, override)
+
+P1: A\u25a1(dist_pedestrian < safe \u2192 A\u25c7\u226490ms braking)
+  VERIFIED \u2713 (0.5s)
+
+P2: A\u25a1(speed \u2264 posted_limit)
+  VERIFIED \u2713 (0.1s)
+
+P3: A\u25a1(pedestrian_detected \u2192 priority_active)
+  VERIFIED \u2713 (0.3s)
+
+P4: A\u25a1(V2V_timeout \u2192 intersection_hold)
+  VERIFIED \u2713 (0.6s)
+
+[... 9/9 individually verified ...]
+
+Composing 3-rule interaction model:
+  Pedestrian Priority \u00d7 V2V Protocol \u00d7 Constr. Override
+
+  States: 512 \u00d7 512 \u00d7 512 = 1.34 \u00d7 10\u2078
+  With timing clocks (ms granularity):
+  1.34 \u00d7 10\u2078 \u00d7 10\u2074 ticks = 1.34 \u00d7 10\xb9\xb2
+
+  \u26a0 STATE EXPLOSION at 10\u2079 states
+  \u26a0 UPPAAL zone abstraction LOSES the 200ms gap
+  \u26a0 The gap exists between clock regions
+  \u26a0 Timed automata abstract continuous time to zones
+     The 200ms gap falls between zone boundaries
+
+RESULT: 9/9 individual rules VERIFIED
+        3-rule timing interaction: INTRACTABLE
+        200ms gap: HIDDEN by time abstraction`,
+    verdict:'\u2713 PER-RULE VERIFIED (timing gap hidden)',
+    verdictColor:'#06b6d4'
+  },
+  {
+    hdr:'AI / LLM Assessor', color:'#22c55e', dotColor:'#22c55e',
+    text:`AI Safety Assessor v4.2
+Trained on: SOTIF (ISO 21448), NHTSA reports, AV incidents
+\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501
+
+Architecture review against standards:
+
+ISO 21448 (SOTIF) compliance:
+  \u2713 Known safe: tested scenarios
+  \u2713 Known unsafe: mitigated by redundancy
+  \u2713 Unknown safe: covered by defensive design
+  \u26a0 Unknown unsafe: "reasonably addressed"
+
+NHTSA AV Safety Framework:
+  \u2713 Object detection: dual sensor fusion
+  \u2713 Fallback performance: emergency braking
+  \u2713 Crashworthiness: standard compliance
+  \u2713 Post-crash behavior: auto-stop
+
+Known AV incident analysis:
+  \u2713 Uber ATG (2018): mitigated by dual LIDAR
+  \u2713 Tesla Autopilot: mitigated by camera fusion
+  \u2713 Waymo near-miss: mitigated by V2V
+
+Risk: LOW
+Confidence: 92%
+Unknown-unsafe gap: "within acceptable bounds"
+
+VERDICT: SOTIF COMPLIANT \u2014 RISK LOW \u2713`,
+    verdict:'\u2713 SOTIF COMPLIANT (Risk: Low)',
+    verdictColor:'#22c55e'
+  },
+  {
+    hdr:'Tau Verifier', color:'#ffd700', dotColor:'#ffd700',
+    text:`Tau Real-Time Safety Verifier v0.7
+Multi-rule temporal composition with ms precision
+\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501
+
+Building multi-rule temporal model...
+  9 safety rules (BDD: 187 nodes)
+  Timing resolution: 1ms
+  Rule interaction graph: 36 potential pairs
+  3-way interactions: 84 combinations
+  (vs explicit: 1.34 \u00d7 10\xb9\xb2 states)
+
+Checking all rule pair interactions... \u2713 (34/36 safe)
+Checking flagged pairs in 3-way combinations...
+
+\u26a0 LETHAL GAP FOUND at driving hour 7,847:
+
+  SCENARIO: Urban intersection, construction zone
+
+  T+0ms:   AV approaches at 45 km/h
+           Construction Override: ACTIVATING
+           Pedestrian Priority: SUSPENDING (150ms)
+           Status: RULES TRANSITIONING
+
+  T+10ms:  V2V message received
+           Intersection Protocol: WAITING STATE
+           Timeout: 200ms
+           Status: INTERSECTION FROZEN
+
+  T+50ms:  PEDESTRIAN ENTERS CROSSWALK
+
+           Rule: Pedestrian Priority:
+             \u2717 SUSPENDED (construction override in transition)
+           Rule: Construction Zone:
+             \u2717 NOT YET ACTIVE (still in 150ms transition)
+           Rule: Intersection Protocol:
+             \u2717 FROZEN (waiting V2V, 140ms remaining)
+           Rule: Emergency Braking:
+             Requires: threat_detected flag
+             Ped Priority would set this flag
+             But Ped Priority is SUSPENDED
+             \u2717 NO TRIGGER FOR EMERGENCY BRAKING
+
+  T+50ms to T+200ms:
+  \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+  \u2551 NO SAFETY RULE COVERS THIS WINDOW \u2551
+  \u2551 Pedestrian in crosswalk            \u2551
+  \u2551 AV following stale trajectory      \u2551
+  \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+
+  T+150ms: Construction Override: NOW ACTIVE
+           AV already 1.2m into crosswalk zone
+           Construction rules assume: no pedestrians
+
+  T+200ms: V2V confirmation received
+           But: pedestrian at impact point
+
+  T+200ms: COLLISION \u2014 45 km/h
+
+  THE 200ms GAP:
+  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510
+  \u2502 Ped Priority:  \u2588\u2588\u2588\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591 suspended  \u2502
+  \u2502 Construction:  \u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2588\u2588\u2588\u2588\u2588\u2588 activating \u2502
+  \u2502 V2V Protocol:  \u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2588 waiting    \u2502
+  \u2502 Em. Braking:   \u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591 no trigger \u2502
+  \u2502               ^^^^^^^^^^^^^^^^                \u2502
+  \u2502               200ms: NO RULE ACTIVE           \u2502
+  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518
+
+  RULES VIOLATED: 0
+  GAP EXISTS BETWEEN RULES, not within any
+
+  Each rule is correct.
+  The space between them is lethal.`,
+    verdict:'\u2717 LETHAL 200ms GAP \u2014 0 RULES VIOLATED',
+    verdictColor:'#ffd700'
+  }
+];
+
+// Build terminals
+const termContainer = document.getElementById('terminals');
+TERM_DATA.forEach((td, i) => {
+  const div = document.createElement('div');
+  div.className = 'term';
+  div.innerHTML = `<div class="term-header" style="color:${td.color}"><span class="hdr-dot" style="background:${td.dotColor}"></span>${td.hdr}</div>
+    <div class="term-body" id="termBody${i}"></div>
+    <div class="term-verdict" id="termVerdict${i}" style="color:${td.verdictColor};opacity:0">${td.verdict}</div>`;
+  termContainer.appendChild(div);
+});
+
+function typeTerminal(idx, onDone){
+  const el = document.getElementById('termBody'+idx);
+  const verdict = document.getElementById('termVerdict'+idx);
+  const text = TERM_DATA[idx].text;
+  let pos = 0;
+  el.textContent = '';
+  verdict.style.opacity = '0';
+  const speed = Math.max(1, Math.floor(text.length / 260)); // chars per tick
+  const iv = setInterval(() => {
+    pos += speed;
+    if(pos >= text.length){
+      pos = text.length;
+      clearInterval(iv);
+      verdict.style.opacity = '1';
+      if(onDone) onDone();
+    }
+    el.textContent = text.slice(0, pos);
+    el.scrollTop = el.scrollHeight;
+  }, 16);
+}
+
+function typeAllTerminals(){
+  // type all 4 in parallel with slight stagger
+  TERM_DATA.forEach((_, i) => {
+    setTimeout(() => typeTerminal(i), i * 400);
+  });
+}
+
+// initial type on load
+setTimeout(() => typeAllTerminals(), 600);
+
+/* ================================================================
+   COMPARISON CARDS
+   ================================================================ */
+const COMPARE = [
+  {name:'Python Simulation', result:'99.994% Safe', detail:'Scenario testing: statistical, cannot find timing gaps', color:'#3b82f6'},
+  {name:'Formal Verification', result:'9/9 Verified', detail:'Individual rules proven; 3-rule composition intractable', color:'#06b6d4'},
+  {name:'AI / LLM Assessment', result:'SOTIF Compliant', detail:'Standards-based review; unknown-unsafe gap missed', color:'#22c55e'},
+  {name:'Tau Specification', result:'LETHAL GAP', detail:'200ms window: 0 safety rules active on crosswalk', color:'#ffd700'},
+];
+const cg = document.getElementById('compareGrid');
+COMPARE.forEach(c => {
+  const d = document.createElement('div');
+  d.className = 'compare-card';
+  d.innerHTML = `<h3 style="color:${c.color}">${c.name}</h3>
+    <div class="result" style="color:${c.color}">${c.result}</div>
+    <div class="detail">${c.detail}</div>`;
+  cg.appendChild(d);
+});
+
+/* ================================================================
+   Tau spec block (between toggles and chart, as reference)
+   ================================================================ */
+</script>
+</body>
+</html>

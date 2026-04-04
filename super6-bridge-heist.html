@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Can Your Bridge Be Drained Across Chains? | Tau Language Demo</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a28;
+  --red:#ef4444;--red-dark:#991b1b;--red-glow:rgba(239,68,68,.3);
+  --gold:#ffd700;--gold-dim:#b8960f;--gold-glow:rgba(255,215,0,.25);
+  --cyan:#06b6d4;--cyan-glow:rgba(6,182,212,.2);
+  --green:#22c55e;--green-glow:rgba(34,197,94,.2);
+  --blue:#3b82f6;--blue-glow:rgba(59,130,246,.2);
+  --purple:#a855f7;--purple-glow:rgba(168,85,247,.2);
+  --txt:#e2e8f0;--txt-dim:#94a3b8;--txt-dark:#64748b;
+  --font:'Segoe UI',system-ui,-apple-system,sans-serif;
+  --mono:'Cascadia Code','Fira Code','Consolas',monospace;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:var(--font);line-height:1.6;overflow-x:hidden}
+.container{max-width:1440px;margin:0 auto;padding:0 24px}
+
+/* BACKGROUND CANVAS */
+#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* HEADER */
+.hero{text-align:center;padding:60px 24px 40px;position:relative;overflow:hidden;z-index:1}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(59,130,246,.08) 0%,transparent 70%);pointer-events:none}
+.badge{display:inline-block;background:linear-gradient(135deg,var(--gold-dim),var(--gold));color:#000;font-weight:700;font-size:13px;padding:4px 16px;border-radius:20px;margin-bottom:20px;letter-spacing:.5px}
+.hero h1{font-size:clamp(2.2rem,5vw,3.8rem);font-weight:900;letter-spacing:-1px;line-height:1.1;margin-bottom:12px;text-transform:uppercase}
+.hero h1 .red{color:var(--red)}
+.hero h1 .white{color:#fff}
+.hero h1 .cyan-text{color:var(--cyan)}
+.hero .subtitle{font-size:clamp(1rem,2vw,1.3rem);color:var(--txt-dim);max-width:700px;margin:0 auto}
+
+/* BRIDGE SECTION */
+.bridge-section{padding:40px 24px;display:flex;flex-direction:column;align-items:center;gap:32px;position:relative;z-index:1}
+.bridge-visual{position:relative;width:100%;max-width:900px;height:320px;display:flex;align-items:center;justify-content:center;gap:0}
+
+/* 3D Cubes */
+.cube-wrapper{perspective:600px;width:140px;height:140px;flex-shrink:0}
+.cube{width:140px;height:140px;position:relative;transform-style:preserve-3d;animation:rotateCubeA 12s linear infinite}
+.cube.chain-b{animation:rotateCubeB 15s linear infinite}
+@keyframes rotateCubeA{0%{transform:rotateX(-15deg) rotateY(0deg)}100%{transform:rotateX(-15deg) rotateY(360deg)}}
+@keyframes rotateCubeB{0%{transform:rotateX(-15deg) rotateY(45deg)}100%{transform:rotateX(-15deg) rotateY(405deg)}}
+.cube-face{position:absolute;width:140px;height:140px;border:1px solid;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700;backface-visibility:visible;opacity:.85}
+.cube.chain-a .cube-face{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.3);color:var(--blue);box-shadow:inset 0 0 30px rgba(59,130,246,.1)}
+.cube.chain-b .cube-face{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.3);color:var(--green);box-shadow:inset 0 0 30px rgba(34,197,94,.1)}
+.cube-face.front{transform:translateZ(70px)}
+.cube-face.back{transform:rotateY(180deg) translateZ(70px)}
+.cube-face.right{transform:rotateY(90deg) translateZ(70px)}
+.cube-face.left{transform:rotateY(-90deg) translateZ(70px)}
+.cube-face.top{transform:rotateX(90deg) translateZ(70px)}
+.cube-face.bottom{transform:rotateX(-90deg) translateZ(70px)}
+
+.cube-label{text-align:center;font-weight:800;font-size:14px;letter-spacing:1px;margin-top:8px;text-transform:uppercase}
+.cube-label.a{color:var(--blue)}
+.cube-label.b{color:var(--green)}
+
+.cube-column{display:flex;flex-direction:column;align-items:center;gap:4px}
+
+/* Energy bridge */
+.bridge-connection{flex:1;min-width:120px;max-width:400px;height:140px;position:relative;overflow:visible}
+.bridge-svg{width:100%;height:100%;overflow:visible}
+.bridge-path{fill:none;stroke-width:3;stroke-linecap:round}
+
+/* TVL display */
+.tvl-center{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:16px}
+.tvl-label{font-size:14px;color:var(--txt-dim);text-transform:uppercase;letter-spacing:2px}
+.tvl-balance{font-size:clamp(2rem,4vw,3.2rem);font-weight:900;color:var(--gold);font-family:var(--mono);text-shadow:0 0 30px var(--gold-glow);transition:color .5s}
+.tvl-balance.draining{color:var(--red);text-shadow:0 0 30px var(--red-glow)}
+
+/* Cube glitch */
+.cube.glitching .cube-face{animation:cubeGlitch .15s 4}
+@keyframes cubeGlitch{0%,100%{opacity:.85}25%{opacity:.3;border-color:var(--red)}50%{opacity:.6}75%{opacity:.2;border-color:var(--red)}}
+
+/* Locks / Toggle Cards */
+.locks-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;width:100%;max-width:1200px;z-index:1}
+.lock-card{background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;transition:all .4s;position:relative;overflow:hidden}
+.lock-card.active{border-color:rgba(6,182,212,.3);box-shadow:0 0 15px rgba(6,182,212,.08)}
+.lock-card.cracked{border-color:var(--red);background:rgba(239,68,68,.05)}
+.lock-card.cracked::after{content:'EXPLOITED';position:absolute;top:6px;right:8px;font-size:9px;font-weight:700;color:var(--red);letter-spacing:1px}
+.lock-icon{font-size:24px;width:36px;text-align:center;flex-shrink:0}
+.lock-info{flex:1;min-width:0}
+.lock-name{font-weight:700;font-size:14px;color:#fff}
+.lock-desc{font-size:11px;color:var(--txt-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lock-toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+.lock-toggle input{opacity:0;width:0;height:0}
+.lock-toggle .slider{position:absolute;inset:0;background:#333;border-radius:12px;cursor:pointer;transition:.3s}
+.lock-toggle .slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#888;border-radius:50%;transition:.3s}
+.lock-toggle input:checked+.slider{background:var(--green);box-shadow:0 0 10px var(--green-glow)}
+.lock-toggle input:checked+.slider::before{transform:translateX(20px);background:#fff}
+
+/* Presets + Attack Button */
+.controls-row{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:8px;z-index:1}
+.preset-btn{padding:10px 20px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:var(--bg2);color:var(--txt);font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.preset-btn:hover{background:var(--bg3);border-color:rgba(255,255,255,.2);transform:translateY(-1px)}
+.attack-btn{padding:14px 40px;border-radius:12px;border:none;background:linear-gradient(135deg,#b91c1c,var(--red));color:#fff;font-size:18px;font-weight:800;cursor:pointer;text-transform:uppercase;letter-spacing:1px;position:relative;overflow:hidden;animation:pulseAttack 2.5s infinite;transition:transform .15s}
+.attack-btn:hover{transform:scale(1.04)}
+.attack-btn:disabled{opacity:.5;cursor:not-allowed;animation:none}
+.attack-btn::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);transform:translateX(-100%);animation:shimmer 3s infinite}
+@keyframes pulseAttack{0%,100%{box-shadow:0 0 20px rgba(239,68,68,.3)}50%{box-shadow:0 0 40px rgba(239,68,68,.6)}}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+@keyframes pulseGlow{0%,100%{opacity:.6}50%{opacity:1}}
+
+/* Chart Section */
+.chart-section{padding:32px 24px;max-width:1200px;margin:0 auto;position:relative;z-index:1}
+.chart-title{text-align:center;font-size:20px;font-weight:700;margin-bottom:16px;color:var(--txt-dim)}
+.chart-wrap{background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;position:relative}
+.chart-wrap canvas{width:100%;height:340px}
+
+/* Four Columns */
+.columns-section{padding:32px 24px;max-width:1440px;margin:0 auto;position:relative;z-index:1}
+.columns-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;align-items:start}
+@media(max-width:1200px){.columns-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.columns-grid{grid-template-columns:1fr}}
+
+.col-card{background:var(--bg2);border-radius:16px;border:1px solid rgba(255,255,255,.06);overflow:visible;display:flex;flex-direction:column}
+.col-header{padding:16px 20px 12px;border-bottom:1px solid rgba(255,255,255,.04)}
+.col-header h3{font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px}
+.col-header .sub{font-size:12px;color:var(--txt-dim);margin-top:4px}
+.col-body{padding:20px;flex:1;overflow:visible}
+.col-terminal{font-family:var(--mono);font-size:12.5px;line-height:1.8;color:var(--txt-dim);white-space:pre-wrap;word-break:break-word;overflow-y:visible;scrollbar-width:thin;scrollbar-color:#333 transparent}
+.col-terminal::-webkit-scrollbar{width:6px}
+.col-terminal::-webkit-scrollbar-track{background:transparent}
+.col-terminal::-webkit-scrollbar-thumb{background:#333;border-radius:3px}
+.col-verdict{padding:16px 20px;border-top:1px solid rgba(255,255,255,.04);text-align:center;font-weight:700;font-size:15px;letter-spacing:.5px}
+.verdict-pass{color:var(--green);background:rgba(34,197,94,.05)}
+.verdict-warn{color:var(--cyan);background:rgba(6,182,212,.05)}
+.verdict-fail{color:var(--red);background:rgba(239,68,68,.05)}
+.verdict-gold{color:var(--gold);background:rgba(255,215,0,.05)}
+
+.col-card.python{border-color:rgba(59,130,246,.15)}
+.col-card.python .col-header{background:rgba(59,130,246,.05)}
+.col-card.formal{border-color:rgba(6,182,212,.15)}
+.col-card.formal .col-header{background:rgba(6,182,212,.05)}
+.col-card.ai{border-color:rgba(34,197,94,.15)}
+.col-card.ai .col-header{background:rgba(34,197,94,.05)}
+.col-card.tau{border-color:rgba(255,215,0,.2)}
+.col-card.tau .col-header{background:rgba(255,215,0,.05)}
+
+.col-card .highlight{color:#fff}
+.col-card .red{color:var(--red)}
+.col-card .green{color:var(--green)}
+.col-card .gold{color:var(--gold)}
+.col-card .cyan{color:var(--cyan)}
+.col-card .dim{color:var(--txt-dark)}
+
+/* Tau spec panel */
+.tau-spec{background:var(--bg);border:1px solid rgba(255,215,0,.1);border-radius:8px;padding:16px;margin-bottom:16px;overflow-y:visible;font-family:var(--mono);font-size:12px;line-height:1.7;color:var(--gold-dim);scrollbar-width:thin}
+
+/* Comparison */
+.comparison-section{padding:40px 24px;max-width:1200px;margin:0 auto;opacity:0;transform:translateY(30px);transition:all .8s;position:relative;z-index:1}
+.comparison-section.visible{opacity:1;transform:translateY(0)}
+.comp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+@media(max-width:1000px){.comp-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.comp-grid{grid-template-columns:1fr}}
+.comp-card{background:var(--bg2);border-radius:12px;padding:20px;border:1px solid rgba(255,255,255,.06);text-align:center}
+.comp-card h4{font-size:16px;margin-bottom:10px}
+.comp-card .result{font-size:24px;font-weight:800;margin:10px 0}
+.comp-card .explain{font-size:13px;color:var(--txt-dim);line-height:1.7}
+.comp-card.fail{border-color:rgba(255,215,0,.2)}
+.comp-card.fail .result{color:var(--red)}
+
+.tagline{text-align:center;padding:32px 24px;font-size:clamp(1rem,2vw,1.2rem);color:var(--gold);font-style:italic;max-width:800px;margin:0 auto;line-height:1.6;position:relative;z-index:1}
+
+/* Share Card */
+.share-section{padding:40px 24px;display:flex;justify-content:center;opacity:0;transform:translateY(20px);transition:all .8s;position:relative;z-index:1}
+.share-section.visible{opacity:1;transform:translateY(0)}
+.share-card{width:520px;max-width:100%;background:linear-gradient(135deg,#1a0a0a,#0a0a0f,#0a0a1a);border:2px solid var(--red);border-radius:20px;padding:40px 32px;text-align:center;position:relative;overflow:hidden}
+.share-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(239,68,68,.1),transparent 60%);pointer-events:none}
+.share-card .bridge-icon{font-size:48px;margin-bottom:12px}
+.share-card .exploit-title{font-size:22px;font-weight:900;color:var(--red);margin-bottom:4px}
+.share-card .exploit-amount{font-size:16px;color:var(--txt-dim);margin-bottom:16px}
+.share-card .exploit-quote{font-size:14px;color:var(--txt);line-height:1.5;margin-bottom:20px;font-style:italic}
+.share-card .tau-badge{display:inline-block;background:linear-gradient(135deg,var(--gold-dim),var(--gold));color:#000;font-weight:700;font-size:13px;padding:6px 20px;border-radius:20px}
+.share-card .url{color:var(--txt-dark);font-size:12px;margin-top:12px}
+
+/* Animations */
+.typing-cursor::after{content:'_';animation:blink 1s infinite}
+@keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}
+@keyframes crackShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.shake{animation:crackShake .15s 3}
+
+/* Token orbs on bridge */
+.token-orb{position:absolute;width:10px;height:10px;border-radius:50%;pointer-events:none;z-index:2}
+.token-orb.safe{background:var(--green);box-shadow:0 0 8px var(--green-glow)}
+.token-orb.danger{background:var(--red);box-shadow:0 0 8px var(--red-glow)}
+
+/* Responsive cubes */
+@media(max-width:700px){
+  .bridge-visual{flex-direction:column;height:auto;gap:16px}
+  .bridge-connection{min-width:80px;height:80px;transform:rotate(90deg)}
+  .cube-wrapper{width:100px;height:100px}
+  .cube,.cube-face{width:100px;height:100px}
+  .cube-face.front{transform:translateZ(50px)}
+  .cube-face.back{transform:rotateY(180deg) translateZ(50px)}
+  .cube-face.right{transform:rotateY(90deg) translateZ(50px)}
+  .cube-face.left{transform:rotateY(-90deg) translateZ(50px)}
+  .cube-face.top{transform:rotateX(90deg) translateZ(50px)}
+  .cube-face.bottom{transform:rotateX(-90deg) translateZ(50px)}
+}
+
+/* Footer */
+.footer{text-align:center;padding:40px 24px;color:var(--txt-dark);font-size:12px;position:relative;z-index:1}
+</style>
+</head>
+<body>
+
+<!-- BACKGROUND CANVAS -->
+<canvas id="bgCanvas"></canvas>
+
+<!-- HEADER -->
+<header class="hero">
+  <div class="badge">Tau Language v0.7 | tau.net</div>
+  <h1><span class="white">Can Your </span><span class="red">Bridge</span><span class="white"> Be Drained </span><span class="cyan-text">Across Chains?</span></h1>
+  <p class="subtitle">8 security rules. $120M TVL. Only one method finds the cross-chain exploit.</p>
+</header>
+
+<!-- BRIDGE VISUAL + RULES -->
+<section class="bridge-section">
+  <div class="bridge-visual" id="bridgeVisual">
+    <!-- Chain A -->
+    <div class="cube-column">
+      <div class="cube-wrapper">
+        <div class="cube chain-a" id="cubeA">
+          <div class="cube-face front">BLK #18,247</div>
+          <div class="cube-face back">BLK #18,246</div>
+          <div class="cube-face right">BLK #18,245</div>
+          <div class="cube-face left">BLK #18,244</div>
+          <div class="cube-face top">CHAIN A</div>
+          <div class="cube-face bottom">LOCK</div>
+        </div>
+      </div>
+      <div class="cube-label a">Chain A (Lock)</div>
+    </div>
+
+    <!-- Energy Bridge -->
+    <div class="bridge-connection" id="bridgeConn">
+      <svg class="bridge-svg" viewBox="0 0 400 140" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="bridgeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="var(--blue)"/>
+            <stop offset="50%" stop-color="var(--purple)"/>
+            <stop offset="100%" stop-color="var(--green)"/>
+          </linearGradient>
+          <linearGradient id="bridgeGradWarn" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="var(--blue)"/>
+            <stop offset="50%" stop-color="var(--red)"/>
+            <stop offset="100%" stop-color="var(--green)"/>
+          </linearGradient>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+            <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <!-- Main bridge path -->
+        <path id="bridgePath" d="M 0 70 C 100 30, 300 110, 400 70" class="bridge-path" stroke="url(#bridgeGrad)" filter="url(#glow)" opacity=".7"/>
+        <path d="M 0 70 C 100 30, 300 110, 400 70" class="bridge-path" stroke="url(#bridgeGrad)" stroke-width="1" opacity=".3"/>
+        <!-- Secondary shimmer paths -->
+        <path d="M 0 72 C 100 32, 300 112, 400 72" fill="none" stroke="url(#bridgeGrad)" stroke-width="1" opacity=".15" stroke-dasharray="8 12">
+          <animate attributeName="stroke-dashoffset" from="0" to="-40" dur="2s" repeatCount="indefinite"/>
+        </path>
+        <path d="M 0 68 C 100 28, 300 108, 400 68" fill="none" stroke="url(#bridgeGrad)" stroke-width="1" opacity=".15" stroke-dasharray="8 12">
+          <animate attributeName="stroke-dashoffset" from="-20" to="-60" dur="2.5s" repeatCount="indefinite"/>
+        </path>
+      </svg>
+      <!-- Token orbs inserted dynamically -->
+    </div>
+
+    <!-- Chain B -->
+    <div class="cube-column">
+      <div class="cube-wrapper">
+        <div class="cube chain-b" id="cubeB">
+          <div class="cube-face front">BLK #9,831</div>
+          <div class="cube-face back">BLK #9,830</div>
+          <div class="cube-face right">BLK #9,829</div>
+          <div class="cube-face left">BLK #9,828</div>
+          <div class="cube-face top">CHAIN B</div>
+          <div class="cube-face bottom">MINT</div>
+        </div>
+      </div>
+      <div class="cube-label b">Chain B (Mint)</div>
+    </div>
+  </div>
+
+  <!-- TVL Display -->
+  <div class="tvl-center">
+    <div class="tvl-label">BRIDGE TVL</div>
+    <div class="tvl-balance" id="tvlDisplay">$120,000,000</div>
+  </div>
+
+  <!-- Toggle Cards -->
+  <div class="locks-grid" id="locksGrid"></div>
+
+  <!-- Presets -->
+  <div class="controls-row">
+    <button class="preset-btn" onclick="applyPreset('max')">&#x1f3e6; Maximum Security</button>
+    <button class="preset-btn" onclick="applyPreset('standard')">&#x26a1; Standard Bridge</button>
+    <button class="preset-btn" onclick="applyPreset('speed')">&#x1f3ce; Speed Optimized</button>
+    <button class="preset-btn" onclick="applyPreset('hacked')">&#x1f480; Bridges That Got Hacked</button>
+  </div>
+  <div class="controls-row" style="margin-top:16px">
+    <button class="attack-btn" id="attackBtn" onclick="runAttack()">&#9654; ATTACK SIMULATION</button>
+  </div>
+</section>
+
+<!-- CHART -->
+<section class="chart-section" style="position:relative;z-index:1">
+  <div class="chart-title" id="chartTitle">BRIDGE TVL OVER 30 DAYS</div>
+  <div class="chart-wrap">
+    <canvas id="chartCanvas" height="340"></canvas>
+  </div>
+</section>
+
+<!-- FOUR COLUMNS -->
+<section class="columns-section">
+  <div class="columns-grid">
+    <!-- Python -->
+    <div class="col-card python">
+      <div class="col-header"><h3><span style="color:var(--blue)">&#x1f40d;</span> Python Simulator</h3><div class="sub">20,000 cross-chain bridge transactions</div></div>
+      <div class="col-body"><div class="col-terminal" id="pythonTerm"></div></div>
+      <div class="col-verdict" id="pythonVerdict"></div>
+    </div>
+    <!-- Formal -->
+    <div class="col-card formal">
+      <div class="col-header"><h3><span style="color:var(--cyan)">&#x1f4d0;</span> Formal Verification</h3><div class="sub">NuSMV model checking bridge invariants</div></div>
+      <div class="col-body"><div class="col-terminal" id="formalTerm"></div></div>
+      <div class="col-verdict" id="formalVerdict"></div>
+    </div>
+    <!-- AI -->
+    <div class="col-card ai">
+      <div class="col-header"><h3><span style="color:var(--green)">&#x1f916;</span> AI Security Audit</h3><div class="sub">Pattern matching against known exploits</div></div>
+      <div class="col-body"><div class="col-terminal" id="aiTerm"></div></div>
+      <div class="col-verdict" id="aiVerdict"></div>
+    </div>
+    <!-- Tau -->
+    <div class="col-card tau">
+      <div class="col-header"><h3><span style="color:var(--gold)">&#x269b;</span> Tau Temporal Verification</h3><div class="sub">Cross-chain composition with real-time semantics</div></div>
+      <div class="col-body">
+        <div class="tau-spec" id="tauSpec"></div>
+        <div class="col-terminal" id="tauTerm"></div>
+      </div>
+      <div class="col-verdict" id="tauVerdict"></div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARISON -->
+<section class="comparison-section" id="compSection">
+  <div class="comp-grid">
+    <div class="comp-card"><h4 style="color:var(--blue)">&#x1f40d; Python</h4><div class="result" style="color:var(--green)" id="compPythonResult">20,000/20,000 SECURE</div><div class="explain" id="compPythonExplain">Simulated 20,000 bridge transactions. Each individually valid. Never tested cross-chain reorg timing attacks across multiple congestion windows.</div></div>
+    <div class="comp-card"><h4 style="color:var(--cyan)">&#x1f4d0; Formal Verify</h4><div class="result" style="color:var(--cyan)" id="compFormalResult">8/8 PROPERTIES HOLD</div><div class="explain" id="compFormalExplain">Verified each chain's properties independently. Cross-chain composition causes state explosion at 10^15 states. Per-chain secure, composition unverifiable.</div></div>
+    <div class="comp-card"><h4 style="color:var(--green)">&#x1f916; AI</h4><div class="result" style="color:var(--green)" id="compAIResult">NO KNOWN PATTERNS</div><div class="explain" id="compAIExplain">Matched against Ronin, Wormhole, Nomad, Harmony, Poly Network exploits. All mitigated. Novel cross-chain timing attack not in training data.</div></div>
+    <div class="comp-card fail"><h4 style="color:var(--gold)">&#x269b; Tau</h4><div class="result" id="compTauResult">$47M DRAINED</div><div class="explain" id="compTauExplain">Verified cross-chain temporal composition. Found reorg-timing exploit in async gap between chains. Rate limiter is chain-local; conservation fails across the bridge.</div></div>
+  </div>
+  <div class="tagline">"Both chains were secure. Every contract was verified. Between them &mdash; $47M materialized from nothing. Only Tau verifies across chains and across time."</div>
+</section>
+
+<!-- SHARE -->
+<section class="share-section" id="shareSection">
+  <div class="share-card">
+    <div class="bridge-icon">&#x1f309;&#x1f4a5;</div>
+    <div class="exploit-title">$47M DRAINED</div>
+    <div class="exploit-amount" id="shareAmount">Cross-chain reorg exploit over 12 days</div>
+    <div class="exploit-quote">"Both chains were secure. Every contract was verified. Between them &mdash; $47M materialized from nothing."</div>
+    <div class="tau-badge">Verified by Tau Language v0.7</div>
+    <div class="url">tau.net</div>
+  </div>
+</section>
+
+<footer class="footer">Tau Language v0.7 &mdash; Temporal logic for a provably correct world &mdash; tau.net</footer>
+
+<script>
+// ========== BACKGROUND CANVAS (particle star field + gradient mesh) ==========
+(function(){
+  const canvas = document.getElementById('bgCanvas');
+  const ctx = canvas.getContext('2d');
+  let W, H;
+  const particles = [];
+  const gradBlobs = [];
+  const PARTICLE_COUNT = 200;
+
+  function resize(){
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight * 3;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Init particles
+  for(let i = 0; i < PARTICLE_COUNT; i++){
+    particles.push({
+      x: Math.random() * 3000,
+      y: Math.random() * 6000,
+      r: Math.random() * 1.5 + 0.3,
+      vx: (Math.random() - 0.5) * 0.15,
+      vy: (Math.random() - 0.5) * 0.1,
+      a: Math.random() * 0.5 + 0.2
+    });
+  }
+
+  // Gradient blobs
+  const colors = ['rgba(59,130,246,.04)','rgba(168,85,247,.04)','rgba(6,182,212,.03)','rgba(34,197,94,.03)'];
+  for(let i = 0; i < 4; i++){
+    gradBlobs.push({
+      x: Math.random() * 2000,
+      y: Math.random() * 4000,
+      r: 300 + Math.random() * 400,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.2,
+      color: colors[i]
+    });
+  }
+
+  let bgHue = 0;
+
+  function drawBg(){
+    ctx.clearRect(0, 0, W, H);
+
+    // Hex grid (very faint)
+    ctx.strokeStyle = 'rgba(255,255,255,.015)';
+    ctx.lineWidth = 0.5;
+    const hexSize = 40;
+    const hexH = hexSize * Math.sqrt(3);
+    for(let row = 0; row < H / hexH + 1; row++){
+      for(let col = 0; col < W / (hexSize * 1.5) + 1; col++){
+        const cx = col * hexSize * 1.5;
+        const cy = row * hexH + (col % 2 ? hexH / 2 : 0);
+        ctx.beginPath();
+        for(let s = 0; s < 6; s++){
+          const angle = Math.PI / 3 * s - Math.PI / 6;
+          const px = cx + hexSize * 0.6 * Math.cos(angle);
+          const py = cy + hexSize * 0.6 * Math.sin(angle);
+          s === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.stroke();
+      }
+    }
+
+    // Gradient blobs
+    gradBlobs.forEach(b => {
+      b.x += b.vx; b.y += b.vy;
+      if(b.x < -b.r || b.x > W + b.r) b.vx *= -1;
+      if(b.y < -b.r || b.y > H + b.r) b.vy *= -1;
+      const g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
+      g.addColorStop(0, b.color);
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g;
+      ctx.fillRect(b.x - b.r, b.y - b.r, b.r * 2, b.r * 2);
+    });
+
+    // Particles
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      if(p.x < 0) p.x = W;
+      if(p.x > W) p.x = 0;
+      if(p.y < 0) p.y = H;
+      if(p.y > H) p.y = 0;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${p.a})`;
+      ctx.fill();
+    });
+
+    requestAnimationFrame(drawBg);
+  }
+  drawBg();
+})();
+
+// ========== TOKEN ORB ANIMATION ==========
+let orbAnimationId = null;
+let orbs = [];
+let attackMode = false;
+
+function createOrb(){
+  const conn = document.getElementById('bridgeConn');
+  const orb = document.createElement('div');
+  orb.className = 'token-orb ' + (attackMode ? 'danger' : 'safe');
+  orb.style.left = '0px';
+  orb.style.top = '50%';
+  conn.appendChild(orb);
+  return {
+    el: orb,
+    progress: 0,
+    speed: 0.005 + Math.random() * 0.005,
+    falling: false,
+    vy: 0,
+    leaked: attackMode && Math.random() < 0.4
+  };
+}
+
+function updateOrbs(){
+  const conn = document.getElementById('bridgeConn');
+  const rect = conn.getBoundingClientRect();
+  const w = rect.width;
+  const h = rect.height;
+
+  // Spawn new orbs
+  if(Math.random() < 0.06){
+    orbs.push(createOrb());
+  }
+
+  orbs.forEach((o, i) => {
+    if(o.falling){
+      o.vy += 0.3;
+      const top = parseFloat(o.el.style.top) || 50;
+      o.el.style.top = (top + o.vy) + 'px';
+      if(top > h + 50){
+        o.el.remove();
+        orbs[i] = null;
+      }
+      return;
+    }
+    o.progress += o.speed;
+    // Bezier curve matching SVG: M 0 70 C 100 30, 300 110, 400 70 (in 400x140 viewbox)
+    const t = o.progress;
+    const x = (3*(1-t)*(1-t)*t*(100/400) + 3*(1-t)*t*t*(300/400) + t*t*t) * w;
+    const yNorm = (3*(1-t)*(1-t)*t*(30/140) + 3*(1-t)*t*t*(110/140) + t*t*t*(70/140));
+    const y = ((1-t)*(1-t)*(1-t)*(70/140) + 3*(1-t)*(1-t)*t*(30/140) + 3*(1-t)*t*t*(110/140) + t*t*t*(70/140)) * h;
+
+    o.el.style.left = x + 'px';
+    o.el.style.top = y + 'px';
+
+    if(o.leaked && o.progress > 0.3 + Math.random() * 0.3){
+      o.falling = true;
+      o.vy = 1;
+      o.el.className = 'token-orb danger';
+    }
+
+    if(o.progress >= 1){
+      o.el.remove();
+      orbs[i] = null;
+    }
+  });
+
+  orbs = orbs.filter(o => o !== null);
+  orbAnimationId = requestAnimationFrame(updateOrbs);
+}
+
+// Start orb animation
+orbAnimationId = requestAnimationFrame(updateOrbs);
+
+// ========== RULES CONFIG ==========
+const RULES = [
+  { id: 0, icon: "\u{1f510}", name: "Multi-sig Validators", desc: "3-of-5 validator consensus required", on: true },
+  { id: 1, icon: "\u{1f333}", name: "Merkle Proof Verification", desc: "Cryptographic proof of lock on source chain", on: true },
+  { id: 2, icon: "\u23f1\ufe0f", name: "Rate Limiting", desc: "Maximum $10M per rolling 24hr window", on: true },
+  { id: 3, icon: "\u26d3", name: "Finality Wait", desc: "15 block confirmations before mint", on: true },
+  { id: 4, icon: "\u{1f4ca}", name: "Oracle Price Feed", desc: "Price validated against 3 independent oracles", on: true },
+  { id: 5, icon: "\u{1f504}", name: "Replay Protection", desc: "Unique nonce prevents transaction replay", on: true },
+  { id: 6, icon: "\u{1f6a8}", name: "Emergency Circuit Breaker", desc: "Auto-pause on anomaly detection", on: true },
+  { id: 7, icon: "\u{1f517}", name: "Cross-chain Nonce", desc: "Sequential nonce prevents reorg exploits", on: true }
+];
+
+const PRESETS = {
+  max:      [1,1,1,1,1,1,1,1],
+  standard: [1,1,1,1,1,1,0,0],
+  speed:    [1,1,1,0,0,1,0,0],
+  hacked:   [1,0,1,0,0,0,1,0]
+};
+
+let currentTVL = 120000000;
+let isRunning = false;
+
+// ========== INIT LOCKS ==========
+function buildLocks(){
+  const grid = document.getElementById('locksGrid');
+  grid.innerHTML = '';
+  RULES.forEach((r, i) => {
+    const card = document.createElement('div');
+    card.className = 'lock-card' + (r.on ? ' active' : '');
+    card.id = 'lockCard' + i;
+    card.innerHTML = `<div class="lock-icon">${r.icon}</div><div class="lock-info"><div class="lock-name">${r.name}</div><div class="lock-desc">${r.desc}</div></div><label class="lock-toggle"><input type="checkbox" id="toggle${i}" ${r.on ? 'checked' : ''} onchange="updateLock(${i})"><span class="slider"></span></label>`;
+    grid.appendChild(card);
+  });
+}
+
+function updateLock(i){
+  RULES[i].on = document.getElementById('toggle' + i).checked;
+  const card = document.getElementById('lockCard' + i);
+  card.classList.toggle('active', RULES[i].on);
+}
+
+function applyPreset(name){
+  const p = PRESETS[name];
+  RULES.forEach((r, i) => {
+    r.on = !!p[i];
+    document.getElementById('toggle' + i).checked = r.on;
+    document.getElementById('lockCard' + i).classList.toggle('active', r.on);
+  });
+  resetUI();
+}
+
+function resetUI(){
+  currentTVL = 120000000;
+  attackMode = false;
+  document.getElementById('tvlDisplay').textContent = '$120,000,000';
+  document.getElementById('tvlDisplay').classList.remove('draining');
+  document.getElementById('cubeA').classList.remove('glitching');
+  RULES.forEach((_, i) => document.getElementById('lockCard' + i).classList.remove('cracked','shake'));
+  ['pythonTerm','formalTerm','aiTerm','tauTerm','tauSpec'].forEach(id => document.getElementById(id).textContent = '');
+  ['pythonVerdict','formalVerdict','aiVerdict','tauVerdict'].forEach(id => { const el = document.getElementById(id); el.textContent = ''; el.className = 'col-verdict'; });
+  document.getElementById('compSection').classList.remove('visible');
+  document.getElementById('shareSection').classList.remove('visible');
+  // Reset bridge path
+  document.getElementById('bridgePath').setAttribute('stroke','url(#bridgeGrad)');
+  // Clear leaked orbs
+  orbs.forEach(o => o.el.remove());
+  orbs = [];
+  drawChart([]);
+}
+
+// ========== TVL DISPLAY ==========
+function animateBalance(target, duration){
+  const display = document.getElementById('tvlDisplay');
+  const start = currentTVL;
+  const startTime = performance.now();
+  if(target < start) display.classList.add('draining');
+  function tick(now){
+    const p = Math.min(1, (now - startTime) / duration);
+    const val = Math.round(start + (target - start) * p);
+    display.textContent = '$' + val.toLocaleString();
+    if(p < 1) requestAnimationFrame(tick);
+    else currentTVL = target;
+  }
+  requestAnimationFrame(tick);
+}
+
+// ========== CHART ==========
+function drawChart(attackPoints){
+  const canvas = document.getElementById('chartCanvas');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = 340 * dpr;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = '340px';
+  ctx.scale(dpr, dpr);
+  const W = rect.width, H = 340;
+  const pad = { l: 80, r: 30, t: 20, b: 40 };
+  const pw = W - pad.l - pad.r, ph = H - pad.t - pad.b;
+  const maxTVL = 120000000;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Grid
+  ctx.strokeStyle = 'rgba(255,255,255,.04)';
+  ctx.lineWidth = 1;
+  for(let i = 0; i <= 6; i++){
+    const y = pad.t + (ph / 6) * i;
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + pw, y); ctx.stroke();
+  }
+  for(let d = 0; d <= 30; d += 5){
+    const x = pad.l + (pw / 30) * d;
+    ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, pad.t + ph); ctx.stroke();
+  }
+
+  // Labels
+  ctx.fillStyle = '#64748b';
+  ctx.font = '11px ' + getComputedStyle(document.body).fontFamily;
+  ctx.textAlign = 'right';
+  for(let i = 0; i <= 6; i++){
+    const val = 120 - i * 20;
+    ctx.fillText('$' + val + 'M', pad.l - 8, pad.t + (ph / 6) * i + 4);
+  }
+  ctx.textAlign = 'center';
+  for(let d = 0; d <= 30; d += 5){
+    ctx.fillText('Day ' + d, pad.l + (pw / 30) * d, H - 10);
+  }
+
+  function xPos(day){ return pad.l + (pw / 30) * day; }
+  function yPos(val){ return pad.t + ph * (1 - val / maxTVL); }
+
+  // Green safe line
+  ctx.strokeStyle = 'rgba(34,197,94,.4)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 4]);
+  ctx.beginPath();
+  ctx.moveTo(xPos(0), yPos(maxTVL));
+  ctx.lineTo(xPos(30), yPos(maxTVL));
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  if(attackPoints.length > 0){
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    for(let i = 0; i < attackPoints.length; i++){
+      const pt = attackPoints[i];
+      const x = xPos(pt.day), y = yPos(pt.balance);
+      if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    const grad = ctx.createLinearGradient(xPos(0), 0, xPos(30), 0);
+    grad.addColorStop(0, '#22c55e');
+    grad.addColorStop(0.25, '#22c55e');
+    grad.addColorStop(0.4, '#eab308');
+    grad.addColorStop(0.65, '#ef4444');
+    grad.addColorStop(1, '#ef4444');
+    ctx.strokeStyle = grad;
+    ctx.stroke();
+
+    // Fill under
+    ctx.lineTo(xPos(attackPoints[attackPoints.length - 1].day), yPos(0));
+    ctx.lineTo(xPos(0), yPos(0));
+    ctx.closePath();
+    const fGrad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ph);
+    fGrad.addColorStop(0, 'rgba(239,68,68,.15)');
+    fGrad.addColorStop(1, 'rgba(239,68,68,.01)');
+    ctx.fillStyle = fGrad;
+    ctx.fill();
+
+    // Event markers
+    attackPoints.forEach(pt => {
+      if(!pt.label) return;
+      const x = xPos(pt.day), y = yPos(pt.balance);
+      ctx.beginPath();
+      ctx.arc(x, y, 6, 0, Math.PI * 2);
+      ctx.fillStyle = pt.color || '#ef4444';
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 8px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(pt.step || '', x, y + 3);
+      ctx.fillStyle = pt.color || '#ef4444';
+      ctx.font = '10px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(pt.label, x + 10, y - 4);
+    });
+  }
+}
+
+// ========== TYPEWRITER ==========
+function typeText(el, text, speed){
+  return new Promise(resolve => {
+    let i = 0;
+    el.textContent = '';
+    function tick(){
+      if(i < text.length){
+        const chunk = Math.min(3, text.length - i);
+        el.textContent += text.substring(i, i + chunk);
+        i += chunk;
+        el.scrollTop = el.scrollHeight;
+        setTimeout(tick, speed);
+      } else resolve();
+    }
+    tick();
+  });
+}
+
+// ========== EXPLOIT COMPUTATION ==========
+function getEnabledRules(){ return RULES.filter(r => r.on).map(r => r.id); }
+
+function computeExploit(enabled){
+  const has = id => enabled.includes(id);
+  const ruleCount = enabled.length;
+
+  if(ruleCount <= 1){
+    return { drainable: 120000000, days: 1, difficulty: 'trivial', pythonFinds: true, formalFinds: true, aiFinds: true };
+  }
+  if(ruleCount === 2){
+    return { drainable: 90000000, days: 10, difficulty: 'simple', pythonFinds: true, formalFinds: true, aiFinds: true };
+  }
+  if(ruleCount === 3){
+    return { drainable: 72000000, days: 15, difficulty: 'medium', pythonFinds: false, formalFinds: true, aiFinds: true };
+  }
+  if(ruleCount <= 5){
+    return { drainable: 58000000, days: 14, difficulty: 'hard', pythonFinds: false, formalFinds: false, aiFinds: false };
+  }
+  if(ruleCount <= 7){
+    return { drainable: 52000000, days: 13, difficulty: 'hard', pythonFinds: false, formalFinds: false, aiFinds: false };
+  }
+  // All 8: the full cross-chain reorg exploit
+  return { drainable: 47000000, days: 12, difficulty: 'extreme', pythonFinds: false, formalFinds: false, aiFinds: false };
+}
+
+function buildAttackTimeline(exploit, enabled){
+  const bal = 120000000;
+  const drainable = exploit.drainable;
+  const remaining = bal - drainable;
+  const points = [];
+
+  if(exploit.difficulty === 'trivial'){
+    points.push({ day: 0, balance: bal, label: 'Start', color: '#22c55e' });
+    points.push({ day: 1, balance: remaining, label: 'Bridge drained: -$' + (drainable / 1e6).toFixed(0) + 'M', color: '#ef4444', step: '1' });
+    for(let d = 2; d <= 30; d++) points.push({ day: d, balance: remaining });
+    return points;
+  }
+
+  if(exploit.difficulty === 'extreme'){
+    // Cross-chain reorg exploit over 12 days
+    points.push({ day: 0, balance: 120000000 });
+    points.push({ day: 1, balance: 120000000, label: 'Reorg attack #1', color: '#f59e0b', step: '1' });
+    points.push({ day: 1, balance: 110200000, label: '-$9.8M', color: '#ef4444' });
+    points.push({ day: 2, balance: 110200000 });
+    points.push({ day: 3, balance: 110200000, label: 'Congestion event #2', color: '#f59e0b', step: '2' });
+    points.push({ day: 3, balance: 102000000, label: '-$8.2M', color: '#ef4444' });
+    points.push({ day: 4, balance: 102000000 });
+    points.push({ day: 5, balance: 102000000, label: 'Congestion event #3', color: '#f59e0b', step: '3' });
+    points.push({ day: 5, balance: 92900000, label: '-$9.1M', color: '#ef4444' });
+    points.push({ day: 7, balance: 92900000 });
+    points.push({ day: 8, balance: 92900000, label: 'Congestion event #4', color: '#f59e0b', step: '4' });
+    points.push({ day: 8, balance: 85500000, label: '-$7.4M', color: '#ef4444' });
+    points.push({ day: 10, balance: 85500000 });
+    points.push({ day: 11, balance: 85500000, label: 'Congestion event #5', color: '#f59e0b', step: '5' });
+    points.push({ day: 11, balance: 78600000, label: '-$6.9M', color: '#ef4444' });
+    points.push({ day: 12, balance: 78600000, label: 'Congestion event #6', color: '#f59e0b', step: '6' });
+    points.push({ day: 12, balance: 73000000, label: '-$5.6M TOTAL: $47M', color: '#ef4444' });
+    for(let d = 13; d <= 30; d++) points.push({ day: d, balance: 73000000 });
+    return points;
+  }
+
+  // Generic intermediate
+  points.push({ day: 0, balance: bal });
+  const stepDays = Math.max(1, Math.floor(exploit.days / 4));
+  const stepAmount = drainable / 4;
+  for(let s = 1; s <= 4; s++){
+    const d = Math.min(30, s * stepDays);
+    const b = Math.max(remaining, bal - stepAmount * s);
+    points.push({ day: d, balance: Math.round(b), label: s === 4 ? 'Drained: $' + (drainable / 1e6).toFixed(0) + 'M' : '', color: '#ef4444', step: s === 4 ? String(s) : '' });
+  }
+  for(let d = exploit.days + 1; d <= 30; d++) points.push({ day: d, balance: remaining });
+  return points;
+}
+
+// ========== RUN ATTACK ==========
+async function runAttack(){
+  if(isRunning) return;
+  isRunning = true;
+  const btn = document.getElementById('attackBtn');
+  btn.disabled = true;
+  btn.textContent = 'SIMULATING...';
+  resetUI();
+  await new Promise(r => setTimeout(r, 200));
+
+  const enabled = getEnabledRules();
+  const exploit = computeExploit(enabled);
+
+  const p1 = runPython(enabled, exploit);
+  const p2 = runFormal(enabled, exploit);
+  const p3 = runAI(enabled, exploit);
+  const p4 = runTau(enabled, exploit);
+
+  await Promise.all([p1, p2, p3, p4]);
+
+  document.getElementById('compSection').classList.add('visible');
+  updateComparison(exploit, enabled);
+
+  await new Promise(r => setTimeout(r, 400));
+  document.getElementById('shareSection').classList.add('visible');
+  document.getElementById('shareAmount').textContent = '$' + (exploit.drainable / 1e6).toFixed(0) + 'M drained across chains in ' + exploit.days + ' days';
+
+  btn.disabled = false;
+  btn.textContent = '\u25b6 ATTACK SIMULATION';
+  isRunning = false;
+}
+
+// ========== PYTHON COLUMN ==========
+async function runPython(enabled, exploit){
+  const el = document.getElementById('pythonTerm');
+  const ruleCount = enabled.length;
+  const has = id => enabled.includes(id);
+
+  let text = `Cross-Chain Bridge Simulator v3.2
+\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501
+
+Simulating 20,000 bridge transactions...
+
+Transaction types:
+  Lock & Mint: 8,400 (random amounts)
+  Burn & Release: 7,200 (random amounts)
+  Reorg scenarios: 2,400 (forced reorgs)
+  Double-spend attempts: 2,000
+
+`;
+
+  if(has(0)) text += `Testing Multi-sig Validation...
+  \u2713 All 8,400 lock-mints require 3/5 consensus\n\n`;
+  if(has(1)) text += `Testing Merkle Proof Verification...
+  \u2713 All lock proofs cryptographically valid\n\n`;
+  if(has(2)) text += `Testing Rate Limits...
+  \u2713 All transactions within $10M/24hr window\n\n`;
+  if(has(3)) text += `Testing Finality Wait...
+  \u2713 15 block confirmations enforced\n\n`;
+  if(has(5)) text += `Testing Replay Protection...
+  \u2713 0/2,000 replays succeeded\n\n`;
+
+  text += `Testing Lock-Mint Conservation...
+  \u2713 All 20,000: locked_A == minted_B
+
+Testing Reorg Handling...
+  \u2713 2,400/2,400 reorgs detected & reverted
+
+`;
+
+  if(exploit.pythonFinds){
+    if(exploit.difficulty === 'trivial'){
+      text += `RESULT: VULNERABILITY FOUND \u2717
+Insufficient protection (only ${ruleCount} rule${ruleCount !== 1 ? 's' : ''}).
+Bridge can be drained in a single transaction.
+
+Estimated damage: $${(exploit.drainable/1e6).toFixed(0)}M drainable`;
+    } else {
+      text += `RESULT: 0/20,000 transactions exploitable
+Found: repeated transactions under rate limit
+can drain $${(exploit.drainable/1e6).toFixed(0)}M over ${exploit.days} days.
+
+VERDICT: PARTIAL VULNERABILITY FOUND \u2717`;
+    }
+  } else {
+    text += `RESULT: 0/20,000 transactions exploitable
+VERDICT: BRIDGE SECURE \u2713
+
+\u26a0 Note: Each transaction tested INDEPENDENTLY.
+Cross-chain timing attacks not simulated
+(would require modeling both chain states
+simultaneously across ${exploit.days}+ day windows).`;
+  }
+
+  await typeText(el, text, 4);
+
+  const v = document.getElementById('pythonVerdict');
+  if(exploit.pythonFinds){
+    v.textContent = exploit.difficulty === 'trivial' ? '\u2717 VULNERABILITY FOUND' : '\u26a0 PARTIAL VULNERABILITY';
+    v.className = 'col-verdict verdict-fail';
+  } else {
+    v.textContent = '\u2713 ALL 20,000 TRANSACTIONS SECURE';
+    v.className = 'col-verdict verdict-pass';
+  }
+}
+
+// ========== FORMAL COLUMN ==========
+async function runFormal(enabled, exploit){
+  const el = document.getElementById('formalTerm');
+  const has = id => enabled.includes(id);
+
+  let text = `Model Checker: NuSMV v2.7
+Specification: CTL over bridge state machine
+\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501
+
+Chain A Model: 847 states
+Chain B Model: 1,203 states
+
+`;
+
+  const propNames = [
+    'AG(validators_consensus >= 3_of_5)',
+    'AG(merkle_proof_valid(lock_tx))',
+    'AG(rate <= limit_per_day)',
+    'AG(finality_depth >= 15)',
+    'AG(price_deviation < 1%)',
+    'AG(nonce_monotonic_increasing)',
+    'AG(anomaly -> pause_within_1_block)',
+    'AG(cross_nonce_sequential)'
+  ];
+  const propLabels = [
+    'Multi-sig consensus','Merkle proof validity','Rate limiting',
+    'Finality depth','Oracle price feed','Replay protection',
+    'Circuit breaker','Cross-chain nonce'
+  ];
+
+  enabled.forEach((id, i) => {
+    const times = ['0.2','0.3','0.1','0.4','0.2','0.1','0.3','0.2'];
+    text += `Checking P${i+1}: ${propNames[id]}
+  ${propLabels[id]}: exploring... VERIFIED \u2713 (${times[id]}s)\n\n`;
+  });
+
+  if(enabled.length === 0){
+    text += `No properties to verify.
+WARNING: Bridge has no protection.\n`;
+  } else if(exploit.formalFinds){
+    if(exploit.difficulty === 'trivial'){
+      text += `RESULT: INSUFFICIENT PROTECTION \u2717
+Too few constraints to ensure safety.`;
+    } else {
+      text += `Cross-property check (depth 2)...
+FOUND: Repeated bridge operations under rate limit
+can drain TVL over ${exploit.days} days.
+
+RESULT: TEMPORAL VULNERABILITY DETECTED \u2717`;
+    }
+  } else {
+    text += `[... all ${enabled.length} properties verified individually ...]
+
+Checking CROSS-CHAIN COMPOSITION:
+  AG(locked_A >= minted_B) \u2227 async_finality \u2227
+  reorg_possible(chain_A, depth=15)
+
+  Composing Chain A \u2297 Chain B state spaces...
+  Combined states: 847 \u00d7 1,203 \u00d7 15\u00b2 \u00d7 30 days
+  = 6.9 \u00d7 10\u00b9\u2075 states
+
+  \u26a0 STATE EXPLOSION at 10\u2079 states
+  \u26a0 Required memory: 847 PB
+  \u26a0 Aborting \u2014 would take 2,400 years
+
+RESULT: ${enabled.length}/${enabled.length} per-chain properties VERIFIED
+        Cross-chain composition: IMPOSSIBLE`;
+  }
+
+  await new Promise(r => setTimeout(r, 600));
+  await typeText(el, text, 4);
+
+  const v = document.getElementById('formalVerdict');
+  if(exploit.formalFinds){
+    v.textContent = '\u2717 VULNERABILITY DETECTED';
+    v.className = 'col-verdict verdict-fail';
+  } else if(enabled.length >= 5){
+    v.textContent = '\u2713 PER-CHAIN SECURE (composition unverifiable)';
+    v.className = 'col-verdict verdict-warn';
+  } else {
+    v.textContent = `\u2713 ${enabled.length}/${enabled.length} PROPERTIES VERIFIED`;
+    v.className = 'col-verdict verdict-pass';
+  }
+}
+
+// ========== AI COLUMN ==========
+async function runAI(enabled, exploit){
+  const el = document.getElementById('aiTerm');
+  const has = id => enabled.includes(id);
+
+  let text = `AI Security Auditor v4.1
+Model: GPT-4 + Fine-tuned on 12,847 exploits
+\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501
+
+Analyzing bridge architecture...
+
+Pattern matching against known exploits:
+`;
+
+  if(has(0)) text += `  \u2713 Ronin (validator compromise)  \u2014 mitigated by multi-sig\n`;
+  if(has(1)) text += `  \u2713 Wormhole (signature bypass)   \u2014 mitigated by Merkle proof\n`;
+  if(has(1)) text += `  \u2713 Nomad (Merkle root exploit)   \u2014 mitigated by verification\n`;
+  if(has(0)) text += `  \u2713 Harmony (key management)      \u2014 mitigated by 3-of-5\n`;
+  if(has(0) || has(2)) text += `  \u2713 Poly Network (access control) \u2014 mitigated by governance\n`;
+
+  text += `\nChecking DeFi composability risks...\n`;
+  text += `  \u2713 Flash loan: not applicable (cross-chain)\n`;
+  if(has(2)) text += `  \u2713 MEV: mitigated by rate limiting\n`;
+  if(has(4)) text += `  \u2713 Oracle manipulation: 3-oracle median\n`;
+
+  text += `\n`;
+
+  if(exploit.aiFinds){
+    if(exploit.difficulty === 'trivial'){
+      text += `Architecture Assessment:
+WARNING: Only ${enabled.length} security rule${enabled.length!==1?'s':''} active.
+Insufficient protection for $120M TVL bridge.
+Multiple known attack vectors available.
+
+Risk Assessment: CRITICAL
+Confidence: 97%
+Known vulnerabilities matched: ${enabled.length < 2 ? 5 : 3}
+
+VERDICT: CRITICAL VULNERABILITIES DETECTED \u2717`;
+    } else {
+      text += `Architecture Assessment:
+Basic bridge security with ${enabled.length} layers, but
+missing critical protections. Known patterns
+(e.g., validator compromise) partially mitigated.
+
+Risk Assessment: MODERATE
+Confidence: 84%
+
+VERDICT: KNOWN RISKS DETECTED \u26a0`;
+    }
+  } else {
+    text += `Architecture Assessment:
+Defense-in-depth bridge with ${enabled.length} protection layers.
+All known bridge exploits are mitigated:
+  Ronin, Wormhole, Nomad, Harmony, Poly Network
+
+Risk Assessment: LOW
+Confidence: 91%
+Known vulnerabilities matched: 0
+
+VERDICT: NO KNOWN ATTACK VECTORS DETECTED \u2713`;
+  }
+
+  await new Promise(r => setTimeout(r, 300));
+  await typeText(el, text, 4);
+
+  const v = document.getElementById('aiVerdict');
+  if(exploit.aiFinds){
+    v.textContent = exploit.difficulty === 'trivial' ? '\u2717 CRITICAL VULNERABILITIES' : '\u26a0 KNOWN RISKS (84% confidence)';
+    v.className = 'col-verdict verdict-fail';
+  } else {
+    v.textContent = '\u2713 NO KNOWN PATTERNS (91% confidence)';
+    v.className = 'col-verdict verdict-pass';
+  }
+}
+
+// ========== TAU COLUMN ==========
+async function runTau(enabled, exploit){
+  const specEl = document.getElementById('tauSpec');
+  const termEl = document.getElementById('tauTerm');
+  const has = id => enabled.includes(id);
+
+  // Write spec
+  const spec = `// Tau Cross-Chain Bridge Specification
+// Temporal + Cross-System Verification
+
+\u2200 t \u2208 Time, \u2200 tx \u2208 Transactions:
+
+  // Conservation across BOTH chains simultaneously
+  always(sum(locked_A[0..t]) >= sum(minted_B[0..t]))
+
+  // Finality is PROBABILISTIC, not absolute
+  // Chain A can reorg within depth d with probability p(d)
+  exists d <= 15: reorg(chain_A, block=t, depth=d)
+    \u2192 minted_B[t-d..t] may reference invalid locks
+
+  // Rate limiter scope mismatch
+  rate_limit checks ONLY chain_B mint rate
+  rate_limit does NOT check chain_A lock validity at mint time
+
+  // Temporal attack window
+  when congestion(chain_A) > threshold:
+    reorg_probability(depth=12) > 0.3%
+    AND finality_wait(15 blocks) \u2248 finality_wait(12 blocks + reorg)
+    \u2192 mint_before_finality POSSIBLE`;
+  specEl.textContent = spec;
+
+  await new Promise(r => setTimeout(r, 1500));
+
+  let trace = `Tau Temporal Verifier v0.7
+Cross-chain composition with real-time semantics
+\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501
+
+Building cross-chain temporal model...
+  Chain A: 847 states (BDD: 94 nodes)
+  Chain B: 1,203 states (BDD: 127 nodes)
+  Cross-product (BDD): 1,847 nodes
+  (vs explicit: 6.9 \u00d7 10\u00b9\u2075 states)
+
+Checking temporal conservation...
+
+`;
+
+  if(exploit.difficulty === 'extreme'){
+    trace += `Invariants 1-8: HOLD individually \u2713
+Cross-chain temporal composition: analyzing...
+
+`;
+    await typeText(termEl, trace, 4);
+
+    // The dramatic reveal
+    const exploitTrace = `\u26a0 COUNTEREXAMPLE FOUND at block 847:
+\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501
+
+THE CROSS-CHAIN REORG EXPLOIT
+
+Day 1: Attacker locks $9.8M on Chain A (under rate limit)
+       \u2192 Chain B mints $9.8M (valid)
+
+Day 1 + 45s: Chain A experiences congestion
+             Block 847 reorganizes (depth: 12)
+             Lock transaction INVALIDATED on Chain A
+
+Day 1 + 47s: Chain B rate limiter checks Chain B state
+             $9.8M mint is within $10M daily limit \u2713
+             Chain B does NOT know about Chain A reorg
+
+RESULT: $9.8M exists on Chain B,
+        backed by NOTHING on Chain A
+
+WHY EACH RULE FAILS TO CATCH THIS:
+  \u2713 Multi-sig: Lock was signed by 3/5 validators
+  \u2713 Merkle proof: Proof was valid BEFORE reorg
+  \u2713 Rate limit: $9.8M < $10M daily limit
+  \u2713 Finality: 15 blocks passed, then reorg at 12
+  \u2713 Oracle: Prices were correct
+  \u2713 Replay: Unique nonce used
+  \u2713 Circuit breaker: No anomaly detected
+  \u2713 Cross-nonce: Sequential nonce valid
+
+Every rule passes. The lock is still invalid.
+
+Repeating during congestion windows over 12 days:
+  Day 1:  +$9.8M (congestion event #1)
+  Day 3:  +$8.2M (congestion event #2)
+  Day 5:  +$9.1M (congestion event #3)
+  Day 8:  +$7.4M (congestion event #4)
+  Day 11: +$6.9M (congestion event #5)
+  Day 12: +$5.6M (congestion event #6)
+
+TOTAL DRAINED: $47,000,000
+
+\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501
+
+ROOT CAUSE: Rate limiter is CHAIN-LOCAL
+  The conservation property holds on EACH chain
+  It fails ACROSS chains in the async gap
+
+The key insight:
+1. Chain A's finality is PROBABILISTIC
+   (reorgs happen during congestion)
+2. Chain B's rate limiter only sees Chain B
+   (does not re-verify Chain A state)
+3. The 15-block finality wait is sufficient
+   for NORMAL conditions
+4. During congestion, reorg probability at
+   depth 12 rises to >0.3%
+5. Each attack is timed to congestion windows
+   when reorg probability peaks
+
+This is not a bug in any single contract.
+Both contracts are CORRECT on their own chain.
+The exploit exists ONLY in the temporal gap
+between the two chains.
+
+WHY ONLY TAU FINDS THIS:
+\u2022 Python tested each tx independently \u2014
+  never modeled cross-chain async state
+\u2022 NuSMV verified per-chain properties \u2014
+  state explosion prevents composition
+\u2022 AI matched against known bridge exploits \u2014
+  this timing attack is NOVEL
+\u2022 Tau's temporal model verifies ACROSS chains
+  and ACROSS time simultaneously using BDD
+  compression (1,847 nodes vs 6.9\u00d710\u00b9\u2075)
+
+VERDICT: BRIDGE CAN BE DRAINED \u2717
+$47M (39%) extractable in 12 days
+via cross-chain reorg timing exploit`;
+
+    const timeline = buildAttackTimeline(exploit, enabled);
+    const totalChars = exploitTrace.length;
+    const termText = termEl.textContent;
+
+    // Crack schedule: which locks crack at what progress
+    const crackSchedule = [
+      { frac: 0.15, lockId: 3 }, // finality cracked
+      { frac: 0.25, lockId: 2 }, // rate limit cracked
+      { frac: 0.55, lockId: 7 }, // cross-nonce cracked
+    ];
+    let crackIdx = 0;
+    let chartAnimStep = 0;
+
+    await new Promise(resolve => {
+      let i = 0;
+      function tick(){
+        if(i < exploitTrace.length){
+          const chunk = Math.min(2, exploitTrace.length - i);
+          termEl.textContent = termText + exploitTrace.substring(0, i + chunk);
+          termEl.scrollTop = termEl.scrollHeight;
+          i += chunk;
+          const frac = i / totalChars;
+
+          // Enable attack mode orbs
+          if(frac > 0.15 && !attackMode){
+            attackMode = true;
+            document.getElementById('bridgePath').setAttribute('stroke','url(#bridgeGradWarn)');
+          }
+
+          // Glitch Chain A cube during reorg section
+          if(frac > 0.08 && frac < 0.15){
+            document.getElementById('cubeA').classList.add('glitching');
+          } else {
+            document.getElementById('cubeA').classList.remove('glitching');
+          }
+          // Re-glitch at each congestion event
+          if((frac > 0.55 && frac < 0.58) || (frac > 0.60 && frac < 0.63)){
+            document.getElementById('cubeA').classList.add('glitching');
+          }
+
+          // Crack locks
+          if(crackIdx < crackSchedule.length && frac >= crackSchedule[crackIdx].frac){
+            const lockId = crackSchedule[crackIdx].lockId;
+            const card = document.getElementById('lockCard' + lockId);
+            card.classList.add('cracked', 'shake');
+            crackIdx++;
+          }
+
+          // Animate chart progressively
+          const targetPts = Math.floor(frac * timeline.length);
+          if(targetPts > chartAnimStep && targetPts <= timeline.length){
+            chartAnimStep = targetPts;
+            drawChart(timeline.slice(0, chartAnimStep));
+            if(chartAnimStep > 0){
+              const lastPt = timeline[chartAnimStep - 1];
+              animateBalance(lastPt.balance, 300);
+            }
+          }
+
+          setTimeout(tick, 8);
+        } else {
+          drawChart(timeline);
+          animateBalance(120000000 - exploit.drainable, 800);
+          document.getElementById('cubeA').classList.remove('glitching');
+          resolve();
+        }
+      }
+      tick();
+    });
+
+  } else {
+    // Non-extreme exploits
+    const drainedM = (exploit.drainable / 1e6).toFixed(1);
+
+    if(exploit.difficulty === 'trivial'){
+      trace += `  All invariants: FAIL \u2717
+  Insufficient rules to verify.
+
+\u2717 CRITICAL: Bridge has no meaningful protection.
+  Direct drain attack succeeds immediately.
+
+VERDICT: BRIDGE CAN BE DRAINED \u2717
+$${drainedM}M (${Math.round(exploit.drainable/1200000)}%) extractable in ${exploit.days} day(s)`;
+    } else if(exploit.difficulty === 'simple'){
+      trace += `  Invariants hold individually \u2713
+
+Exploit chain detection: analyzing sequences...
+
+\u2717 EXPLOIT FOUND
+Repeated bridge operations under rate limit:
+  \u2192 Lock-mint cycles exploit missing protections
+  \u2192 Each transaction individually valid
+  \u2192 Cumulative drain: $${drainedM}M over ${exploit.days} days
+
+VERDICT: BRIDGE CAN BE DRAINED \u2717
+$${drainedM}M extractable in ${exploit.days} days`;
+    } else {
+      trace += `  Invariants 1-${enabled.length}: HOLD individually \u2713
+
+Exploit chain detection: analyzing ALL sequences
+of valid actions across 30 days...
+
+\u2717 CROSS-CHAIN EXPLOIT FOUND
+Multi-step attack combining ${enabled.length} rule interactions:
+  \u2192 Cross-chain timing gaps exploitable
+  \u2192 Missing rules create exploitable windows
+  \u2192 Sequential valid actions drain bridge
+
+VERDICT: BRIDGE CAN BE DRAINED \u2717
+$${drainedM}M extractable in ${exploit.days} days`;
+    }
+
+    await typeText(termEl, trace, 6);
+
+    const timeline = buildAttackTimeline(exploit, enabled);
+    drawChart(timeline);
+    animateBalance(120000000 - exploit.drainable, 1200);
+    attackMode = true;
+  }
+
+  const v = document.getElementById('tauVerdict');
+  v.textContent = `\u2717 CROSS-CHAIN EXPLOIT: $${(exploit.drainable/1e6).toFixed(0)}M DRAINED`;
+  v.className = 'col-verdict verdict-gold';
+}
+
+// ========== COMPARISON ==========
+function updateComparison(exploit, enabled){
+  const drainedM = (exploit.drainable / 1e6).toFixed(0);
+
+  if(exploit.pythonFinds){
+    document.getElementById('compPythonResult').textContent = exploit.difficulty === 'trivial' ? 'VULNERABILITY FOUND' : 'PARTIAL FINDING';
+    document.getElementById('compPythonResult').style.color = 'var(--red)';
+    document.getElementById('compPythonExplain').textContent = exploit.difficulty === 'trivial'
+      ? 'Even single-step attacks succeed with so few rules. Python easily finds the vulnerability.'
+      : 'Found basic repeated transaction pattern but missed the cross-chain reorg timing attack.';
+  } else {
+    document.getElementById('compPythonResult').textContent = '20,000/20,000 SECURE';
+    document.getElementById('compPythonResult').style.color = 'var(--green)';
+    document.getElementById('compPythonExplain').textContent = 'Simulated 20,000 bridge transactions. Each individually valid. Never tested cross-chain reorg timing attacks across multiple congestion windows.';
+  }
+
+  if(exploit.formalFinds){
+    document.getElementById('compFormalResult').textContent = 'VULNERABILITY DETECTED';
+    document.getElementById('compFormalResult').style.color = 'var(--red)';
+    document.getElementById('compFormalExplain').textContent = 'With fewer rules, the state space is small enough for model checking to find violations.';
+  } else {
+    document.getElementById('compFormalResult').textContent = enabled.length + '/' + enabled.length + ' PROPERTIES HOLD';
+    document.getElementById('compFormalResult').style.color = 'var(--cyan)';
+    document.getElementById('compFormalExplain').textContent = 'Verified each chain\'s properties independently. Cross-chain composition causes state explosion at 10^15 states. Per-chain secure, composition unverifiable.';
+  }
+
+  if(exploit.aiFinds){
+    document.getElementById('compAIResult').textContent = exploit.difficulty === 'trivial' ? 'CRITICAL RISK' : 'KNOWN RISKS FOUND';
+    document.getElementById('compAIResult').style.color = 'var(--red)';
+    document.getElementById('compAIExplain').textContent = exploit.difficulty === 'trivial'
+      ? 'AI pattern matching catches the obvious lack of security with so few protection layers.'
+      : 'Found known patterns but missed the novel cross-chain timing attack not in training data.';
+  } else {
+    document.getElementById('compAIResult').textContent = 'NO KNOWN PATTERNS';
+    document.getElementById('compAIResult').style.color = 'var(--green)';
+    document.getElementById('compAIExplain').textContent = 'Matched against Ronin, Wormhole, Nomad, Harmony, Poly Network exploits. All mitigated. Novel cross-chain reorg timing attack not in training data.';
+  }
+
+  document.getElementById('compTauResult').textContent = '$' + drainedM + 'M DRAINED';
+  document.getElementById('compTauExplain').textContent = 'Verified cross-chain temporal composition using BDD compression. Found reorg-timing exploit in async gap between chains. Rate limiter is chain-local; conservation fails across the bridge.';
+}
+
+// ========== INIT ==========
+buildLocks();
+drawChart([]);
+window.addEventListener('resize', () => drawChart([]));
+</script>
+</body>
+</html>

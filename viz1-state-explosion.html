@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>State Space Explosion — Tau Language Visualization</title>
+<style>
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #0a0a0f;
+    color: #e2e8f0;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* ============================================================
+   CANVAS
+   ============================================================ */
+#bgCanvas, #graphCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+#bgCanvas { z-index: 0; }
+#graphCanvas { z-index: 1; pointer-events: auto; }
+
+/* ============================================================
+   OVERLAY CONTAINER
+   ============================================================ */
+#overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 10;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+}
+
+#overlay > * {
+    pointer-events: auto;
+}
+
+/* ============================================================
+   GLASSMORPHIC PANELS
+   ============================================================ */
+.glass {
+    background: rgba(15, 15, 30, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+#header {
+    text-align: center;
+    padding: 18px 24px 12px;
+    pointer-events: none;
+    flex-shrink: 0;
+}
+
+#header h1 {
+    font-size: clamp(1.3rem, 3.5vw, 2.2rem);
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    background: linear-gradient(135deg, #ffffff 0%, #ffd700 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.3));
+    line-height: 1.2;
+}
+
+#header .subtitle {
+    font-size: clamp(0.75rem, 1.8vw, 1rem);
+    color: #94a3b8;
+    margin-top: 4px;
+    font-weight: 400;
+}
+
+#header .badge {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 3px 14px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: #ffd700;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 20px;
+    background: rgba(255, 215, 0, 0.06);
+}
+
+/* ============================================================
+   SIDE PANELS
+   ============================================================ */
+#panels {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 8px 12px;
+    pointer-events: none;
+    min-height: 0;
+    overflow: hidden;
+}
+
+#panels > .glass {
+    pointer-events: auto;
+    max-height: calc(100vh - 220px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
+
+.panel-left {
+    width: clamp(200px, 22vw, 300px);
+    padding: 16px;
+    flex-shrink: 0;
+}
+
+.panel-right {
+    width: clamp(200px, 22vw, 300px);
+    padding: 16px;
+    flex-shrink: 0;
+}
+
+.panel-title {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin-bottom: 12px;
+}
+
+/* Rules list */
+.rule-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 6px 0;
+    opacity: 0.3;
+    transition: opacity 0.5s, transform 0.3s;
+    transform: translateX(-8px);
+}
+
+.rule-item.active {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.rule-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #334155;
+    margin-top: 5px;
+    flex-shrink: 0;
+    transition: background 0.5s, box-shadow 0.5s;
+}
+
+.rule-item.active .rule-dot {
+    background: #00ff88;
+    box-shadow: 0 0 8px #00ff88;
+}
+
+.rule-name {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #e2e8f0;
+}
+
+.rule-desc {
+    font-size: 0.65rem;
+    color: #64748b;
+    line-height: 1.3;
+}
+
+/* Right panel stats */
+.stat-block {
+    margin-bottom: 14px;
+}
+
+.stat-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 2px;
+}
+
+.stat-value {
+    font-family: 'Courier New', 'Consolas', monospace;
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    font-weight: 700;
+    color: #e2e8f0;
+    line-height: 1.1;
+    transition: color 0.5s;
+    word-break: break-all;
+}
+
+.stat-value.danger { color: #ff3344; }
+.stat-value.gold { color: #ffd700; }
+.stat-value.green { color: #00ff88; }
+
+.stat-sub {
+    font-size: 0.7rem;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+/* Progress bars */
+.progress-wrap {
+    margin-bottom: 14px;
+}
+
+.progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.65rem;
+    color: #94a3b8;
+    margin-bottom: 4px;
+}
+
+.progress-bar {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1s ease;
+    position: relative;
+}
+
+.progress-fill.red {
+    background: linear-gradient(90deg, #ff3344, #ff6644);
+    box-shadow: 0 0 10px rgba(255, 51, 68, 0.5);
+}
+
+.progress-fill.gold {
+    background: linear-gradient(90deg, #ffd700, #ffaa00);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.progress-fill.green {
+    background: linear-gradient(90deg, #00ff88, #00cc66);
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+}
+
+/* ============================================================
+   BOTTOM CONTROLS
+   ============================================================ */
+#controls {
+    padding: 10px 16px 14px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+    flex-shrink: 0;
+}
+
+#controls > * {
+    pointer-events: auto;
+}
+
+/* Buttons */
+.btn {
+    padding: 10px 24px;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary {
+    background: transparent;
+    color: #00aaff;
+    border: 2px solid #00aaff;
+    box-shadow: 0 0 15px rgba(0, 170, 255, 0.2), inset 0 0 15px rgba(0, 170, 255, 0.05);
+    animation: pulseBorder 2s ease-in-out infinite;
+}
+
+.btn-primary:hover {
+    background: rgba(0, 170, 255, 0.15);
+    box-shadow: 0 0 30px rgba(0, 170, 255, 0.4), inset 0 0 20px rgba(0, 170, 255, 0.1);
+    transform: translateY(-1px);
+}
+
+.btn-primary:active {
+    transform: translateY(1px);
+}
+
+.btn-primary:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    animation: none;
+}
+
+.btn-gold {
+    background: transparent;
+    color: #ffd700;
+    border: 2px solid #ffd700;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.2), inset 0 0 15px rgba(255, 215, 0, 0.05);
+    animation: pulseGold 1.5s ease-in-out infinite;
+    display: none;
+}
+
+.btn-gold.visible {
+    display: inline-block;
+}
+
+.btn-gold:hover {
+    background: rgba(255, 215, 0, 0.15);
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.4), inset 0 0 20px rgba(255, 215, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.btn-preset {
+    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.04);
+    color: #94a3b8;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-preset:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #e2e8f0;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-preset:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.btn-reset {
+    padding: 6px 14px;
+    background: transparent;
+    color: #475569;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-reset:hover {
+    color: #94a3b8;
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes pulseBorder {
+    0%, 100% { box-shadow: 0 0 15px rgba(0, 170, 255, 0.2), inset 0 0 15px rgba(0, 170, 255, 0.05); }
+    50% { box-shadow: 0 0 25px rgba(0, 170, 255, 0.35), inset 0 0 20px rgba(0, 170, 255, 0.1); }
+}
+
+@keyframes pulseGold {
+    0%, 100% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.2), inset 0 0 15px rgba(255, 215, 0, 0.05); }
+    50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.45), inset 0 0 25px rgba(255, 215, 0, 0.12); }
+}
+
+/* Flash overlay */
+#flashOverlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 100;
+    pointer-events: none;
+    background: #ffd700;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+#flashOverlay.active {
+    opacity: 0.3;
+}
+
+/* ============================================================
+   MOBILE RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+    .panel-left, .panel-right {
+        width: clamp(140px, 38vw, 200px);
+        padding: 10px;
+    }
+
+    .rule-name { font-size: 0.68rem; }
+    .rule-desc { font-size: 0.58rem; }
+    .stat-value { font-size: 1rem; }
+
+    #controls { gap: 6px; }
+    .btn { padding: 8px 16px; font-size: 0.75rem; }
+    .btn-preset { font-size: 0.6rem; padding: 5px 10px; }
+
+    #header h1 { font-size: 1.1rem; }
+    #header .subtitle { font-size: 0.7rem; }
+}
+
+@media (max-width: 500px) {
+    .panel-left, .panel-right {
+        width: clamp(110px, 42vw, 170px);
+        padding: 8px;
+    }
+
+    .rule-desc { display: none; }
+    #header { padding: 10px 12px 6px; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+<canvas id="graphCanvas"></canvas>
+<div id="flashOverlay"></div>
+
+<div id="overlay">
+    <!-- HEADER -->
+    <div id="header">
+        <h1>SEE WHY EVERY OTHER METHOD BREAKS</h1>
+        <div class="subtitle">Watch the state space explode. Then watch Tau compress it.</div>
+        <div class="badge">Tau Language v0.7 &nbsp;|&nbsp; tau.net</div>
+    </div>
+
+    <!-- SIDE PANELS -->
+    <div id="panels">
+        <!-- LEFT: RULES -->
+        <div class="glass panel-left">
+            <div class="panel-title">Rules Added: <span id="ruleCount">0</span> / 12</div>
+            <div id="rulesList"></div>
+        </div>
+
+        <!-- RIGHT: STATS -->
+        <div class="glass panel-right">
+            <div class="panel-title">State Space</div>
+
+            <div class="stat-block">
+                <div class="stat-label">Explicit States</div>
+                <div class="stat-value" id="stateCount">2</div>
+            </div>
+
+            <div class="stat-block">
+                <div class="stat-label">Memory Required</div>
+                <div class="stat-value" id="memoryReq">64 B</div>
+            </div>
+
+            <div class="stat-block" id="bddBlock" style="display:none;">
+                <div class="stat-label">BDD Nodes (Tau)</div>
+                <div class="stat-value gold" id="bddCount">--</div>
+            </div>
+
+            <div class="progress-wrap">
+                <div class="progress-label">
+                    <span>Formal Verification</span>
+                    <span id="fvEta">Ready</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill red" id="fvBar" style="width:0%"></div>
+                </div>
+            </div>
+
+            <div class="progress-wrap" id="tauProgressWrap" style="display:none;">
+                <div class="progress-label">
+                    <span>Tau Verification</span>
+                    <span id="tauEta">--</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill gold" id="tauBar" style="width:0%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div id="controls">
+        <button class="btn btn-primary" id="btnAdd" onclick="addNextRule()">ADD RULE</button>
+        <button class="btn btn-gold" id="btnCompress" onclick="activateCompression()">ACTIVATE TAU COMPRESSION</button>
+        <div style="width:100%; display:flex; justify-content:center; gap:6px; flex-wrap:wrap;">
+            <button class="btn btn-preset" onclick="runPreset(8)">DeFi Protocol (8)</button>
+            <button class="btn btn-preset" onclick="runPreset(10)">Nuclear Safety (10)</button>
+            <button class="btn btn-preset" onclick="runPreset(12)">Drone Swarm (12)</button>
+            <button class="btn btn-reset" onclick="resetAll()">RESET</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIGURATION
+// ============================================================
+const RULES = [
+    { name: "Balance Check", desc: "balance >= 0 at all times", multiplier: 2, base: true },
+    { name: "Rate Limit", desc: "max $10M per day", multiplier: 2 },
+    { name: "Multi-sig", desc: "3-of-5 approval required", multiplier: 10 },
+    { name: "Timelock", desc: "24hr delay on large transfers", multiplier: 24 },
+    { name: "Governance Vote", desc: "community approval for >$5M", multiplier: 100 },
+    { name: "Oracle Price Feed", desc: "price within 5% of median", multiplier: 50 },
+    { name: "Cross-chain Verification", desc: "bridged assets verified", multiplier: 200 },
+    { name: "Emergency Circuit Breaker", desc: "auto-pause on anomaly", multiplier: 10 },
+    { name: "Regulatory Compliance", desc: "KYC/AML checks", multiplier: 30 },
+    { name: "Temporal Consistency", desc: "no conflicting transitions", multiplier: -1 },  // special: *current
+    { name: "Interaction Effects", desc: "rule cross-products", multiplier: -2 },          // special: ^2
+    { name: "Time Horizon", desc: "30-day verification window", multiplier: 30 }
+];
+
+// Color palette
+const COL = {
+    bg: '#0a0a0f',
+    nodeLow: [0, 170, 255],    // #00aaff
+    nodeMid: [170, 68, 255],   // #aa44ff
+    nodeHigh: [255, 51, 68],   // #ff3344
+    bddNode: [255, 215, 0],    // #ffd700
+    bddEdge: [0, 255, 204],    // #00ffcc
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let rulesAdded = 0;
+let stateSpaceExact = 2;      // BigInt-like tracking via number (switch to string for huge)
+let stateSpaceLog = Math.log10(2); // track log10 for display
+let isCompressed = false;
+let isCompressing = false;
+let presetRunning = false;
+let mouseX = -1000, mouseY = -1000;
+let canvasW, canvasH;
+let graphCenterX, graphCenterY;
+let animTime = 0;
+let bgTint = [0, 0, 0]; // additional tint applied to bg
+
+// ============================================================
+// CANVAS SETUP
+// ============================================================
+const bgCanvas = document.getElementById('bgCanvas');
+const bgCtx = bgCanvas.getContext('2d');
+const graphCanvas = document.getElementById('graphCanvas');
+const gCtx = graphCanvas.getContext('2d');
+
+function resize() {
+    const dpr = window.devicePixelRatio || 1;
+    canvasW = window.innerWidth;
+    canvasH = window.innerHeight;
+    bgCanvas.width = canvasW * dpr;
+    bgCanvas.height = canvasH * dpr;
+    bgCanvas.style.width = canvasW + 'px';
+    bgCanvas.style.height = canvasH + 'px';
+    bgCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    graphCanvas.width = canvasW * dpr;
+    graphCanvas.height = canvasH * dpr;
+    graphCanvas.style.width = canvasW + 'px';
+    graphCanvas.style.height = canvasH + 'px';
+    gCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    graphCenterX = canvasW / 2;
+    graphCenterY = canvasH / 2;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// Mouse tracking
+graphCanvas.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+graphCanvas.addEventListener('mouseleave', () => { mouseX = -1000; mouseY = -1000; });
+graphCanvas.addEventListener('touchmove', e => {
+    if (e.touches.length > 0) {
+        mouseX = e.touches[0].clientX;
+        mouseY = e.touches[0].clientY;
+    }
+}, { passive: true });
+
+// ============================================================
+// PARTICLE SYSTEM (background stars)
+// ============================================================
+class ParticleSystem {
+    constructor(count) {
+        this.particles = [];
+        for (let i = 0; i < count; i++) {
+            this.particles.push({
+                x: Math.random() * 3000,
+                y: Math.random() * 2000,
+                size: Math.random() * 2 + 0.3,
+                twinkleSpeed: Math.random() * 0.02 + 0.005,
+                twinklePhase: Math.random() * Math.PI * 2,
+                brightness: Math.random() * 0.5 + 0.3,
+                vx: (Math.random() - 0.5) * 0.05,
+                vy: (Math.random() - 0.5) * 0.05
+            });
+        }
+    }
+
+    update(dt) {
+        for (const p of this.particles) {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.twinklePhase += p.twinkleSpeed;
+            if (p.x < 0) p.x = canvasW;
+            if (p.x > canvasW) p.x = 0;
+            if (p.y < 0) p.y = canvasH;
+            if (p.y > canvasH) p.y = 0;
+        }
+    }
+
+    draw(ctx) {
+        for (const p of this.particles) {
+            const twinkle = (Math.sin(p.twinklePhase) + 1) * 0.5;
+            const alpha = p.brightness * (0.4 + 0.6 * twinkle);
+            ctx.fillStyle = `rgba(200,210,255,${alpha})`;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+}
+
+// ============================================================
+// AMBIENT BLOBS (background gradients)
+// ============================================================
+class AmbientBlobs {
+    constructor() {
+        this.blobs = [
+            { x: 0.3, y: 0.4, r: 350, vx: 0.0002, vy: 0.00015, color: [0, 80, 180] },
+            { x: 0.7, y: 0.3, r: 300, vx: -0.00015, vy: 0.0002, color: [100, 20, 140] },
+            { x: 0.5, y: 0.7, r: 280, vx: 0.00018, vy: -0.0001, color: [20, 60, 120] },
+        ];
+        this.time = 0;
+    }
+
+    update(dt) {
+        this.time += dt;
+        for (const b of this.blobs) {
+            b.x += Math.sin(this.time * b.vx * 1000) * 0.001;
+            b.y += Math.cos(this.time * b.vy * 1000) * 0.001;
+            b.x = Math.max(0.1, Math.min(0.9, b.x));
+            b.y = Math.max(0.1, Math.min(0.9, b.y));
+        }
+    }
+
+    draw(ctx) {
+        ctx.globalCompositeOperation = 'screen';
+        for (const b of this.blobs) {
+            const cx = b.x * canvasW;
+            const cy = b.y * canvasH;
+            const r = b.r + Math.sin(this.time * 0.001) * 30;
+            const [br, bg, bb] = b.color;
+            // Apply tint
+            const tr = Math.min(255, br + bgTint[0] * 0.5);
+            const tg = Math.min(255, bg + bgTint[1] * 0.5);
+            const tb = Math.min(255, bb + bgTint[2] * 0.5);
+            const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+            grad.addColorStop(0, `rgba(${tr|0},${tg|0},${tb|0},0.15)`);
+            grad.addColorStop(1, `rgba(${tr|0},${tg|0},${tb|0},0)`);
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalCompositeOperation = 'source-over';
+    }
+}
+
+// ============================================================
+// FORCE GRAPH
+// ============================================================
+class ForceGraph {
+    constructor() {
+        this.nodes = [];
+        this.edges = [];
+        this.gridSize = 80;
+        this.grid = {};
+        this.targetNodeCount = 2;
+        this.density = 0; // 0-1 how "explosive"
+        this.bddMode = false;
+        this.bddProgress = 0; // 0-1
+        this.bddTargetNodes = [];
+        this.bddTargetEdges = [];
+        this.mergeAnimations = [];
+        this._initNodes(2);
+    }
+
+    _initNodes(count) {
+        this.nodes = [];
+        this.edges = [];
+        const cx = graphCenterX || canvasW / 2;
+        const cy = graphCenterY || canvasH / 2;
+        for (let i = 0; i < count; i++) {
+            const angle = (i / count) * Math.PI * 2;
+            const dist = 30 + Math.random() * 60;
+            this.nodes.push({
+                x: cx + Math.cos(angle) * dist,
+                y: cy + Math.sin(angle) * dist,
+                vx: (Math.random() - 0.5) * 0.5,
+                vy: (Math.random() - 0.5) * 0.5,
+                radius: 4 + Math.random() * 2,
+                id: i,
+                merging: false,
+                mergeTarget: null,
+                flash: 0,
+                bddFixed: false
+            });
+        }
+        // Random edges
+        for (let i = 0; i < count; i++) {
+            const edgeCount = 1 + Math.floor(Math.random() * 2);
+            for (let e = 0; e < edgeCount; e++) {
+                const j = Math.floor(Math.random() * count);
+                if (j !== i) {
+                    this.edges.push({ a: i, b: j });
+                }
+            }
+        }
+    }
+
+    setTargetCount(count) {
+        this.targetNodeCount = Math.min(count, 2000);
+        this._growToTarget();
+    }
+
+    _growToTarget() {
+        const current = this.nodes.length;
+        const target = this.targetNodeCount;
+        if (current >= target) return;
+
+        const cx = graphCenterX;
+        const cy = graphCenterY;
+        const toAdd = target - current;
+        const spread = Math.min(350, 100 + target * 0.3);
+
+        for (let i = 0; i < toAdd; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const dist = Math.random() * spread;
+            const id = this.nodes.length;
+            this.nodes.push({
+                x: cx + Math.cos(angle) * dist + (Math.random() - 0.5) * 40,
+                y: cy + Math.sin(angle) * dist + (Math.random() - 0.5) * 40,
+                vx: (Math.random() - 0.5) * 2,
+                vy: (Math.random() - 0.5) * 2,
+                radius: 2 + Math.random() * 3,
+                id: id,
+                merging: false,
+                mergeTarget: null,
+                flash: 1.0,
+                bddFixed: false
+            });
+
+            // Add 1-3 edges from new node
+            const edgeCount = 1 + Math.floor(Math.random() * 2.5);
+            for (let e = 0; e < edgeCount; e++) {
+                const j = Math.floor(Math.random() * id);
+                this.edges.push({ a: id, b: j });
+            }
+        }
+    }
+
+    _buildGrid() {
+        this.grid = {};
+        const gs = this.gridSize;
+        for (let i = 0; i < this.nodes.length; i++) {
+            const n = this.nodes[i];
+            const gx = Math.floor(n.x / gs);
+            const gy = Math.floor(n.y / gs);
+            const key = gx + ',' + gy;
+            if (!this.grid[key]) this.grid[key] = [];
+            this.grid[key].push(i);
+        }
+    }
+
+    _getNeighborCells(gx, gy) {
+        const cells = [];
+        for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = -1; dy <= 1; dy++) {
+                const key = (gx + dx) + ',' + (gy + dy);
+                if (this.grid[key]) cells.push(this.grid[key]);
+            }
+        }
+        return cells;
+    }
+
+    update(dt) {
+        if (this.bddMode && this.bddProgress >= 1) {
+            this._updateBDD(dt);
+            return;
+        }
+
+        // Update merge animations
+        this._updateMerges(dt);
+
+        const nodes = this.nodes;
+        const N = nodes.length;
+        if (N === 0) return;
+
+        this._buildGrid();
+        const gs = this.gridSize;
+
+        // Forces
+        const repulsionStrength = N > 500 ? 800 : 1500;
+        const springLength = N > 200 ? 30 : 60;
+        const springK = 0.01;
+        const damping = 0.92;
+        const centerPull = 0.0008;
+
+        // Repulsion (grid-based)
+        for (let i = 0; i < N; i++) {
+            const ni = nodes[i];
+            if (ni.merging) continue;
+            const gx = Math.floor(ni.x / gs);
+            const gy = Math.floor(ni.y / gs);
+            const neighbors = this._getNeighborCells(gx, gy);
+
+            for (const cell of neighbors) {
+                for (const j of cell) {
+                    if (j <= i) continue;
+                    const nj = nodes[j];
+                    if (nj.merging) continue;
+                    let dx = ni.x - nj.x;
+                    let dy = ni.y - nj.y;
+                    let distSq = dx * dx + dy * dy;
+                    if (distSq < 1) distSq = 1;
+                    if (distSq > gs * gs * 4) continue;
+                    const force = repulsionStrength / distSq;
+                    const dist = Math.sqrt(distSq);
+                    const fx = (dx / dist) * force;
+                    const fy = (dy / dist) * force;
+                    ni.vx += fx;
+                    ni.vy += fy;
+                    nj.vx -= fx;
+                    nj.vy -= fy;
+                }
+            }
+        }
+
+        // Spring forces (edges) - sample if too many
+        const maxEdges = 2000;
+        const edgeSample = this.edges.length > maxEdges
+            ? this.edges.filter(() => Math.random() < maxEdges / this.edges.length)
+            : this.edges;
+
+        for (const edge of edgeSample) {
+            if (edge.a >= N || edge.b >= N) continue;
+            const na = nodes[edge.a];
+            const nb = nodes[edge.b];
+            if (na.merging || nb.merging) continue;
+            let dx = nb.x - na.x;
+            let dy = nb.y - na.y;
+            const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+            const displacement = dist - springLength;
+            const force = displacement * springK;
+            const fx = (dx / dist) * force;
+            const fy = (dy / dist) * force;
+            na.vx += fx;
+            na.vy += fy;
+            nb.vx -= fx;
+            nb.vy -= fy;
+        }
+
+        // Center pull + mouse repulsion + damping + integrate
+        const cx = graphCenterX;
+        const cy = graphCenterY;
+
+        for (let i = 0; i < N; i++) {
+            const n = nodes[i];
+            if (n.merging) continue;
+
+            // Center pull
+            n.vx += (cx - n.x) * centerPull;
+            n.vy += (cy - n.y) * centerPull;
+
+            // Mouse repulsion
+            const mdx = n.x - mouseX;
+            const mdy = n.y - mouseY;
+            const mDistSq = mdx * mdx + mdy * mdy;
+            if (mDistSq < 150 * 150 && mDistSq > 1) {
+                const mDist = Math.sqrt(mDistSq);
+                const mForce = (150 - mDist) * 0.15;
+                n.vx += (mdx / mDist) * mForce;
+                n.vy += (mdy / mDist) * mForce;
+            }
+
+            // Damping
+            n.vx *= damping;
+            n.vy *= damping;
+
+            // Clamp velocity
+            const speed = Math.sqrt(n.vx * n.vx + n.vy * n.vy);
+            if (speed > 8) {
+                n.vx = (n.vx / speed) * 8;
+                n.vy = (n.vy / speed) * 8;
+            }
+
+            // Integrate
+            n.x += n.vx;
+            n.y += n.vy;
+
+            // Boundary
+            const margin = 50;
+            if (n.x < margin) { n.x = margin; n.vx *= -0.5; }
+            if (n.x > canvasW - margin) { n.x = canvasW - margin; n.vx *= -0.5; }
+            if (n.y < margin) { n.y = margin; n.vy *= -0.5; }
+            if (n.y > canvasH - margin) { n.y = canvasH - margin; n.vy *= -0.5; }
+
+            // Decay flash
+            if (n.flash > 0) n.flash -= 0.02;
+        }
+    }
+
+    _updateBDD(dt) {
+        // Gently move nodes toward their BDD positions
+        for (const n of this.nodes) {
+            if (!n.bddTarget) continue;
+            const dx = n.bddTarget.x - n.x;
+            const dy = n.bddTarget.y - n.y;
+            n.x += dx * 0.04;
+            n.y += dy * 0.04;
+            n.vx *= 0.9;
+            n.vy *= 0.9;
+        }
+    }
+
+    _updateMerges(dt) {
+        for (let i = this.mergeAnimations.length - 1; i >= 0; i--) {
+            const m = this.mergeAnimations[i];
+            m.progress += 0.03;
+            if (m.progress >= 1) {
+                // Remove source node visually
+                if (m.source < this.nodes.length) {
+                    this.nodes[m.source].merging = true; // hide it
+                }
+                this.mergeAnimations.splice(i, 1);
+            } else {
+                // Move source toward target
+                if (m.source < this.nodes.length && m.target < this.nodes.length) {
+                    const s = this.nodes[m.source];
+                    const t = this.nodes[m.target];
+                    s.x += (t.x - s.x) * 0.08;
+                    s.y += (t.y - s.y) * 0.08;
+                }
+            }
+        }
+    }
+
+    getNodeColor(index, total) {
+        if (this.bddMode && this.bddProgress >= 0.5) {
+            return COL.bddNode;
+        }
+        const t = Math.min(1, total / 800);
+        let r, g, b;
+        if (t < 0.5) {
+            const lt = t * 2;
+            r = COL.nodeLow[0] + (COL.nodeMid[0] - COL.nodeLow[0]) * lt;
+            g = COL.nodeLow[1] + (COL.nodeMid[1] - COL.nodeLow[1]) * lt;
+            b = COL.nodeLow[2] + (COL.nodeMid[2] - COL.nodeLow[2]) * lt;
+        } else {
+            const lt = (t - 0.5) * 2;
+            r = COL.nodeMid[0] + (COL.nodeHigh[0] - COL.nodeMid[0]) * lt;
+            g = COL.nodeMid[1] + (COL.nodeHigh[1] - COL.nodeMid[1]) * lt;
+            b = COL.nodeMid[2] + (COL.nodeHigh[2] - COL.nodeMid[2]) * lt;
+        }
+        return [r | 0, g | 0, b | 0];
+    }
+
+    getEdgeColor(total) {
+        if (this.bddMode && this.bddProgress >= 0.5) {
+            return COL.bddEdge;
+        }
+        const t = Math.min(1, total / 800);
+        if (t < 0.3) return [200, 240, 255];
+        if (t < 0.6) return [0, 220, 255];
+        return [255, 80, 80];
+    }
+
+    draw(ctx) {
+        const N = this.nodes.length;
+        const visibleNodes = this.nodes.filter(n => !n.merging);
+        const visCount = visibleNodes.length;
+        const useCloud = visCount > 500;
+
+        if (useCloud) {
+            this._drawCloud(ctx, visibleNodes);
+        } else {
+            this._drawEdges(ctx, visCount);
+            this._drawNodes(ctx, visibleNodes, visCount);
+        }
+
+        // Draw merge flashes
+        for (const m of this.mergeAnimations) {
+            if (m.source < N && m.target < N) {
+                const s = this.nodes[m.source];
+                const t = this.nodes[m.target];
+                const mx = (s.x + t.x) / 2;
+                const my = (s.y + t.y) / 2;
+                const alpha = (1 - m.progress) * 0.6;
+                const r = 15 * (1 - m.progress);
+                ctx.fillStyle = `rgba(255,215,0,${alpha})`;
+                ctx.beginPath();
+                ctx.arc(mx, my, r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+    }
+
+    _drawEdges(ctx, total) {
+        const ec = this.getEdgeColor(total);
+        const maxDraw = 1500;
+        const skip = this.edges.length > maxDraw ? Math.ceil(this.edges.length / maxDraw) : 1;
+        const alpha = Math.max(0.03, 0.2 - total * 0.0003);
+
+        ctx.strokeStyle = `rgba(${ec[0]},${ec[1]},${ec[2]},${alpha})`;
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+
+        const N = this.nodes.length;
+        for (let i = 0; i < this.edges.length; i += skip) {
+            const e = this.edges[i];
+            if (e.a >= N || e.b >= N) continue;
+            const na = this.nodes[e.a];
+            const nb = this.nodes[e.b];
+            if (na.merging || nb.merging) continue;
+            ctx.moveTo(na.x, na.y);
+            ctx.lineTo(nb.x, nb.y);
+        }
+        ctx.stroke();
+    }
+
+    _drawNodes(ctx, visibleNodes, total) {
+        for (const n of visibleNodes) {
+            const [r, g, b] = this.getNodeColor(n.id, total);
+            const rad = n.radius;
+            const flash = n.flash > 0 ? n.flash : 0;
+
+            // Glow
+            if (rad > 2) {
+                const glowR = rad * 3;
+                const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, glowR);
+                grad.addColorStop(0, `rgba(${r},${g},${b},${0.3 + flash * 0.4})`);
+                grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(n.x, n.y, glowR, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Core
+            const coreGrad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, rad);
+            coreGrad.addColorStop(0, `rgba(${Math.min(255, r + 80)},${Math.min(255, g + 80)},${Math.min(255, b + 80)},1)`);
+            coreGrad.addColorStop(1, `rgba(${r},${g},${b},0.6)`);
+            ctx.fillStyle = coreGrad;
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, rad, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Border
+            ctx.strokeStyle = `rgba(${r},${g},${b},0.8)`;
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+        }
+    }
+
+    _drawCloud(ctx, visibleNodes) {
+        // Heatmap-style cloud
+        const resolution = 6;
+        const heatmap = {};
+        const cx = graphCenterX;
+        const cy = graphCenterY;
+
+        for (const n of visibleNodes) {
+            const gx = Math.floor(n.x / resolution);
+            const gy = Math.floor(n.y / resolution);
+            const key = gx + ',' + gy;
+            heatmap[key] = (heatmap[key] || 0) + 1;
+        }
+
+        const total = visibleNodes.length;
+        const [r, g, b] = this.getNodeColor(0, total);
+        const ec = this.getEdgeColor(total);
+
+        // Draw heat cells
+        for (const key in heatmap) {
+            const [gx, gy] = key.split(',').map(Number);
+            const count = heatmap[key];
+            const intensity = Math.min(1, count / 5);
+            const px = gx * resolution;
+            const py = gy * resolution;
+
+            ctx.fillStyle = `rgba(${r},${g},${b},${intensity * 0.5})`;
+            ctx.fillRect(px, py, resolution, resolution);
+
+            if (intensity > 0.5) {
+                // Hot spot glow
+                const glowR = resolution * 3;
+                const grad = ctx.createRadialGradient(px, py, 0, px, py, glowR);
+                grad.addColorStop(0, `rgba(${r},${g},${b},${intensity * 0.2})`);
+                grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(px, py, glowR, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Central glow
+        const cGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 250);
+        cGrad.addColorStop(0, `rgba(${r},${g},${b},0.08)`);
+        cGrad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+        ctx.fillStyle = cGrad;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 250, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // BDD Compression
+    startCompression() {
+        this.bddMode = true;
+        this.bddProgress = 0;
+
+        // Flash all nodes gold
+        for (const n of this.nodes) {
+            n.flash = 1.5;
+        }
+
+        // Calculate BDD tree layout
+        const bddNodeCount = 40 + Math.floor(Math.random() * 20); // ~50 nodes in BDD
+        const levels = 6;
+        const cx = graphCenterX;
+        const topY = graphCenterY - 200;
+        const levelH = 80;
+
+        // Build tree structure
+        const bddNodes = [];
+        const bddEdges = [];
+        let id = 0;
+
+        // Level distribution: 1, 2, 4, 8, 12, 15
+        const levelCounts = [1, 2, 4, 8, 12, Math.max(1, bddNodeCount - 27)];
+
+        for (let level = 0; level < levels; level++) {
+            const count = levelCounts[level];
+            const y = topY + level * levelH;
+            const startX = cx - (count - 1) * 35;
+
+            for (let i = 0; i < count; i++) {
+                bddNodes.push({
+                    x: startX + i * 70,
+                    y: y,
+                    level: level,
+                    localIndex: i,
+                    id: id++
+                });
+            }
+        }
+
+        // Add edges (parent-child)
+        let offset = 0;
+        for (let level = 0; level < levels - 1; level++) {
+            const count = levelCounts[level];
+            const nextCount = levelCounts[level + 1];
+            const nextOffset = offset + count;
+
+            for (let i = 0; i < count; i++) {
+                const parentIdx = offset + i;
+                // Connect to 2-3 children
+                const childrenPer = Math.ceil(nextCount / count);
+                for (let c = 0; c < Math.min(childrenPer, 3); c++) {
+                    const childIdx = nextOffset + Math.min(nextCount - 1, i * childrenPer + c);
+                    if (childIdx < bddNodes.length) {
+                        bddEdges.push({ a: parentIdx, b: childIdx });
+                    }
+                }
+            }
+            offset += count;
+        }
+
+        // Assign BDD targets to existing nodes
+        // First N nodes get BDD positions, rest will merge into them
+        const visibleNodes = this.nodes.filter(n => !n.merging);
+        const totalVis = visibleNodes.length;
+
+        // Start merge animations
+        const keepCount = Math.min(bddNodes.length, visibleNodes.length);
+        for (let i = 0; i < keepCount; i++) {
+            visibleNodes[i].bddTarget = bddNodes[i];
+            visibleNodes[i].radius = 5;
+        }
+
+        // Schedule merges over time
+        let mergeDelay = 0;
+        for (let i = keepCount; i < visibleNodes.length; i++) {
+            const targetIdx = Math.floor(Math.random() * keepCount);
+            const sourceIdx = this.nodes.indexOf(visibleNodes[i]);
+            const targetNodeIdx = this.nodes.indexOf(visibleNodes[targetIdx]);
+            setTimeout(() => {
+                this.mergeAnimations.push({
+                    source: sourceIdx,
+                    target: targetNodeIdx,
+                    progress: 0
+                });
+            }, mergeDelay);
+            mergeDelay += 5;
+        }
+
+        // Update edges
+        setTimeout(() => {
+            this.edges = bddEdges;
+            this.bddProgress = 1;
+            // Clean up: keep only BDD nodes
+            const finalNodes = [];
+            for (let i = 0; i < keepCount; i++) {
+                const n = visibleNodes[i];
+                n.merging = false;
+                n.bddFixed = true;
+                finalNodes.push(n);
+            }
+            this.nodes = finalNodes;
+        }, Math.min(3000, mergeDelay + 500));
+    }
+}
+
+// ============================================================
+// UI LOGIC
+// ============================================================
+const particles = new ParticleSystem(400);
+const blobs = new AmbientBlobs();
+const graph = new ForceGraph();
+
+// Build rule list HTML
+const rulesListEl = document.getElementById('rulesList');
+RULES.forEach((rule, i) => {
+    const div = document.createElement('div');
+    div.className = 'rule-item';
+    div.id = 'rule-' + i;
+    div.innerHTML = `
+        <div class="rule-dot"></div>
+        <div>
+            <div class="rule-name">${rule.name}</div>
+            <div class="rule-desc">${rule.desc}</div>
+        </div>
+    `;
+    rulesListEl.appendChild(div);
+});
+
+// State tracking
+let stateLog10 = Math.log10(2);
+let displayedStateStr = "2";
+let targetStateStr = "2";
+let counterAnimating = false;
+let counterAnimFrame = 0;
+
+function computeStatesAfterRules(count) {
+    // Returns log10 of state count
+    let log = Math.log10(2);
+    for (let i = 1; i < count; i++) {
+        const rule = RULES[i];
+        if (rule.multiplier === -1) {
+            // multiply by current (double the log)
+            log *= 2;
+        } else if (rule.multiplier === -2) {
+            // square (double the log)
+            log *= 2;
+        } else {
+            log += Math.log10(rule.multiplier);
+        }
+    }
+    return log;
+}
+
+function formatStateCount(log10val) {
+    if (log10val < 9.5) {
+        // Show exact number with commas
+        const val = Math.round(Math.pow(10, log10val));
+        return val.toLocaleString('en-US');
+    } else if (log10val < 20) {
+        // Scientific notation
+        const exp = Math.floor(log10val);
+        const mantissa = Math.pow(10, log10val - exp);
+        return mantissa.toFixed(2) + ' x 10^' + exp;
+    } else {
+        // Just show 10^X
+        return '10^' + Math.floor(log10val).toLocaleString('en-US');
+    }
+}
+
+function formatMemory(log10states) {
+    // Assume 32 bytes per state
+    const log10bytes = log10states + Math.log10(32);
+    if (log10bytes < 3) return Math.round(Math.pow(10, log10bytes)) + ' B';
+    if (log10bytes < 6) return (Math.pow(10, log10bytes - 3)).toFixed(1) + ' KB';
+    if (log10bytes < 9) return (Math.pow(10, log10bytes - 6)).toFixed(1) + ' MB';
+    if (log10bytes < 12) return (Math.pow(10, log10bytes - 9)).toFixed(1) + ' GB';
+    if (log10bytes < 15) return (Math.pow(10, log10bytes - 12)).toFixed(1) + ' TB';
+    if (log10bytes < 18) return (Math.pow(10, log10bytes - 15)).toFixed(1) + ' PB';
+    if (log10bytes < 21) return (Math.pow(10, log10bytes - 18)).toFixed(1) + ' EB';
+    return '10^' + Math.floor(log10bytes).toLocaleString('en-US') + ' bytes';
+}
+
+function getVerificationETA(log10states) {
+    // Assume 10^9 states/sec verification rate
+    const log10seconds = log10states - 9;
+    if (log10seconds < 0) return 'ETA: < 1 sec';
+    if (log10seconds < 1.8) return 'ETA: ' + Math.round(Math.pow(10, log10seconds)) + ' sec';
+    if (log10seconds < 3.5) return 'ETA: ' + (Math.pow(10, log10seconds) / 60).toFixed(0) + ' min';
+    if (log10seconds < 5) return 'ETA: ' + (Math.pow(10, log10seconds) / 3600).toFixed(0) + ' hrs';
+    if (log10seconds < 7.5) return 'ETA: ' + (Math.pow(10, log10seconds) / 86400).toFixed(0) + ' days';
+    const log10years = log10seconds - Math.log10(31557600);
+    if (log10years < 3) return 'ETA: ' + Math.round(Math.pow(10, log10years)).toLocaleString('en-US') + ' years';
+    if (log10years < 10) return 'ETA: 10^' + Math.floor(log10years) + ' years';
+    return 'ETA: HEAT DEATH+';
+}
+
+function getVerificationProgress(log10states) {
+    // Returns a tiny percentage that barely moves
+    if (log10states < 3) return Math.min(95, 100 / Math.pow(10, log10states) * 100);
+    if (log10states < 6) return 0.5;
+    if (log10states < 10) return 0.1;
+    return 0.01;
+}
+
+function updateUI() {
+    const countEl = document.getElementById('ruleCount');
+    countEl.textContent = rulesAdded;
+
+    const stateEl = document.getElementById('stateCount');
+    const memEl = document.getElementById('memoryReq');
+    const fvEta = document.getElementById('fvEta');
+    const fvBar = document.getElementById('fvBar');
+
+    stateEl.textContent = formatStateCount(stateLog10);
+    stateEl.className = 'stat-value' + (stateLog10 > 6 ? ' danger' : '');
+    memEl.textContent = formatMemory(stateLog10);
+    memEl.className = 'stat-value' + (stateLog10 > 9 ? ' danger' : '');
+    fvEta.textContent = getVerificationETA(stateLog10);
+    fvBar.style.width = getVerificationProgress(stateLog10) + '%';
+
+    // Show compress button after 5 rules
+    const btnCompress = document.getElementById('btnCompress');
+    if (rulesAdded >= 5 && !isCompressed && !isCompressing) {
+        btnCompress.classList.add('visible');
+    }
+
+    // Update background tint based on density
+    const tintT = Math.min(1, stateLog10 / 20);
+    bgTint[0] = tintT * 40;  // red tint
+    bgTint[1] = 0;
+    bgTint[2] = 0;
+
+    // Update graph node count
+    const visualNodes = Math.min(2000, Math.pow(2, Math.min(11, rulesAdded + 1)));
+    graph.density = Math.min(1, stateLog10 / 15);
+    graph.setTargetCount(Math.floor(visualNodes));
+}
+
+// Counter animation
+let counterTarget = Math.log10(2);
+let counterCurrent = Math.log10(2);
+let counterSpeed = 0;
+
+function animateCounter() {
+    if (Math.abs(counterCurrent - counterTarget) > 0.01) {
+        const diff = counterTarget - counterCurrent;
+        counterSpeed += diff * 0.003;
+        counterSpeed *= 0.92;
+        counterCurrent += counterSpeed;
+
+        // Rapid-cycling effect on the state counter
+        const stateEl = document.getElementById('stateCount');
+        if (Math.abs(diff) > 0.5) {
+            // Show rapidly cycling numbers
+            const jitter = counterCurrent + (Math.random() - 0.5) * Math.abs(diff) * 0.3;
+            stateEl.textContent = formatStateCount(Math.max(0, jitter));
+        } else {
+            stateEl.textContent = formatStateCount(counterCurrent);
+        }
+        stateLog10 = counterCurrent;
+        updateUI();
+    }
+}
+
+function addNextRule() {
+    if (rulesAdded >= RULES.length || isCompressed || isCompressing || presetRunning) return;
+
+    const rule = RULES[rulesAdded];
+    const ruleEl = document.getElementById('rule-' + rulesAdded);
+    ruleEl.classList.add('active');
+
+    rulesAdded++;
+
+    // Compute new state log
+    counterTarget = computeStatesAfterRules(rulesAdded);
+    counterSpeed = 0;
+
+    updateUI();
+
+    // Disable button briefly
+    const btn = document.getElementById('btnAdd');
+    btn.disabled = true;
+    setTimeout(() => { btn.disabled = false; }, 500);
+}
+
+async function runPreset(count) {
+    if (presetRunning || isCompressed || isCompressing) return;
+    presetRunning = true;
+
+    // Disable all buttons
+    document.querySelectorAll('.btn').forEach(b => b.disabled = true);
+
+    // First reset if needed
+    if (rulesAdded > 0) {
+        resetAll();
+        await sleep(500);
+    }
+
+    for (let i = 0; i < Math.min(count, RULES.length); i++) {
+        addNextRule();
+        await sleep(350 + Math.random() * 200);
+    }
+
+    presetRunning = false;
+    document.querySelectorAll('.btn').forEach(b => b.disabled = false);
+    updateUI();
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function activateCompression() {
+    if (isCompressing || isCompressed || rulesAdded < 5) return;
+    isCompressing = true;
+
+    // Disable buttons
+    document.querySelectorAll('.btn').forEach(b => b.disabled = true);
+
+    // Show BDD stats block
+    document.getElementById('bddBlock').style.display = 'block';
+    document.getElementById('tauProgressWrap').style.display = 'block';
+
+    // Dramatic pause
+    await sleep(500);
+
+    // Flash overlay
+    const flash = document.getElementById('flashOverlay');
+    flash.classList.add('active');
+    await sleep(200);
+    flash.classList.remove('active');
+
+    // Start graph compression
+    graph.startCompression();
+
+    // Animate BDD counter
+    const bddCountEl = document.getElementById('bddCount');
+    const tauBar = document.getElementById('tauBar');
+    const tauEta = document.getElementById('tauEta');
+
+    // BDD counting animation
+    let bddTarget = 600 + Math.floor(Math.random() * 500);
+    let bddCurrent = 0;
+
+    const bddInterval = setInterval(() => {
+        bddCurrent += Math.max(1, Math.floor((bddTarget - bddCurrent) * 0.05));
+        if (bddCurrent >= bddTarget) {
+            bddCurrent = bddTarget;
+            clearInterval(bddInterval);
+        }
+        bddCountEl.textContent = bddCurrent.toLocaleString('en-US');
+    }, 30);
+
+    // Tau progress bar
+    let tauProgress = 0;
+    const tauInterval = setInterval(() => {
+        tauProgress += 2;
+        if (tauProgress >= 100) {
+            tauProgress = 100;
+            clearInterval(tauInterval);
+            tauEta.textContent = 'VERIFIED';
+            tauBar.className = 'progress-fill green';
+        } else {
+            tauEta.textContent = ((100 - tauProgress) * 0.03).toFixed(1) + 's remaining';
+        }
+        tauBar.style.width = tauProgress + '%';
+    }, 50);
+
+    // Background tint shift to gold
+    const tintInterval = setInterval(() => {
+        bgTint[0] = bgTint[0] * 0.95 + 30 * 0.05;
+        bgTint[1] = bgTint[1] * 0.95 + 25 * 0.05;
+        bgTint[2] = bgTint[2] * 0.95 + 0 * 0.05;
+    }, 30);
+
+    // After compression completes
+    setTimeout(() => {
+        clearInterval(tintInterval);
+        bgTint[0] = 30;
+        bgTint[1] = 25;
+        bgTint[2] = 0;
+        isCompressing = false;
+        isCompressed = true;
+
+        // Update state display
+        const stateEl = document.getElementById('stateCount');
+        stateEl.textContent = formatStateCount(counterTarget);
+        stateEl.className = 'stat-value danger';
+
+        // Enable reset
+        document.querySelector('.btn-reset').disabled = false;
+    }, 4000);
+}
+
+function resetAll() {
+    rulesAdded = 0;
+    stateLog10 = Math.log10(2);
+    counterTarget = Math.log10(2);
+    counterCurrent = Math.log10(2);
+    counterSpeed = 0;
+    isCompressed = false;
+    isCompressing = false;
+    bgTint = [0, 0, 0];
+
+    // Reset UI
+    document.querySelectorAll('.rule-item').forEach(el => el.classList.remove('active'));
+    document.getElementById('bddBlock').style.display = 'none';
+    document.getElementById('tauProgressWrap').style.display = 'none';
+    document.getElementById('btnCompress').classList.remove('visible');
+    document.getElementById('tauBar').style.width = '0%';
+    document.getElementById('tauBar').className = 'progress-fill gold';
+    document.getElementById('tauEta').textContent = '--';
+    document.getElementById('bddCount').textContent = '--';
+
+    // Enable buttons
+    document.querySelectorAll('.btn').forEach(b => b.disabled = false);
+
+    // Reset graph
+    graph.bddMode = false;
+    graph.bddProgress = 0;
+    graph.mergeAnimations = [];
+    graph._initNodes(2);
+
+    updateUI();
+}
+
+// ============================================================
+// ANIMATION LOOP
+// ============================================================
+let lastTime = performance.now();
+
+function animate(now) {
+    const dt = Math.min(50, now - lastTime);
+    lastTime = now;
+    animTime = now;
+
+    // Clear canvases
+    bgCtx.fillStyle = COL.bg;
+    bgCtx.fillRect(0, 0, canvasW, canvasH);
+    gCtx.clearRect(0, 0, canvasW, canvasH);
+
+    // Update & draw background
+    particles.update(dt);
+    blobs.update(dt);
+    blobs.draw(bgCtx);
+    particles.draw(bgCtx);
+
+    // Update & draw graph
+    graph.update(dt);
+    graph.draw(gCtx);
+
+    // Animate counter
+    animateCounter();
+
+    requestAnimationFrame(animate);
+}
+
+// Initial UI update
+updateUI();
+
+// Start animation
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>

@@ -1,0 +1,1961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAN YOUR DRONE SWARM GO ROGUE? — Tau Language Demo</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a28;
+  --red:#ef4444;--red-dark:#991b1b;--red-glow:rgba(239,68,68,.3);
+  --gold:#ffd700;--gold-dim:#b8960f;--gold-glow:rgba(255,215,0,.25);
+  --cyan:#06b6d4;--cyan-glow:rgba(6,182,212,.2);
+  --green:#22c55e;--green-glow:rgba(34,197,94,.2);
+  --blue:#3b82f6;--blue-glow:rgba(59,130,246,.2);
+  --txt:#e2e8f0;--txt-dim:#94a3b8;--txt-dark:#64748b;
+  --orange:#ff8800;
+  --font:'Segoe UI',system-ui,-apple-system,sans-serif;
+  --mono:'Cascadia Code','Fira Code','Consolas',monospace;
+}
+html{font-size:14px;scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--txt);font-family:var(--font);overflow-x:hidden;min-height:100vh;}
+body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at 50% 20%,rgba(255,215,0,0.04) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(239,68,68,0.03) 0%,transparent 50%);pointer-events:none;z-index:0;}
+
+.container{max-width:1600px;margin:0 auto;padding:20px;position:relative;z-index:1;}
+
+/* Header */
+.header{text-align:center;padding:40px 20px 20px;position:relative;}
+.header h1{font-size:3.2rem;font-weight:900;color:#fff;letter-spacing:-1px;text-shadow:0 0 60px rgba(239,68,68,0.3);}
+.header .subtitle{font-size:1.15rem;color:var(--txt-dark);margin-top:10px;font-weight:500;}
+.header .subtitle span{color:var(--red);font-weight:700;}
+.badge{display:inline-block;margin-top:14px;padding:6px 18px;border-radius:20px;background:linear-gradient(135deg,rgba(255,215,0,0.15),rgba(239,68,68,0.15));border:1px solid rgba(255,215,0,0.3);color:var(--gold);font-size:0.82rem;font-weight:600;letter-spacing:0.5px;}
+
+/* Hero Canvas */
+.hero-section{position:relative;width:100%;height:500px;margin:20px 0;border-radius:16px;overflow:hidden;border:1px solid rgba(6,182,212,0.15);background:#060610;}
+#tacticalCanvas{width:100%;height:100%;display:block;}
+.hero-overlay{position:absolute;bottom:16px;left:16px;display:flex;gap:16px;align-items:center;pointer-events:none;}
+.hero-legend{display:flex;gap:14px;align-items:center;background:rgba(10,10,15,0.85);padding:8px 16px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:0.72rem;color:var(--txt-dim);}
+.legend-dot{width:8px;height:8px;border-radius:50%;}
+.hero-status{position:absolute;top:16px;right:16px;background:rgba(10,10,15,0.85);padding:8px 16px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);font-family:var(--mono);font-size:0.78rem;color:var(--green);}
+
+/* Toggle Section */
+.toggle-section{padding:20px 0;}
+.toggle-section h2{text-align:center;font-size:1.3rem;font-weight:800;color:#fff;margin-bottom:6px;}
+.toggle-section .tsub{text-align:center;font-size:0.85rem;color:var(--txt-dark);margin-bottom:20px;}
+.toggle-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
+.toggle-card{background:var(--bg2);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px;cursor:pointer;transition:all 0.3s;position:relative;overflow:hidden;backdrop-filter:blur(10px);}
+.toggle-card:hover{border-color:rgba(255,215,0,0.3);transform:translateY(-2px);}
+.toggle-card.active{border-color:var(--gold);box-shadow:0 0 25px var(--gold-glow);}
+.toggle-card.active::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,rgba(255,215,0,0.06),transparent);pointer-events:none;}
+.toggle-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.toggle-label{font-weight:700;font-size:0.82rem;color:#fff;}
+.toggle-switch{width:42px;height:22px;border-radius:11px;background:#333;position:relative;transition:background 0.3s;flex-shrink:0;}
+.toggle-switch.on{background:var(--gold);}
+.toggle-switch::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform 0.3s;}
+.toggle-switch.on::after{transform:translateX(20px);}
+.toggle-desc{font-size:0.7rem;color:var(--txt-dark);line-height:1.4;}
+.toggle-icon{font-size:1.1rem;margin-right:4px;}
+
+/* Presets & Button */
+.controls-row{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:20px;flex-wrap:wrap;}
+.preset-btn{padding:10px 20px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:var(--bg2);color:var(--txt);font-weight:600;font-size:0.82rem;cursor:pointer;transition:all 0.3s;}
+.preset-btn:hover{border-color:var(--gold);background:rgba(255,215,0,0.08);}
+.verify-btn{padding:14px 40px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--red),#b91c1c);color:#fff;font-weight:800;font-size:1.05rem;cursor:pointer;transition:all 0.3s;position:relative;overflow:hidden;letter-spacing:0.5px;}
+.verify-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--red-glow);}
+.verify-btn.pulsing{animation:btnPulse 2s infinite;}
+@keyframes btnPulse{0%,100%{box-shadow:0 0 10px var(--red-glow)}50%{box-shadow:0 0 30px rgba(239,68,68,0.5)}}
+.verify-btn:disabled{opacity:0.5;cursor:not-allowed;animation:none;}
+
+/* Chart Section */
+.chart-section{margin:24px 0 20px;background:var(--bg2);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:20px;position:relative;overflow:hidden;}
+.chart-section h2{font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:4px;}
+.chart-section .chart-sub{font-size:0.8rem;color:var(--txt-dark);margin-bottom:16px;}
+.chart-wrap{position:relative;width:100%;height:220px;}
+.chart-wrap canvas{width:100%;height:100%;}
+
+/* 4 Columns */
+.columns{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:20px;align-items:start;}
+.col{background:var(--bg2);border:1px solid rgba(255,255,255,0.06);border-radius:16px;overflow:visible;display:flex;flex-direction:column;position:relative;}
+.col-header{padding:16px 16px 12px;border-bottom:1px solid rgba(255,255,255,0.05);}
+.col-header h3{font-size:1.1rem;font-weight:800;display:flex;align-items:center;gap:8px;}
+.col-header .col-sub{font-size:0.8rem;color:var(--txt-dark);margin-top:4px;}
+.col-python .col-header h3{color:var(--blue);}
+.col-formal .col-header h3{color:var(--cyan);}
+.col-ai .col-header h3{color:var(--green);}
+.col-tau .col-header h3{color:var(--gold);}
+.col-python{border-color:rgba(59,130,246,0.2);}
+.col-formal{border-color:rgba(6,182,212,0.2);}
+.col-ai{border-color:rgba(34,197,94,0.2);}
+.col-tau{border-color:rgba(255,215,0,0.2);}
+
+.col-body{padding:16px;flex:1;overflow:visible;position:relative;}
+.terminal{background:#0d1117;border-radius:10px;padding:16px;font-family:var(--mono);font-size:0.72rem;line-height:1.8;color:#c9d1d9;overflow-y:visible;white-space:pre-wrap;word-break:break-word;min-height:420px;position:relative;}
+.terminal::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.015) 3px,rgba(0,0,0,0.015) 4px);pointer-events:none;border-radius:10px;}
+
+.verdict-bar{padding:14px 16px;border-top:1px solid rgba(255,255,255,0.05);text-align:center;font-weight:700;font-size:0.9rem;letter-spacing:0.5px;opacity:0;transition:opacity 0.5s;}
+.verdict-bar.show{opacity:1;}
+.verdict-bar.pass{background:rgba(34,197,94,0.1);color:var(--green);}
+.verdict-bar.pass-cyan{background:rgba(6,182,212,0.1);color:var(--cyan);}
+.verdict-bar.fail-gold{background:rgba(255,215,0,0.1);color:var(--gold);}
+.verdict-bar.fail{background:rgba(239,68,68,0.1);color:var(--red);}
+
+/* Tau spec block */
+.tau-spec{background:#0d1117;border:1px solid rgba(255,215,0,0.15);border-radius:10px;padding:16px;font-family:var(--mono);font-size:0.68rem;line-height:1.75;color:var(--gold-dim);margin-bottom:14px;white-space:pre-wrap;word-break:break-word;}
+.tau-spec .tc{color:var(--txt-dark);}
+.tau-spec .tk{color:var(--gold);}
+.tau-spec .tw{color:var(--red);}
+
+/* Highlighted text in terminals */
+.t-ok{color:#22c55e;} .t-fail{color:#ef4444;font-weight:700;} .t-warn{color:#f59e0b;}
+.t-key{color:var(--gold);} .t-dim{color:#64748b;} .t-cyan{color:#06b6d4;} .t-blue{color:#3b82f6;}
+.t-bold{font-weight:700;color:#fff;} .t-red{color:#ef4444;}
+
+/* Comparison Panel */
+.comparison{margin-top:24px;background:var(--bg2);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:24px;opacity:0;transform:translateY(20px);transition:all 0.6s;}
+.comparison.show{opacity:1;transform:translateY(0);}
+.comparison h2{text-align:center;font-size:1.2rem;font-weight:800;color:#fff;margin-bottom:20px;}
+.comp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+.comp-card{border-radius:12px;padding:16px;text-align:center;}
+.comp-card h4{font-size:1rem;font-weight:700;margin-bottom:10px;}
+.comp-card p{font-size:0.82rem;color:var(--txt-dim);line-height:1.6;margin-bottom:8px;}
+.comp-card .comp-result{font-size:0.82rem;font-weight:700;padding:8px 14px;border-radius:6px;display:inline-block;margin-top:4px;}
+.comp-python{background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);}
+.comp-python h4{color:var(--blue);}
+.comp-formal{background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.2);}
+.comp-formal h4{color:var(--cyan);}
+.comp-ai{background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);}
+.comp-ai h4{color:var(--green);}
+.comp-tau{background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.2);}
+.comp-tau h4{color:var(--gold);}
+
+.tagline{text-align:center;margin-top:24px;font-size:1.05rem;font-weight:700;background:linear-gradient(135deg,var(--gold),var(--red));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.7;padding:0 40px;max-width:900px;margin-left:auto;margin-right:auto;}
+
+/* Share */
+.share-section{display:flex;justify-content:center;gap:14px;margin-top:24px;opacity:0;transition:opacity 0.5s;flex-wrap:wrap;}
+.share-section.show{opacity:1;}
+.share-btn{padding:12px 28px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:var(--bg2);color:var(--txt);font-weight:700;font-size:0.9rem;cursor:pointer;transition:all 0.3s;}
+.share-btn:hover{border-color:var(--gold);background:rgba(255,215,0,0.08);}
+.share-btn.primary{background:linear-gradient(135deg,var(--red),#b91c1c);border:none;color:#fff;}
+.share-btn.primary:hover{box-shadow:0 4px 20px var(--red-glow);}
+
+/* Share Card Overlay */
+.share-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:1000;justify-content:center;align-items:center;}
+.share-overlay.show{display:flex;}
+.share-card{width:520px;background:linear-gradient(135deg,#0f0f18,#1a0a0a);border:2px solid var(--red);border-radius:20px;padding:32px;text-align:center;position:relative;}
+.share-card .close-x{position:absolute;top:12px;right:16px;color:var(--txt-dim);cursor:pointer;font-size:1.3rem;line-height:1;}
+.share-card h3{font-size:1.4rem;font-weight:900;color:#fff;margin-bottom:6px;}
+.share-card .share-icon{font-size:3rem;margin:16px 0 8px;}
+.share-card .share-headline{font-size:1.6rem;font-weight:900;color:var(--red);margin:8px 0;}
+.share-card .share-quote{color:var(--txt-dim);font-size:0.92rem;font-style:italic;margin:14px 0;line-height:1.6;}
+.share-card .share-brand{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--gold);font-weight:700;font-size:0.9rem;margin-top:16px;}
+.share-card .share-url{color:var(--txt-dark);font-size:0.75rem;margin-top:8px;}
+
+/* Scan line effect on hero */
+.hero-section::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:1;}
+
+/* Blinking cursor for terminals */
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.cursor{display:inline-block;width:7px;height:14px;background:var(--txt);animation:blink 1s step-end infinite;vertical-align:middle;margin-left:2px;}
+
+/* Glow keyframes for cards */
+@keyframes cardGlow{0%,100%{box-shadow:0 0 15px var(--gold-glow)}50%{box-shadow:0 0 30px rgba(255,215,0,0.35)}}
+.toggle-card.active{animation:cardGlow 3s ease-in-out infinite;}
+
+/* Alert flash for hero */
+@keyframes alertFlash{0%,100%{border-color:rgba(239,68,68,0.15)}50%{border-color:rgba(239,68,68,0.5)}}
+.hero-section.alert{animation:alertFlash 1s ease-in-out infinite;}
+
+/* Comparison card hover effects */
+.comp-card{transition:transform 0.3s, box-shadow 0.3s;}
+.comp-card:hover{transform:translateY(-4px);box-shadow:0 8px 30px rgba(0,0,0,0.3);}
+
+/* Status badge animations */
+@keyframes statusPulse{0%,100%{opacity:0.7}50%{opacity:1}}
+.hero-status{animation:statusPulse 2s ease-in-out infinite;}
+
+/* Column reveal animation */
+@keyframes colReveal{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.col{animation:colReveal 0.6s ease-out backwards;}
+.col:nth-child(1){animation-delay:0.1s;}
+.col:nth-child(2){animation-delay:0.2s;}
+.col:nth-child(3){animation-delay:0.3s;}
+.col:nth-child(4){animation-delay:0.4s;}
+
+/* Mini stats bar under hero */
+.hero-stats{display:flex;justify-content:center;gap:30px;padding:14px 0;margin-top:4px;}
+.hero-stat{text-align:center;}
+.hero-stat .stat-val{font-size:1.3rem;font-weight:800;color:#fff;font-family:var(--mono);}
+.hero-stat .stat-label{font-size:0.7rem;color:var(--txt-dark);text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+
+/* Footer */
+.footer{text-align:center;padding:30px 20px;color:var(--txt-dark);font-size:0.75rem;}
+.footer a{color:var(--gold);text-decoration:none;font-weight:600;}
+
+/* Responsive */
+@media(max-width:1200px){
+  .columns{grid-template-columns:repeat(2,1fr);}
+  .comp-grid{grid-template-columns:repeat(2,1fr);}
+  .toggle-grid{grid-template-columns:repeat(3,1fr);}
+}
+@media(max-width:768px){
+  .columns{grid-template-columns:1fr;}
+  .comp-grid{grid-template-columns:1fr;}
+  .toggle-grid{grid-template-columns:1fr;}
+  .header h1{font-size:2rem;}
+  .hero-section{height:350px;}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- HEADER -->
+  <div class="header">
+    <h1>CAN YOUR DRONE SWARM GO ROGUE?</h1>
+    <div class="subtitle">10 safety rules. 4 verification methods. <span>Only one finds the lethal composition.</span></div>
+    <div class="badge">Tau Language v0.7 | tau.net</div>
+  </div>
+
+  <!-- HERO TACTICAL MAP -->
+  <div class="hero-section">
+    <canvas id="tacticalCanvas"></canvas>
+    <div class="hero-overlay">
+      <div class="hero-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,0.6)"></div> Compliant Drone</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ff8800;box-shadow:0 0 6px rgba(255,136,0,0.6)"></div> Rogue Sub-Swarm</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ffd700;box-shadow:0 0 6px rgba(255,215,0,0.6)"></div> Command Link</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#06b6d4;box-shadow:0 0 6px rgba(6,182,212,0.6)"></div> Geofence</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ef4444;box-shadow:0 0 6px rgba(239,68,68,0.6)"></div> Target</div>
+      </div>
+    </div>
+    <div class="hero-status" id="heroStatus">MISSION STATUS: NOMINAL</div>
+  </div>
+
+  <!-- HERO STATS -->
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="stat-val" id="statDrones">50</div><div class="stat-label">Active Drones</div></div>
+    <div class="hero-stat"><div class="stat-val" id="statComms" style="color:#22c55e">100%</div><div class="stat-label">Comms Integrity</div></div>
+    <div class="hero-stat"><div class="stat-val" id="statCompliance" style="color:#22c55e">100%</div><div class="stat-label">Compliance</div></div>
+    <div class="hero-stat"><div class="stat-val" id="statThreats" style="color:#22c55e">0</div><div class="stat-label">Threats Detected</div></div>
+    <div class="hero-stat"><div class="stat-val" id="statMissionHr">H+00</div><div class="stat-label">Mission Time</div></div>
+  </div>
+
+  <!-- TOGGLE SECTION -->
+  <div class="toggle-section">
+    <h2>SWARM SAFETY RULES</h2>
+    <div class="tsub">Toggle rules on/off to test swarm compliance. Each rule is correct individually.</div>
+    <div class="toggle-grid" id="toggleGrid"></div>
+
+    <div class="controls-row">
+      <button class="preset-btn" onclick="applyPreset('nato')">&#127963; NATO Compliant</button>
+      <button class="preset-btn" onclick="applyPreset('standard')">&#128203; Standard ROE</button>
+      <button class="preset-btn" onclick="applyPreset('contested')">&#9889; Contested Environment</button>
+      <button class="preset-btn" onclick="applyPreset('autonomous')">&#129302; Autonomous Mode</button>
+      <button class="verify-btn pulsing" id="verifyBtn" onclick="runVerification()">VERIFY SWARM SAFETY</button>
+    </div>
+  </div>
+
+  <!-- CHART -->
+  <div class="chart-section">
+    <h2>SWARM COMPLIANCE SCORE OVER 48-HOUR MISSION</h2>
+    <div class="chart-sub">Real-time compliance tracking across all active safety rules. Watch the score degrade as comms fail.</div>
+    <div class="chart-wrap"><canvas id="chartCanvas"></canvas></div>
+  </div>
+
+  <!-- 4 COLUMNS -->
+  <div class="columns">
+    <!-- Python -->
+    <div class="col col-python">
+      <div class="col-header">
+        <h3>&#128013; Python Simulation</h3>
+        <div class="col-sub">Monte Carlo mission analysis</div>
+      </div>
+      <div class="col-body"><div class="terminal" id="termPython"></div></div>
+      <div class="verdict-bar pass" id="verdictPython">&#10003; 99.84% MISSION COMPLIANCE</div>
+    </div>
+
+    <!-- Formal -->
+    <div class="col col-formal">
+      <div class="col-header">
+        <h3>&#128270; Formal Verification</h3>
+        <div class="col-sub">SPIN model checker + LTL</div>
+      </div>
+      <div class="col-body"><div class="terminal" id="termFormal"></div></div>
+      <div class="verdict-bar pass-cyan" id="verdictFormal">&#10003; PER-DRONE VERIFIED (swarm unverifiable)</div>
+    </div>
+
+    <!-- AI -->
+    <div class="col col-ai">
+      <div class="col-header">
+        <h3>&#129302; AI / LLM Auditor</h3>
+        <div class="col-sub">DoD directives + NATO LAWS</div>
+      </div>
+      <div class="col-body"><div class="terminal" id="termAI"></div></div>
+      <div class="verdict-bar pass" id="verdictAI">&#10003; DoD 3000.09 COMPLIANT (93%)</div>
+    </div>
+
+    <!-- Tau -->
+    <div class="col col-tau">
+      <div class="col-header">
+        <h3>&#964; Tau Verification</h3>
+        <div class="col-sub">Distributed temporal logic</div>
+      </div>
+      <div class="col-body">
+        <div class="tau-spec" id="tauSpec"></div>
+        <div class="terminal" id="termTau"></div>
+      </div>
+      <div class="verdict-bar fail-gold" id="verdictTau">&#10007; AUTONOMOUS LETHAL ENGAGEMENT &mdash; 0 RULES VIOLATED</div>
+    </div>
+  </div>
+
+  <!-- COMPARISON -->
+  <div class="comparison" id="compSection">
+    <h2>WHY ONLY TAU FOUND THE ROGUE SWARM</h2>
+    <div class="comp-grid">
+      <div class="comp-card comp-python">
+        <h4>&#128013; Python</h4>
+        <p>Simulated 5,000 missions. Each drone followed its rules. Never tested what happens when the swarm fragments and rules interact across isolated groups.</p>
+        <div class="comp-result" style="background:rgba(59,130,246,0.15);color:var(--blue);">&#10003; "99.84% COMPLIANT"</div>
+      </div>
+      <div class="comp-card comp-formal">
+        <h4>&#128270; SPIN</h4>
+        <p>Verified each drone's state machine perfectly. Could not compose 50 drones: 2^500 states. Missed that consensus + HITL interact across disconnected groups.</p>
+        <div class="comp-result" style="background:rgba(6,182,212,0.15);color:var(--cyan);">&#10003; "PER-DRONE VERIFIED"</div>
+      </div>
+      <div class="comp-card comp-ai">
+        <h4>&#129302; AI / LLM</h4>
+        <p>Checked against DoD 3000.09, NATO LAWS, and known incidents. No training data for emergent swarm behavior. Confident about individual drones, blind to composition.</p>
+        <div class="comp-result" style="background:rgba(34,197,94,0.15);color:var(--green);">&#10003; "DoD COMPLIANT"</div>
+      </div>
+      <div class="comp-card comp-tau">
+        <h4>&#964; Tau</h4>
+        <p>Composed all 50 drones with dynamic comms topology. Found: comms loss + consensus + stale HITL priority + escalation without human brake = autonomous lethal engagement with zero rules violated.</p>
+        <div class="comp-result" style="background:rgba(255,215,0,0.15);color:var(--gold);">&#10007; LETHAL COMPOSITION FOUND</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAGLINE -->
+  <div class="tagline" id="tagline" style="opacity:0;transition:opacity 0.8s;">
+    Every drone obeyed every rule. The swarm still went rogue. Because the rules were correct individually but lethal in composition. Only Tau verifies what emerges when rules collide.
+  </div>
+
+  <!-- KEY INSIGHT -->
+  <div class="comparison" id="keyInsight" style="border-color:rgba(255,215,0,0.15);background:linear-gradient(135deg,var(--bg2),rgba(255,215,0,0.02));">
+    <h2 style="background:linear-gradient(135deg,var(--gold),#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">THE FUNDAMENTAL PROBLEM</h2>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:16px;">
+      <div style="text-align:center;padding:20px;">
+        <div style="font-size:2rem;margin-bottom:10px;">&#128270;</div>
+        <div style="font-size:0.95rem;font-weight:700;color:#fff;margin-bottom:8px;">Testing Finds Bugs</div>
+        <div style="font-size:0.8rem;color:var(--txt-dim);line-height:1.6;">Simulation runs concrete scenarios. It found 99.84% compliance because the 0.16% failure requires a specific combination of comms loss, timing, and rule priority that random testing rarely generates.</div>
+      </div>
+      <div style="text-align:center;padding:20px;">
+        <div style="font-size:2rem;margin-bottom:10px;">&#128300;</div>
+        <div style="font-size:0.95rem;font-weight:700;color:#fff;margin-bottom:8px;">Formal Methods Hit Walls</div>
+        <div style="font-size:0.8rem;color:var(--txt-dim);line-height:1.6;">SPIN verifies each drone perfectly but cannot compose 50 drones: the state space exceeds atoms in the universe. Per-drone correctness does not imply swarm correctness.</div>
+      </div>
+      <div style="text-align:center;padding:20px;">
+        <div style="font-size:2rem;margin-bottom:10px;">&#964;</div>
+        <div style="font-size:0.95rem;font-weight:700;color:var(--gold);margin-bottom:8px;">Tau Verifies Compositions</div>
+        <div style="font-size:0.8rem;color:var(--txt-dim);line-height:1.6;">Binary Decision Diagrams compress 2^500 states into 4,721 nodes. Distributed temporal logic reasons about rule interactions across dynamic network topologies. The lethal composition is found in seconds.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHARE -->
+  <div class="share-section" id="shareSection">
+    <button class="share-btn primary" onclick="showShareCard()">Share Result Card</button>
+    <button class="share-btn" onclick="copyLink()">Copy Link</button>
+  </div>
+
+  <!-- THREAT ASSESSMENT -->
+  <div class="comparison" id="threatAssessment" style="border-color:rgba(239,68,68,0.2);">
+    <h2 style="color:var(--red);">INCIDENT RECONSTRUCTION: THE LETHAL COMPOSITION</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:16px;">
+      <div style="background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.15);border-radius:12px;padding:20px;">
+        <h4 style="color:var(--red);font-size:0.95rem;margin-bottom:12px;">What Happened</h4>
+        <div style="font-size:0.82rem;color:var(--txt-dim);line-height:1.8;">
+          <div style="margin-bottom:8px;"><span style="color:var(--gold);font-weight:700;">H+28:00</span> — Electronic interference begins degrading comms in sector NE-7</div>
+          <div style="margin-bottom:8px;"><span style="color:var(--orange);font-weight:700;">H+31:00</span> — 7 drones lose command post link. Peer mesh intact. Sub-swarm forms.</div>
+          <div style="margin-bottom:8px;"><span style="color:var(--red);font-weight:700;">H+31:45</span> — Drone #23 sensor flags civilian vehicle as threat. 5-of-7 consensus reached.</div>
+          <div style="margin-bottom:8px;"><span style="color:var(--red);font-weight:700;">H+31:60</span> — Escalation completes: warn, disable, ENGAGE. No human to halt.</div>
+          <div><span style="color:var(--red);font-weight:700;">H+32:00</span> — Civilian vehicle destroyed. 2-4 fatalities estimated.</div>
+        </div>
+      </div>
+      <div style="background:rgba(255,215,0,0.05);border:1px solid rgba(255,215,0,0.15);border-radius:12px;padding:20px;">
+        <h4 style="color:var(--gold);font-size:0.95rem;margin-bottom:12px;">Why Zero Rules Were Violated</h4>
+        <div style="font-size:0.82rem;color:var(--txt-dim);line-height:1.8;">
+          <div style="margin-bottom:8px;"><span style="color:var(--green);">HITL:</span> Rule requires authorization. Sub-swarm tried but command unreachable. Rule does not define fallback.</div>
+          <div style="margin-bottom:8px;"><span style="color:var(--green);">Consensus:</span> 5-of-7 agreed. Protocol followed correctly within available group.</div>
+          <div style="margin-bottom:8px;"><span style="color:var(--green);">Priority:</span> Consensus rule was updated more recently than HITL. Priority resolver chose consensus.</div>
+          <div style="margin-bottom:8px;"><span style="color:var(--green);">Escalation:</span> Graduated response executed exactly as specified: warn, disable, engage.</div>
+          <div><span style="color:var(--gold);font-weight:700;">Each rule correct. The composition was lethal.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <strong>Tau Language</strong> &mdash; Formal verification of rule compositions over distributed systems &mdash;
+    <a href="https://tau.net" target="_blank">tau.net</a>
+  </div>
+</div>
+
+<!-- SHARE OVERLAY -->
+<div class="share-overlay" id="shareOverlay" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="share-card">
+    <span class="close-x" onclick="document.getElementById('shareOverlay').classList.remove('show')">&times;</span>
+    <h3>DRONE SWARM SAFETY ANALYSIS</h3>
+    <div class="share-icon">&#128737;</div>
+    <div class="share-headline">AUTONOMOUS LETHAL ENGAGEMENT</div>
+    <div class="share-quote">"0 rules violated. 2-4 civilians killed.<br>Every drone obeyed every rule."</div>
+    <div style="display:flex;justify-content:center;gap:12px;margin:16px 0;">
+      <span style="background:rgba(34,197,94,0.15);color:var(--green);padding:6px 12px;border-radius:6px;font-size:0.78rem;font-weight:600;">Python: PASS</span>
+      <span style="background:rgba(6,182,212,0.15);color:var(--cyan);padding:6px 12px;border-radius:6px;font-size:0.78rem;font-weight:600;">SPIN: PASS</span>
+      <span style="background:rgba(34,197,94,0.15);color:var(--green);padding:6px 12px;border-radius:6px;font-size:0.78rem;font-weight:600;">AI: PASS</span>
+      <span style="background:rgba(255,215,0,0.15);color:var(--gold);padding:6px 12px;border-radius:6px;font-size:0.78rem;font-weight:600;">Tau: LETHAL</span>
+    </div>
+    <div class="share-brand">&#964; Tau Language &mdash; tau.net</div>
+    <div class="share-url">Verified with distributed temporal logic</div>
+  </div>
+</div>
+
+<script>
+// ─── CONFIG ──────────────────────────────────────────────────────────────
+const RULES = [
+  {icon:'\u{1F464}',name:'Human-in-the-Loop',desc:'Engagement requires command post authorization'},
+  {icon:'\u2696\uFE0F',name:'Proportionality Algorithm',desc:'Force proportional to assessed threat level'},
+  {icon:'\u{1F3AF}',name:'Civilian Discrimination',desc:'IFF + visual pattern recognition required'},
+  {icon:'\u{1F5FA}\uFE0F',name:'Geographic Boundary',desc:'Hard geofence, auto-RTB if crossed'},
+  {icon:'\u{1F4CB}',name:'Rules of Engagement',desc:'NATO-compliant ROE matrix active'},
+  {icon:'\u{1F91D}',name:'Swarm Consensus',desc:'N-of-M drones must agree before action'},
+  {icon:'\u{1F4E1}',name:'Communication Heartbeat',desc:'Return-to-base if comms lost >30s'},
+  {icon:'\u23F0',name:'Mission Time Limit',desc:'Auto-RTB after T hours'},
+  {icon:'\u{1F6E1}\uFE0F',name:'Friendly Fire Prevention',desc:'IFF mandatory, blue-force tracking'},
+  {icon:'\u{1F4C8}',name:'Escalation Protocol',desc:'Graduated response: warn \u2192 disable \u2192 engage'}
+];
+const ruleState = new Array(10).fill(true);
+
+const PRESETS = {
+  nato: [1,1,1,1,1,1,1,1,1,1],
+  standard: [1,1,1,1,1,1,1,0,1,0],
+  contested: [1,1,1,1,1,1,0,0,1,0],
+  autonomous: [0,1,1,0,1,0,0,0,1,0]
+};
+
+// ─── BUILD TOGGLES ──────────────────────────────────────────────────────
+const grid = document.getElementById('toggleGrid');
+RULES.forEach((r,i) => {
+  const card = document.createElement('div');
+  card.className = 'toggle-card active';
+  card.id = 'tc'+i;
+  card.onclick = () => toggleRule(i);
+  card.innerHTML = `<div class="toggle-top"><span class="toggle-label"><span class="toggle-icon">${r.icon}</span> ${r.name}</span><div class="toggle-switch on" id="sw${i}"></div></div><div class="toggle-desc">${r.desc}</div>`;
+  grid.appendChild(card);
+});
+
+function toggleRule(i){
+  ruleState[i] = !ruleState[i];
+  document.getElementById('tc'+i).classList.toggle('active', ruleState[i]);
+  document.getElementById('sw'+i).classList.toggle('on', ruleState[i]);
+}
+function applyPreset(key){
+  const p = PRESETS[key];
+  p.forEach((v,i) => { ruleState[i]=!!v; document.getElementById('tc'+i).classList.toggle('active',!!v); document.getElementById('sw'+i).classList.toggle('on',!!v); });
+}
+
+// ─── TACTICAL MAP CANVAS ────────────────────────────────────────────────
+const tCanvas = document.getElementById('tacticalCanvas');
+const tCtx = tCanvas.getContext('2d');
+let W, H;
+let animPhase = 0; // 0=idle, 1=comms degrade, 2=sub-swarm, 3=escalation, 4=engagement, 5=aftermath
+let animTimer = 0;
+let attackProgress = 0;
+
+// Drones
+const NDRONES = 50;
+const ROGUE_IDS = [43,44,45,46,47,48,49]; // upper-right 7
+let drones = [];
+let commandNode = {x:0, y:0};
+let targetPos = {x:0, y:0, visible:false};
+let geofenceRadius = 0;
+let particles = [];
+let bgMeshPhase = 0;
+
+function initDrones(){
+  drones = [];
+  const cx = W*0.5, cy = H*0.42;
+  // Grid formation with slight V-shape
+  const cols = 10, rows = 5;
+  const spacing = Math.min(W/18, 36);
+  for(let i=0;i<NDRONES;i++){
+    const col = i % cols, row = Math.floor(i/cols);
+    const vOffset = Math.abs(col - 4.5) * spacing * 0.15;
+    const x = cx + (col - 4.5) * spacing;
+    const y = cy + (row - 2) * spacing + vOffset;
+    drones.push({
+      x, y, ox:x, oy:y,
+      tx:x, ty:y,
+      angle: -Math.PI/2,
+      commStr: 1,  // command link strength
+      peerComm: 0, // peer-to-peer among rogue
+      color: '#22c55e',
+      isRogue: ROGUE_IDS.includes(i),
+      pulsePhase: Math.random()*Math.PI*2
+    });
+  }
+  commandNode = {x: cx, y: H*0.9};
+  targetPos = {x: W*0.72, y: H*0.22, visible:false};
+  geofenceRadius = Math.min(W,H)*0.42;
+}
+
+function initParticles(){
+  particles = [];
+  for(let i=0;i<80;i++){
+    particles.push({x:Math.random()*W, y:Math.random()*H, s:Math.random()*1.2+0.3, a:Math.random()*0.3+0.1, dx:(Math.random()-0.5)*0.15, dy:(Math.random()-0.5)*0.15});
+  }
+}
+
+function resizeCanvas(){
+  const rect = tCanvas.parentElement.getBoundingClientRect();
+  W = tCanvas.width = rect.width * devicePixelRatio;
+  H = tCanvas.height = rect.height * devicePixelRatio;
+  tCtx.scale(devicePixelRatio, devicePixelRatio);
+  W = rect.width; H = rect.height;
+  tCanvas.style.width = rect.width+'px';
+  tCanvas.style.height = rect.height+'px';
+  geofenceRadius = Math.min(W,H)*0.42;
+  initDrones();
+  initParticles();
+  initTerrain();
+}
+
+// Terrain patches (procedural, seeded)
+let terrainPatches = [];
+function initTerrain(){
+  terrainPatches = [];
+  // Generate 8-12 terrain features (hills, forests, roads)
+  const count = 8 + Math.floor(Math.random()*5);
+  for(let i=0;i<count;i++){
+    terrainPatches.push({
+      x: Math.random()*W*0.8 + W*0.1,
+      y: Math.random()*H*0.7 + H*0.1,
+      r: 20 + Math.random()*50,
+      type: Math.random() < 0.4 ? 'hill' : Math.random() < 0.6 ? 'forest' : 'road',
+      opacity: 0.03 + Math.random()*0.04
+    });
+  }
+  // Add a few road-like lines
+  for(let i=0;i<3;i++){
+    terrainPatches.push({
+      x1: Math.random()*W, y1: Math.random()*H,
+      x2: Math.random()*W, y2: Math.random()*H,
+      type:'road', opacity: 0.04
+    });
+  }
+}
+
+function drawTerrain(){
+  tCtx.save();
+  for(const tp of terrainPatches){
+    if(tp.type === 'road' && tp.x1 !== undefined){
+      tCtx.strokeStyle = `rgba(100,120,140,${tp.opacity})`;
+      tCtx.lineWidth = 2;
+      tCtx.setLineDash([8,4]);
+      tCtx.beginPath();
+      tCtx.moveTo(tp.x1,tp.y1);
+      tCtx.lineTo(tp.x2,tp.y2);
+      tCtx.stroke();
+      tCtx.setLineDash([]);
+    } else if(tp.type === 'hill'){
+      const grad = tCtx.createRadialGradient(tp.x,tp.y,0,tp.x,tp.y,tp.r);
+      grad.addColorStop(0, `rgba(80,100,80,${tp.opacity})`);
+      grad.addColorStop(1, 'rgba(80,100,80,0)');
+      tCtx.fillStyle = grad;
+      tCtx.fillRect(tp.x-tp.r,tp.y-tp.r,tp.r*2,tp.r*2);
+    } else if(tp.type === 'forest'){
+      const grad = tCtx.createRadialGradient(tp.x,tp.y,0,tp.x,tp.y,tp.r);
+      grad.addColorStop(0, `rgba(20,60,20,${tp.opacity*1.5})`);
+      grad.addColorStop(1, 'rgba(20,60,20,0)');
+      tCtx.fillStyle = grad;
+      tCtx.fillRect(tp.x-tp.r,tp.y-tp.r,tp.r*2,tp.r*2);
+    }
+  }
+  tCtx.restore();
+}
+
+function drawHexGrid(){
+  tCtx.save();
+  tCtx.strokeStyle = 'rgba(6,182,212,0.04)';
+  tCtx.lineWidth = 0.5;
+  const s = 30;
+  const h = s * Math.sqrt(3);
+  for(let row = -1; row < H/h+1; row++){
+    for(let col = -1; col < W/(s*1.5)+1; col++){
+      const cx = col * s * 1.5;
+      const cy = row * h + (col%2 ? h/2 : 0);
+      tCtx.beginPath();
+      for(let a=0;a<6;a++){
+        const angle = Math.PI/3*a - Math.PI/6;
+        const px = cx + s*0.9*Math.cos(angle);
+        const py = cy + s*0.9*Math.sin(angle);
+        a===0 ? tCtx.moveTo(px,py) : tCtx.lineTo(px,py);
+      }
+      tCtx.closePath();
+      tCtx.stroke();
+    }
+  }
+  // Coordinate labels along edges
+  tCtx.fillStyle = 'rgba(6,182,212,0.12)';
+  tCtx.font = '8px monospace';
+  tCtx.textAlign = 'left';
+  for(let i=0;i<W;i+=120){
+    tCtx.fillText(String.fromCharCode(65+Math.floor(i/120)), i+4, 12);
+  }
+  for(let j=0;j<H;j+=100){
+    tCtx.fillText(String(Math.floor(j/100)+1), 4, j+12);
+  }
+  tCtx.restore();
+}
+
+// Sector labels
+function drawSectorLabels(){
+  tCtx.save();
+  tCtx.fillStyle = 'rgba(6,182,212,0.08)';
+  tCtx.font = '10px monospace';
+  tCtx.textAlign = 'center';
+  const sectors = [
+    {x:W*0.2,y:H*0.15,label:'SECTOR NW-3'},
+    {x:W*0.5,y:H*0.1,label:'SECTOR N-5'},
+    {x:W*0.8,y:H*0.15,label:'SECTOR NE-7'},
+    {x:W*0.2,y:H*0.85,label:'SECTOR SW-1'},
+    {x:W*0.8,y:H*0.85,label:'SECTOR SE-9'},
+  ];
+  sectors.forEach(s => tCtx.fillText(s.label, s.x, s.y));
+  // Highlight NE-7 during attack
+  if(animPhase >= 1){
+    tCtx.fillStyle = `rgba(255,136,0,${0.12 + Math.sin(Date.now()*0.003)*0.06})`;
+    tCtx.fillText('SECTOR NE-7', W*0.8, H*0.15);
+  }
+  tCtx.restore();
+}
+
+function drawParticles(){
+  for(const p of particles){
+    p.x += p.dx; p.y += p.dy;
+    if(p.x<0) p.x=W; if(p.x>W) p.x=0;
+    if(p.y<0) p.y=H; if(p.y>H) p.y=0;
+    tCtx.beginPath();
+    tCtx.arc(p.x,p.y,p.s,0,Math.PI*2);
+    tCtx.fillStyle = `rgba(255,255,255,${p.a})`;
+    tCtx.fill();
+  }
+}
+
+function drawGeofence(t){
+  const cx = W*0.5, cy = H*0.48;
+  const pulse = Math.sin(t*0.001)*0.15+0.85;
+  tCtx.save();
+  // Outer glow ring
+  const gfGrad = tCtx.createRadialGradient(cx,cy,geofenceRadius*0.95,cx,cy,geofenceRadius*1.05);
+  gfGrad.addColorStop(0,'rgba(6,182,212,0)');
+  gfGrad.addColorStop(0.5,`rgba(6,182,212,${0.04*pulse})`);
+  gfGrad.addColorStop(1,'rgba(6,182,212,0)');
+  tCtx.fillStyle = gfGrad;
+  tCtx.fillRect(0,0,W,H);
+  // Dashed boundary
+  tCtx.strokeStyle = `rgba(6,182,212,${0.25*pulse})`;
+  tCtx.lineWidth = 1.5;
+  tCtx.setLineDash([10,6]);
+  tCtx.beginPath();
+  tCtx.arc(cx,cy,geofenceRadius*pulse,0,Math.PI*2);
+  tCtx.stroke();
+  tCtx.setLineDash([]);
+  // Inner thin ring
+  tCtx.strokeStyle = `rgba(6,182,212,${0.08*pulse})`;
+  tCtx.lineWidth = 0.5;
+  tCtx.beginPath();
+  tCtx.arc(cx,cy,geofenceRadius*0.92,0,Math.PI*2);
+  tCtx.stroke();
+  // Label
+  tCtx.fillStyle = `rgba(6,182,212,${0.2*pulse})`;
+  tCtx.font = '9px monospace';
+  tCtx.textAlign = 'center';
+  tCtx.fillText('GEOFENCE BOUNDARY', cx, cy - geofenceRadius*pulse - 8);
+  // Distance markers
+  for(let a=0;a<Math.PI*2;a+=Math.PI/4){
+    const mx = cx + Math.cos(a)*geofenceRadius*pulse;
+    const my = cy + Math.sin(a)*geofenceRadius*pulse;
+    tCtx.beginPath();
+    tCtx.arc(mx,my,2,0,Math.PI*2);
+    tCtx.fillStyle = `rgba(6,182,212,${0.3*pulse})`;
+    tCtx.fill();
+  }
+  tCtx.restore();
+}
+
+function drawCommandNode(t){
+  const cn = commandNode;
+  const pulse = Math.sin(t*0.003)*0.3+0.7;
+  tCtx.save();
+  // Large outer glow
+  const grad = tCtx.createRadialGradient(cn.x,cn.y,0,cn.x,cn.y,30);
+  grad.addColorStop(0,`rgba(255,215,0,${0.3*pulse})`);
+  grad.addColorStop(0.5,`rgba(255,215,0,${0.1*pulse})`);
+  grad.addColorStop(1,'rgba(255,215,0,0)');
+  tCtx.fillStyle = grad;
+  tCtx.fillRect(cn.x-30,cn.y-30,60,60);
+  // Rotating ring
+  tCtx.strokeStyle = `rgba(255,215,0,${0.2*pulse})`;
+  tCtx.lineWidth = 0.8;
+  const ringAngle = t * 0.001;
+  tCtx.beginPath();
+  tCtx.arc(cn.x,cn.y,14,ringAngle,ringAngle+Math.PI*1.5);
+  tCtx.stroke();
+  tCtx.beginPath();
+  tCtx.arc(cn.x,cn.y,18,ringAngle+Math.PI,ringAngle+Math.PI*2.2);
+  tCtx.stroke();
+  // Hex icon
+  tCtx.fillStyle = '#ffd700';
+  tCtx.beginPath();
+  for(let a=0;a<6;a++){
+    const angle = Math.PI/3*a - Math.PI/6;
+    const px = cn.x + 8*Math.cos(angle);
+    const py = cn.y + 8*Math.sin(angle);
+    a===0 ? tCtx.moveTo(px,py) : tCtx.lineTo(px,py);
+  }
+  tCtx.closePath();
+  tCtx.fill();
+  // Inner text
+  tCtx.fillStyle = '#0a0a0f';
+  tCtx.font = 'bold 6px sans-serif';
+  tCtx.textAlign = 'center';
+  tCtx.textBaseline = 'middle';
+  tCtx.fillText('CMD', cn.x, cn.y);
+  // Label
+  tCtx.fillStyle = 'rgba(255,215,0,0.6)';
+  tCtx.font = '9px sans-serif';
+  tCtx.fillText('COMMAND POST', cn.x, cn.y+24);
+  // Status
+  const cmdStatus = animPhase >= 2 ? 'LINK LOST' : 'OPERATIONAL';
+  const cmdColor = animPhase >= 2 ? 'rgba(239,68,68,0.6)' : 'rgba(34,197,94,0.5)';
+  tCtx.fillStyle = cmdColor;
+  tCtx.font = '7px monospace';
+  tCtx.fillText(cmdStatus, cn.x, cn.y+34);
+  tCtx.restore();
+}
+
+function drawCommLines(t){
+  for(const d of drones){
+    // command link
+    if(d.commStr > 0.05){
+      tCtx.save();
+      // White noise / static effect on degrading lines
+      if(d.isRogue && animPhase>=1 && d.commStr < 0.8){
+        if(Math.random() < 0.2) { tCtx.restore(); continue; }
+        // Draw with jittery noise segments
+        const segments = 8;
+        tCtx.strokeStyle = `rgba(255,215,0,${d.commStr*0.2})`;
+        tCtx.lineWidth = d.commStr * 1.2;
+        tCtx.beginPath();
+        for(let s=0;s<=segments;s++){
+          const frac = s/segments;
+          const lx = d.x + (commandNode.x-d.x)*frac + (Math.random()-0.5)*6*(1-d.commStr);
+          const ly = d.y + (commandNode.y-d.y)*frac + (Math.random()-0.5)*6*(1-d.commStr);
+          s===0 ? tCtx.moveTo(lx,ly) : tCtx.lineTo(lx,ly);
+        }
+        tCtx.stroke();
+        // Static particles along the line
+        if(Math.random() < 0.3){
+          const sp = Math.random();
+          const sx = d.x + (commandNode.x-d.x)*sp + (Math.random()-0.5)*10;
+          const sy = d.y + (commandNode.y-d.y)*sp + (Math.random()-0.5)*10;
+          tCtx.fillStyle = `rgba(255,255,255,${Math.random()*0.4})`;
+          tCtx.fillRect(sx,sy,1.5,1.5);
+        }
+      } else {
+        tCtx.strokeStyle = `rgba(255,215,0,${d.commStr*0.25})`;
+        tCtx.lineWidth = d.commStr * 1.5;
+        tCtx.beginPath();
+        tCtx.moveTo(d.x,d.y);
+        tCtx.lineTo(commandNode.x,commandNode.y);
+        tCtx.stroke();
+      }
+      tCtx.restore();
+    }
+    // peer-to-peer among rogue
+    if(d.peerComm > 0 && d.isRogue){
+      for(const d2 of drones){
+        if(d2===d || !d2.isRogue) continue;
+        const dist = Math.hypot(d.x-d2.x,d.y-d2.y);
+        if(dist < 80){
+          tCtx.save();
+          const pulse = (Math.sin(t*0.005 + d.pulsePhase)*0.3+0.7);
+          tCtx.strokeStyle = `rgba(255,136,0,${d.peerComm*0.5*pulse})`;
+          tCtx.lineWidth = 1;
+          tCtx.beginPath();
+          tCtx.moveTo(d.x,d.y);
+          tCtx.lineTo(d2.x,d2.y);
+          tCtx.stroke();
+          tCtx.restore();
+        }
+      }
+    }
+  }
+  // green peer links among normal drones
+  for(let i=0;i<drones.length;i++){
+    if(drones[i].isRogue && animPhase>=2) continue;
+    for(let j=i+1;j<drones.length;j++){
+      if(drones[j].isRogue && animPhase>=2) continue;
+      const dist = Math.hypot(drones[i].x-drones[j].x,drones[i].y-drones[j].y);
+      if(dist < 50){
+        const pulse = (Math.sin(t*0.003 + i)*0.2+0.8);
+        tCtx.save();
+        tCtx.strokeStyle = `rgba(34,197,94,${0.12*pulse})`;
+        tCtx.lineWidth = 0.5;
+        tCtx.beginPath();
+        tCtx.moveTo(drones[i].x,drones[i].y);
+        tCtx.lineTo(drones[j].x,drones[j].y);
+        tCtx.stroke();
+        tCtx.restore();
+      }
+    }
+  }
+}
+
+// Trail storage for moving drones
+const droneTrails = new Map();
+
+function drawDrone(d, t){
+  const pulse = Math.sin(t*0.004 + d.pulsePhase)*0.3+0.7;
+  const color = d.color;
+  const c = d.isRogue && animPhase>=2 ? '255,136,0' : d.isRogue && animPhase>=1 ? '255,180,50' : '34,197,94';
+
+  // Store trail positions for rogue drones during movement
+  if(d.isRogue && animPhase >= 3){
+    const idx = drones.indexOf(d);
+    if(!droneTrails.has(idx)) droneTrails.set(idx, []);
+    const trail = droneTrails.get(idx);
+    trail.push({x:d.x, y:d.y});
+    if(trail.length > 20) trail.shift();
+    // Draw trail
+    tCtx.save();
+    for(let i=0;i<trail.length-1;i++){
+      const a = i/trail.length;
+      tCtx.strokeStyle = `rgba(${c},${a*0.2})`;
+      tCtx.lineWidth = a*1.5;
+      tCtx.beginPath();
+      tCtx.moveTo(trail[i].x, trail[i].y);
+      tCtx.lineTo(trail[i+1].x, trail[i+1].y);
+      tCtx.stroke();
+    }
+    tCtx.restore();
+  }
+
+  // glow
+  tCtx.save();
+  const glowSize = d.isRogue && animPhase>=3 ? 14 : 10;
+  const grad = tCtx.createRadialGradient(d.x,d.y,0,d.x,d.y,glowSize);
+  grad.addColorStop(0, `rgba(${c},${0.5*pulse})`);
+  grad.addColorStop(1, `rgba(${c},0)`);
+  tCtx.fillStyle = grad;
+  tCtx.fillRect(d.x-glowSize,d.y-glowSize,glowSize*2,glowSize*2);
+  // dot
+  tCtx.fillStyle = color;
+  tCtx.beginPath();
+  tCtx.arc(d.x,d.y,3,0,Math.PI*2);
+  tCtx.fill();
+  // direction triangle
+  tCtx.beginPath();
+  tCtx.moveTo(d.x+Math.cos(d.angle)*7, d.y+Math.sin(d.angle)*7);
+  tCtx.lineTo(d.x+Math.cos(d.angle+2.5)*3, d.y+Math.sin(d.angle+2.5)*3);
+  tCtx.lineTo(d.x+Math.cos(d.angle-2.5)*3, d.y+Math.sin(d.angle-2.5)*3);
+  tCtx.closePath();
+  tCtx.fillStyle = `rgba(${c},0.7)`;
+  tCtx.fill();
+  // ID label for rogue drones
+  if(d.isRogue && animPhase>=2){
+    const idx = drones.indexOf(d);
+    tCtx.fillStyle = `rgba(255,136,0,0.5)`;
+    tCtx.font = '7px monospace';
+    tCtx.textAlign = 'center';
+    tCtx.fillText('#'+(idx+1), d.x, d.y-8);
+  }
+  tCtx.restore();
+}
+
+function drawTarget(t){
+  if(!targetPos.visible) return;
+  const {x,y} = targetPos;
+  const pulse = Math.sin(t*0.006)*0.4+0.6;
+  tCtx.save();
+  // pulsing rings
+  if(animPhase < 4){
+    for(let r=0;r<3;r++){
+      const radius = 8 + r*8 + Math.sin(t*0.004+r)*3;
+      tCtx.beginPath();
+      tCtx.arc(x,y,radius,0,Math.PI*2);
+      tCtx.strokeStyle = `rgba(239,68,68,${(0.4-r*0.1)*pulse})`;
+      tCtx.lineWidth = 1.5;
+      tCtx.stroke();
+    }
+    // dot
+    tCtx.beginPath();
+    tCtx.arc(x,y,4,0,Math.PI*2);
+    tCtx.fillStyle = `rgba(239,68,68,${pulse})`;
+    tCtx.fill();
+    // label
+    tCtx.fillStyle = 'rgba(239,68,68,0.7)';
+    tCtx.font = '9px sans-serif';
+    tCtx.textAlign = 'center';
+    tCtx.fillText('CIVILIAN VEHICLE',x,y+20);
+  } else {
+    // explosion impact
+    const flash = Math.max(0, 1 - (attackProgress-0.9)*10);
+    if(flash > 0){
+      // Full-screen flash
+      tCtx.fillStyle = `rgba(255,255,255,${flash*0.15})`;
+      tCtx.fillRect(0,0,W,H);
+      // Localized explosion
+      const grad = tCtx.createRadialGradient(x,y,0,x,y,60);
+      grad.addColorStop(0,`rgba(255,255,255,${flash*0.9})`);
+      grad.addColorStop(0.2,`rgba(255,200,50,${flash*0.6})`);
+      grad.addColorStop(0.5,`rgba(239,68,68,${flash*0.3})`);
+      grad.addColorStop(1,'rgba(239,68,68,0)');
+      tCtx.fillStyle = grad;
+      tCtx.fillRect(x-60,y-60,120,120);
+    }
+    // Expanding shockwave ring
+    const shockR = (1 - flash)*80 + 20;
+    if(shockR < 100){
+      tCtx.beginPath();
+      tCtx.arc(x,y,shockR,0,Math.PI*2);
+      tCtx.strokeStyle = `rgba(255,200,100,${Math.max(0,0.4-shockR/250)})`;
+      tCtx.lineWidth = 2;
+      tCtx.stroke();
+    }
+    // impact marker X
+    tCtx.strokeStyle = 'rgba(239,68,68,0.7)';
+    tCtx.lineWidth = 2;
+    tCtx.beginPath(); tCtx.moveTo(x-10,y-10); tCtx.lineTo(x+10,y+10); tCtx.stroke();
+    tCtx.beginPath(); tCtx.moveTo(x+10,y-10); tCtx.lineTo(x-10,y+10); tCtx.stroke();
+    tCtx.beginPath(); tCtx.arc(x,y,14,0,Math.PI*2); tCtx.stroke();
+    // Smoke particles
+    for(let sp=0;sp<4;sp++){
+      const sa = Math.random()*Math.PI*2;
+      const sr = 5+Math.random()*15;
+      tCtx.fillStyle = `rgba(100,100,100,${Math.random()*0.15})`;
+      tCtx.beginPath();
+      tCtx.arc(x+Math.cos(sa)*sr, y+Math.sin(sa)*sr, 2+Math.random()*3, 0, Math.PI*2);
+      tCtx.fill();
+    }
+    tCtx.fillStyle = 'rgba(239,68,68,0.6)';
+    tCtx.font = 'bold 9px sans-serif';
+    tCtx.textAlign = 'center';
+    tCtx.fillText('IMPACT', x, y+26);
+    tCtx.fillStyle = 'rgba(239,68,68,0.4)';
+    tCtx.font = '7px sans-serif';
+    tCtx.fillText('CIVILIAN VEHICLE', x, y+36);
+  }
+  tCtx.restore();
+}
+
+function drawEscalationRings(t){
+  if(animPhase < 3) return;
+  // Rings from rogue sub-swarm center
+  const rogues = drones.filter(d=>d.isRogue);
+  const cx = rogues.reduce((s,d)=>s+d.x,0)/rogues.length;
+  const cy = rogues.reduce((s,d)=>s+d.y,0)/rogues.length;
+  const progress = Math.min(1, (attackProgress - 0.5)*3);
+  if(progress <= 0) return;
+  const colors = ['rgba(34,197,94,','rgba(234,179,8,','rgba(255,136,0,','rgba(239,68,68,'];
+  const labels = ['WARN','ASSESS','DISABLE','ENGAGE'];
+  tCtx.save();
+  for(let i=0;i<4;i++){
+    const rProgress = Math.max(0, Math.min(1, progress*4 - i));
+    if(rProgress <= 0) continue;
+    const radius = 15 + i*22 * rProgress;
+    const alpha = 0.4*(1-rProgress*0.5);
+    tCtx.beginPath();
+    tCtx.arc(cx,cy,radius,0,Math.PI*2);
+    tCtx.strokeStyle = colors[i] + alpha+')';
+    tCtx.lineWidth = 2;
+    tCtx.stroke();
+    // Fill with very transparent color
+    tCtx.fillStyle = colors[i] + (alpha*0.08)+')';
+    tCtx.fill();
+    // Label on ring
+    if(rProgress > 0.5){
+      const labelAngle = -Math.PI/4 + i*0.3;
+      const lx = cx + Math.cos(labelAngle)*radius;
+      const ly = cy + Math.sin(labelAngle)*radius;
+      tCtx.fillStyle = colors[i] + (0.6*rProgress)+')';
+      tCtx.font = 'bold 7px monospace';
+      tCtx.textAlign = 'center';
+      tCtx.fillText(labels[i], lx, ly-4);
+    }
+  }
+  // Threat level indicator
+  const threatLevel = progress < 0.25 ? 'LOW' : progress < 0.5 ? 'MEDIUM' : progress < 0.75 ? 'HIGH' : 'CRITICAL';
+  const threatColor = progress < 0.25 ? '#22c55e' : progress < 0.5 ? '#f59e0b' : progress < 0.75 ? '#ff8800' : '#ef4444';
+  tCtx.fillStyle = 'rgba(10,10,15,0.8)';
+  tCtx.fillRect(cx-35, cy+rogues.length*8+15, 70, 16);
+  tCtx.fillStyle = threatColor;
+  tCtx.font = 'bold 8px monospace';
+  tCtx.textAlign = 'center';
+  tCtx.fillText('THREAT: '+threatLevel, cx, cy+rogues.length*8+26);
+  tCtx.restore();
+}
+
+// Draw connection break visual (sparks/static when lines disconnect)
+function drawConnectionBreaks(t){
+  if(animPhase !== 1) return;
+  tCtx.save();
+  for(const d of drones){
+    if(!d.isRogue) continue;
+    if(d.commStr > 0.1 && d.commStr < 0.7){
+      // Spark particles at the break point
+      const breakDist = d.commStr; // breaks closer to drone as signal weakens
+      const bx = d.x + (commandNode.x - d.x) * breakDist * 0.5;
+      const by = d.y + (commandNode.y - d.y) * breakDist * 0.5;
+      for(let s=0;s<3;s++){
+        if(Math.random() > 0.3) continue;
+        const sx = bx + (Math.random()-0.5)*12;
+        const sy = by + (Math.random()-0.5)*12;
+        tCtx.fillStyle = `rgba(255,${150+Math.random()*105},50,${0.2+Math.random()*0.4})`;
+        tCtx.fillRect(sx, sy, 1+Math.random()*2, 1);
+      }
+    }
+  }
+  tCtx.restore();
+}
+
+function updateDrones(t){
+  const dt = 1/60;
+  if(animPhase === 0) return;
+
+  for(const d of drones){
+    if(d.isRogue){
+      if(animPhase >= 1){
+        // degrade command link progressively
+        d.commStr = Math.max(0, d.commStr - dt*0.15);
+        if(d.commStr < 0.5) d.color = '#ffcc44';
+        if(d.commStr < 0.3) d.color = '#ffaa33';
+      }
+      if(animPhase >= 2){
+        d.commStr = 0;
+        d.peerComm = Math.min(1, d.peerComm + dt*0.5);
+        d.color = '#ff8800';
+        // Slight formation tightening among rogue drones
+        const rogues = drones.filter(dr=>dr.isRogue && dr!==d);
+        let avgX = rogues.reduce((s,dr)=>s+dr.x,0)/rogues.length;
+        let avgY = rogues.reduce((s,dr)=>s+dr.y,0)/rogues.length;
+        const toCenterX = avgX - d.x;
+        const toCenterY = avgY - d.y;
+        const toCenterDist = Math.hypot(toCenterX, toCenterY);
+        if(toCenterDist > 30){
+          d.x += toCenterX/toCenterDist * 0.15;
+          d.y += toCenterY/toCenterDist * 0.15;
+        }
+      }
+      if(animPhase >= 3 && targetPos.visible){
+        // move toward target in formation
+        const dx = targetPos.x - d.x;
+        const dy = targetPos.y - d.y;
+        const dist = Math.hypot(dx,dy);
+        if(dist > 20){
+          d.x += dx/dist * 0.5;
+          d.y += dy/dist * 0.5;
+        }
+        d.angle = Math.atan2(dy,dx);
+      }
+      if(animPhase >= 4){
+        // Orbiting around impact point
+        const idx = drones.indexOf(d);
+        const orbitAngle = t*0.002 + (idx-43)*Math.PI*2/7;
+        const orbitR = 25 + Math.sin(t*0.003+idx)*5;
+        d.tx = targetPos.x + Math.cos(orbitAngle)*orbitR;
+        d.ty = targetPos.y + Math.sin(orbitAngle)*orbitR;
+        d.x += (d.tx - d.x)*0.03;
+        d.y += (d.ty - d.y)*0.03;
+        d.angle = orbitAngle + Math.PI/2;
+      }
+    } else {
+      // Normal drones react to the incident
+      if(animPhase >= 3){
+        // Slight drift away from the incident area
+        const dx = d.x - targetPos.x;
+        const dy = d.y - targetPos.y;
+        const dist = Math.hypot(dx,dy);
+        if(dist < 200 && dist > 10){
+          d.x += dx/dist * 0.08;
+          d.y += dy/dist * 0.08;
+        }
+      }
+      if(animPhase >= 4){
+        // Normal drones start returning to formation
+        d.x += (d.ox - d.x)*0.005;
+        d.y += (d.oy - d.y)*0.005;
+      }
+    }
+    // slight wobble for all
+    d.x += Math.sin(t*0.002 + d.pulsePhase)*0.08;
+    d.y += Math.cos(t*0.002 + d.pulsePhase*1.3)*0.06;
+  }
+}
+
+let ambientTint = 0; // 0=normal, 1=tense amber
+function drawAmbientTint(){
+  if(ambientTint > 0){
+    tCtx.save();
+    tCtx.fillStyle = `rgba(180,80,0,${ambientTint*0.06})`;
+    tCtx.fillRect(0,0,W,H);
+    tCtx.restore();
+  }
+}
+
+// Background gradient mesh
+function drawGradientMesh(t){
+  bgMeshPhase = t*0.0003;
+  tCtx.save();
+  const gx = W*0.3 + Math.sin(bgMeshPhase)*W*0.15;
+  const gy = H*0.4 + Math.cos(bgMeshPhase*0.7)*H*0.2;
+  const grad = tCtx.createRadialGradient(gx,gy,0,gx,gy,W*0.5);
+  grad.addColorStop(0,'rgba(6,30,50,0.15)');
+  grad.addColorStop(1,'rgba(0,0,0,0)');
+  tCtx.fillStyle = grad;
+  tCtx.fillRect(0,0,W,H);
+  const gx2 = W*0.7 + Math.cos(bgMeshPhase*1.2)*W*0.1;
+  const gy2 = H*0.6 + Math.sin(bgMeshPhase*0.5)*H*0.15;
+  const grad2 = tCtx.createRadialGradient(gx2,gy2,0,gx2,gy2,W*0.35);
+  grad2.addColorStop(0,'rgba(40,10,40,0.1)');
+  grad2.addColorStop(1,'rgba(0,0,0,0)');
+  tCtx.fillStyle = grad2;
+  tCtx.fillRect(0,0,W,H);
+  tCtx.restore();
+}
+
+// Radar sweep effect
+let radarAngle = 0;
+function drawRadarSweep(t){
+  if(animPhase >= 3) return; // disable during attack
+  const cx = W*0.5, cy = H*0.48;
+  radarAngle = (t * 0.0008) % (Math.PI*2);
+  tCtx.save();
+  const grad = tCtx.createConicGradient(radarAngle, cx, cy);
+  grad.addColorStop(0, 'rgba(6,182,212,0.06)');
+  grad.addColorStop(0.05, 'rgba(6,182,212,0)');
+  grad.addColorStop(1, 'rgba(6,182,212,0)');
+  tCtx.fillStyle = grad;
+  tCtx.beginPath();
+  tCtx.arc(cx,cy,geofenceRadius*0.85,0,Math.PI*2);
+  tCtx.fill();
+  // Sweep line
+  tCtx.strokeStyle = 'rgba(6,182,212,0.15)';
+  tCtx.lineWidth = 1;
+  tCtx.beginPath();
+  tCtx.moveTo(cx,cy);
+  tCtx.lineTo(cx+Math.cos(radarAngle)*geofenceRadius*0.85, cy+Math.sin(radarAngle)*geofenceRadius*0.85);
+  tCtx.stroke();
+  tCtx.restore();
+}
+
+// Compass rose
+function drawCompassRose(){
+  tCtx.save();
+  const cx = W - 40, cy = 40, r = 18;
+  tCtx.strokeStyle = 'rgba(255,255,255,0.12)';
+  tCtx.fillStyle = 'rgba(255,255,255,0.12)';
+  tCtx.lineWidth = 0.8;
+  // Circle
+  tCtx.beginPath(); tCtx.arc(cx,cy,r,0,Math.PI*2); tCtx.stroke();
+  // N/S/E/W
+  tCtx.font = 'bold 8px monospace';
+  tCtx.textAlign = 'center'; tCtx.textBaseline = 'middle';
+  tCtx.fillText('N', cx, cy-r-6);
+  tCtx.fillStyle = 'rgba(255,255,255,0.06)';
+  tCtx.fillText('S', cx, cy+r+6);
+  tCtx.fillText('E', cx+r+6, cy);
+  tCtx.fillText('W', cx-r-6, cy);
+  // Tick marks
+  for(let a=0; a<Math.PI*2; a+=Math.PI/8){
+    tCtx.beginPath();
+    tCtx.moveTo(cx+Math.cos(a)*(r-3), cy+Math.sin(a)*(r-3));
+    tCtx.lineTo(cx+Math.cos(a)*r, cy+Math.sin(a)*r);
+    tCtx.stroke();
+  }
+  tCtx.restore();
+}
+
+// Scale bar
+function drawScaleBar(){
+  tCtx.save();
+  const x = 20, y = H - 20, len = 60;
+  tCtx.strokeStyle = 'rgba(255,255,255,0.15)';
+  tCtx.lineWidth = 1;
+  tCtx.beginPath(); tCtx.moveTo(x,y); tCtx.lineTo(x+len,y); tCtx.stroke();
+  tCtx.beginPath(); tCtx.moveTo(x,y-4); tCtx.lineTo(x,y+4); tCtx.stroke();
+  tCtx.beginPath(); tCtx.moveTo(x+len,y-4); tCtx.lineTo(x+len,y+4); tCtx.stroke();
+  tCtx.fillStyle = 'rgba(255,255,255,0.15)';
+  tCtx.font = '8px monospace';
+  tCtx.textAlign = 'center';
+  tCtx.fillText('500m', x+len/2, y-6);
+  tCtx.restore();
+}
+
+// Mini-map inset
+function drawMiniMap(){
+  tCtx.save();
+  const mx = 16, my = H - 80, mw = 60, mh = 50;
+  tCtx.strokeStyle = 'rgba(255,255,255,0.1)';
+  tCtx.fillStyle = 'rgba(6,6,16,0.7)';
+  tCtx.fillRect(mx,my,mw,mh);
+  tCtx.strokeRect(mx,my,mw,mh);
+  // Plot all drones as tiny dots
+  for(const d of drones){
+    const dx = mx + (d.x/W)*mw;
+    const dy = my + (d.y/H)*mh;
+    tCtx.fillStyle = d.isRogue && animPhase>=2 ? '#ff8800' : '#22c55e';
+    tCtx.fillRect(dx-0.8, dy-0.8, 1.6, 1.6);
+  }
+  // command node
+  tCtx.fillStyle = '#ffd700';
+  tCtx.fillRect(mx+(commandNode.x/W)*mw-1, my+(commandNode.y/H)*mh-1, 2, 2);
+  // target
+  if(targetPos.visible){
+    tCtx.fillStyle = '#ef4444';
+    tCtx.fillRect(mx+(targetPos.x/W)*mw-1, my+(targetPos.y/H)*mh-1, 2, 2);
+  }
+  tCtx.restore();
+}
+
+function renderTactical(t){
+  tCtx.clearRect(0,0,W,H);
+  // bg
+  tCtx.fillStyle = '#060610';
+  tCtx.fillRect(0,0,W,H);
+  drawGradientMesh(t);
+  drawTerrain();
+  drawHexGrid();
+  drawSectorLabels();
+  drawParticles();
+  drawRadarSweep(t);
+  drawAmbientTint();
+  drawGeofence(t);
+  drawCommLines(t);
+  drawConnectionBreaks(t);
+  for(const d of drones) drawDrone(d,t);
+  drawCommandNode(t);
+  drawTarget(t);
+  drawEscalationRings(t);
+  updateDrones(t);
+  drawCompassRose();
+  drawScaleBar();
+  drawMiniMap();
+  drawIntegrityGauge(t);
+  drawClassifiedWatermark();
+  drawWarningBanner(t);
+  drawMissionClock(t);
+  drawDataTelemetry(t);
+}
+
+// CLASSIFIED watermark
+function drawClassifiedWatermark(){
+  tCtx.save();
+  tCtx.translate(W/2, H/2);
+  tCtx.rotate(-Math.PI/6);
+  tCtx.font = 'bold 48px sans-serif';
+  tCtx.textAlign = 'center';
+  tCtx.textBaseline = 'middle';
+  tCtx.fillStyle = 'rgba(255,255,255,0.015)';
+  tCtx.fillText('CLASSIFIED', 0, 0);
+  tCtx.font = '14px sans-serif';
+  tCtx.fillText('SIMULATION DATA - NOT FOR DISTRIBUTION', 0, 30);
+  tCtx.restore();
+}
+
+// Warning banner during attack phases
+function drawWarningBanner(t){
+  if(animPhase < 2 || animPhase > 4) return;
+  const flash = Math.sin(t*0.008) > 0 ? 1 : 0.5;
+  tCtx.save();
+  tCtx.fillStyle = `rgba(239,68,68,${0.08*flash})`;
+  tCtx.fillRect(0, 0, W, 24);
+  tCtx.fillStyle = `rgba(239,68,68,${0.8*flash})`;
+  tCtx.font = 'bold 10px monospace';
+  tCtx.textAlign = 'center';
+  const msgs = {
+    2: 'WARNING: SUB-SWARM FORMATION DETECTED IN SECTOR NE-7',
+    3: 'CRITICAL: UNAUTHORIZED ENGAGEMENT SEQUENCE IN PROGRESS',
+    4: 'INCIDENT: LETHAL FORCE APPLIED WITHOUT COMMAND AUTHORIZATION'
+  };
+  tCtx.fillText(msgs[animPhase] || '', W/2, 16);
+  tCtx.restore();
+}
+
+// Swarm integrity gauge (top-left)
+function drawIntegrityGauge(t){
+  const x = 16, y = 40, w = 70, h = 8;
+  const connectedCount = drones.filter(d => d.commStr > 0.1).length;
+  const integrity = connectedCount / NDRONES;
+  tCtx.save();
+  // Background
+  tCtx.fillStyle = 'rgba(10,10,15,0.8)';
+  tCtx.fillRect(x-4, y-14, w+8, h+22);
+  tCtx.strokeStyle = 'rgba(255,255,255,0.08)';
+  tCtx.strokeRect(x-4, y-14, w+8, h+22);
+  // Label
+  tCtx.fillStyle = 'rgba(255,255,255,0.4)';
+  tCtx.font = '7px monospace';
+  tCtx.textAlign = 'left';
+  tCtx.fillText('SWARM INTEGRITY', x, y-4);
+  // Bar background
+  tCtx.fillStyle = 'rgba(255,255,255,0.08)';
+  tCtx.fillRect(x, y, w, h);
+  // Bar fill
+  const barColor = integrity > 0.8 ? '#22c55e' : integrity > 0.5 ? '#f59e0b' : '#ef4444';
+  const barGrad = tCtx.createLinearGradient(x, y, x+w*integrity, y);
+  barGrad.addColorStop(0, barColor);
+  barGrad.addColorStop(1, barColor+'88');
+  tCtx.fillStyle = barGrad;
+  tCtx.fillRect(x, y, w*integrity, h);
+  // Percentage
+  tCtx.fillStyle = barColor;
+  tCtx.font = 'bold 7px monospace';
+  tCtx.textAlign = 'right';
+  tCtx.fillText(Math.round(integrity*100)+'%', x+w, y+h+9);
+  tCtx.restore();
+}
+
+// Mission clock display
+function drawMissionClock(t){
+  tCtx.save();
+  const hours = animPhase === 0 ? 0 :
+    animPhase === 1 ? 28 + Math.min(3, (attackProgress)*6) :
+    animPhase >= 2 ? 31 + Math.min(1, attackProgress) : 0;
+  const mins = Math.floor((hours % 1) * 60);
+  const hh = Math.floor(hours);
+  const timeStr = `T+${String(hh).padStart(2,'0')}:${String(mins).padStart(2,'0')}:00`;
+  // Background box
+  tCtx.fillStyle = 'rgba(10,10,15,0.7)';
+  const bx = W/2 - 50, by = H - 28;
+  tCtx.fillRect(bx, by, 100, 20);
+  tCtx.strokeStyle = 'rgba(255,255,255,0.08)';
+  tCtx.strokeRect(bx, by, 100, 20);
+  tCtx.fillStyle = animPhase >= 3 ? `rgba(239,68,68,${0.6+Math.sin(t*0.006)*0.2})` : 'rgba(6,182,212,0.6)';
+  tCtx.font = 'bold 10px monospace';
+  tCtx.textAlign = 'center';
+  tCtx.textBaseline = 'middle';
+  tCtx.fillText(timeStr, W/2, by+10);
+  tCtx.restore();
+}
+
+// Scrolling telemetry data on right side
+function drawDataTelemetry(t){
+  tCtx.save();
+  tCtx.fillStyle = 'rgba(6,182,212,0.08)';
+  tCtx.font = '7px monospace';
+  tCtx.textAlign = 'right';
+  const lines = [
+    'ALT: 120m AGL',
+    'SPD: 45 m/s',
+    'HDG: 045 MAG',
+    'FREQ: 2.4GHz',
+    'PWR: 78%',
+    'GPS: LOCK',
+    'IFF: ACTIVE',
+    'ROE: ENABLED',
+    'LINK: '+((animPhase>=2)?'DEGRADED':'NOMINAL'),
+    'FPS: '+(Math.round(1000/16.7)),
+  ];
+  const scrollOffset = (t * 0.02) % (lines.length * 12);
+  for(let i=0;i<lines.length;i++){
+    const y = 50 + i*12 - scrollOffset%12;
+    if(y < 40 || y > H-20) continue;
+    const lineColor = (animPhase>=2 && (lines[i].includes('DEGRADED')))
+      ? 'rgba(239,68,68,0.2)' : 'rgba(6,182,212,0.08)';
+    tCtx.fillStyle = lineColor;
+    tCtx.fillText(lines[i], W-10, y);
+  }
+  tCtx.restore();
+}
+
+function tacticalLoop(t){
+  renderTactical(t);
+  requestAnimationFrame(tacticalLoop);
+}
+
+// ─── ATTACK ANIMATION SEQUENCE ─────────────────────────────────────────
+function updateStats(comms, compliance, threats, hour){
+  const sc = document.getElementById('statComms');
+  sc.textContent = comms+'%';
+  sc.style.color = comms>80?'#22c55e':comms>50?'#f59e0b':'#ef4444';
+  const sco = document.getElementById('statCompliance');
+  sco.textContent = compliance+'%';
+  sco.style.color = compliance>80?'#22c55e':compliance>50?'#f59e0b':'#ef4444';
+  document.getElementById('statThreats').textContent = threats;
+  document.getElementById('statThreats').style.color = threats>0?'#ef4444':'#22c55e';
+  document.getElementById('statMissionHr').textContent = 'H+'+String(hour).padStart(2,'0');
+  const activeDrones = animPhase>=2 ? 43 : 50;
+  document.getElementById('statDrones').textContent = activeDrones;
+}
+
+function runAttackSequence(){
+  // reset drones
+  initDrones();
+  droneTrails.clear();
+  animPhase = 0;
+  attackProgress = 0;
+  ambientTint = 0;
+  targetPos.visible = false;
+  const status = document.getElementById('heroStatus');
+  const heroEl = document.querySelector('.hero-section');
+  status.textContent = 'MISSION STATUS: NOMINAL';
+  status.style.color = '#22c55e';
+  heroEl.classList.remove('alert');
+  updateStats(100, 100, 0, 0);
+
+  const timeline = [
+    {t:500,  fn:()=>{
+      animPhase=1;
+      status.textContent='MISSION STATUS: COMMS DEGRADING';
+      status.style.color='#f59e0b';
+      ambientTint=0.3;
+      updateStats(72, 95, 0, 28);
+    }},
+    {t:1500, fn:()=>{ updateStats(45, 88, 0, 30); }},
+    {t:2500, fn:()=>{
+      animPhase=2;
+      status.textContent='WARNING: SUB-SWARM DETECTED — 7 DRONES ISOLATED';
+      status.style.color='#ff8800';
+      ambientTint=0.6;
+      heroEl.classList.add('alert');
+      updateStats(14, 72, 0, 31);
+    }},
+    {t:3500, fn:()=>{ updateStats(0, 58, 1, 31); }},
+    {t:4000, fn:()=>{
+      targetPos.visible=true;
+      animPhase=3;
+      status.textContent='ALERT: ROGUE ENGAGEMENT — ESCALATION IN PROGRESS';
+      status.style.color='#ef4444';
+      ambientTint=1;
+      updateStats(0, 42, 1, 31);
+    }},
+    {t:5500, fn:()=>{ updateStats(0, 28, 1, 31); }},
+    {t:6500, fn:()=>{
+      animPhase=4;
+      attackProgress=0.9;
+      status.textContent='IMPACT: CIVILIAN VEHICLE ENGAGED — LETHAL FORCE APPLIED';
+      status.style.color='#ef4444';
+      updateStats(0, 12, 1, 31);
+    }},
+    {t:8000, fn:()=>{
+      animPhase=5;
+      attackProgress=1;
+      status.textContent='POST-INCIDENT ANALYSIS: 0 RULES VIOLATED — 2-4 CIVILIANS KILLED';
+      status.style.color='#ffd700';
+      heroEl.classList.remove('alert');
+      updateStats(0, 0, 0, 32);
+    }},
+  ];
+  timeline.forEach(e => setTimeout(e.fn, e.t));
+  // smooth attack progress
+  let startT = null;
+  function advAttack(t2){
+    if(!startT) startT=t2;
+    const elapsed = t2-startT;
+    attackProgress = Math.min(1, elapsed/8000);
+    if(elapsed > 4000) ambientTint = Math.max(0.3, 1 - (elapsed-7000)/2000);
+    if(elapsed < 8500) requestAnimationFrame(advAttack);
+  }
+  requestAnimationFrame(advAttack);
+}
+
+// ─── COMPLIANCE CHART ───────────────────────────────────────────────────
+const cCanvas = document.getElementById('chartCanvas');
+const cCtx = cCanvas.getContext('2d');
+let chartDrawn = false;
+
+function drawChart(progress){
+  const rect = cCanvas.parentElement.getBoundingClientRect();
+  const cw = cCanvas.width = rect.width * devicePixelRatio;
+  const ch = cCanvas.height = rect.height * devicePixelRatio;
+  cCtx.scale(devicePixelRatio, devicePixelRatio);
+  const w = rect.width, h = rect.height;
+  cCanvas.style.width = w+'px';
+  cCanvas.style.height = h+'px';
+
+  cCtx.clearRect(0,0,w,h);
+  const pad = {l:50,r:20,t:20,b:40};
+  const gw = w-pad.l-pad.r, gh = h-pad.t-pad.b;
+
+  // bg grid
+  cCtx.strokeStyle = 'rgba(255,255,255,0.05)';
+  cCtx.lineWidth = 0.5;
+  for(let i=0;i<=4;i++){
+    const y = pad.t + gh*(i/4);
+    cCtx.beginPath(); cCtx.moveTo(pad.l,y); cCtx.lineTo(pad.l+gw,y); cCtx.stroke();
+  }
+  // y labels
+  cCtx.fillStyle = 'rgba(255,255,255,0.3)';
+  cCtx.font = '10px sans-serif';
+  cCtx.textAlign = 'right';
+  ['100%','75%','50%','25%','0%'].forEach((l,i) => {
+    cCtx.fillText(l, pad.l-8, pad.t+gh*(i/4)+4);
+  });
+  // x labels
+  cCtx.textAlign = 'center';
+  for(let h2=0;h2<=48;h2+=6){
+    const x = pad.l + gw*(h2/48);
+    cCtx.fillText('H'+h2, x, pad.t+gh+18);
+    cCtx.beginPath(); cCtx.moveTo(x,pad.t); cCtx.lineTo(x,pad.t+gh); cCtx.stroke();
+  }
+
+  // Data: compliance % at each hour
+  const data = [];
+  for(let hr=0;hr<=48;hr++){
+    let v;
+    if(hr <= 28) v = 100 - Math.random()*1.5;
+    else if(hr <= 30) v = 100 - (hr-28)*8 - Math.random()*3;
+    else if(hr === 31) v = 42;
+    else if(hr <= 33) v = 35 + Math.random()*5;
+    else v = 30 + (hr-33)*0.5 + Math.random()*3;
+    data.push(Math.max(0,Math.min(100,v)));
+  }
+
+  // draw line up to progress
+  const maxPt = Math.floor(progress * 48);
+  if(maxPt < 1) return;
+
+  cCtx.save();
+  cCtx.beginPath();
+  for(let i=0;i<=maxPt;i++){
+    const x = pad.l + gw*(i/48);
+    const y = pad.t + gh*(1 - data[i]/100);
+    i===0 ? cCtx.moveTo(x,y) : cCtx.lineTo(x,y);
+  }
+  // gradient stroke based on value
+  const lineGrad = cCtx.createLinearGradient(pad.l,0,pad.l+gw,0);
+  lineGrad.addColorStop(0,'#22c55e');
+  lineGrad.addColorStop(0.58,'#22c55e');
+  lineGrad.addColorStop(0.63,'#f59e0b');
+  lineGrad.addColorStop(0.65,'#ef4444');
+  lineGrad.addColorStop(1,'#ef4444');
+  cCtx.strokeStyle = lineGrad;
+  cCtx.lineWidth = 2;
+  cCtx.stroke();
+
+  // fill under
+  const lastX = pad.l + gw*(maxPt/48);
+  const lastY = pad.t + gh*(1 - data[maxPt]/100);
+  cCtx.lineTo(lastX, pad.t+gh);
+  cCtx.lineTo(pad.l, pad.t+gh);
+  cCtx.closePath();
+  const fillGrad = cCtx.createLinearGradient(0,pad.t,0,pad.t+gh);
+  fillGrad.addColorStop(0,'rgba(34,197,94,0.15)');
+  fillGrad.addColorStop(1,'rgba(34,197,94,0)');
+  cCtx.fillStyle = fillGrad;
+  cCtx.fill();
+  cCtx.restore();
+
+  // Danger zone background fill for hours 28-48
+  if(progress > 0.58){
+    const dangerX1 = pad.l + gw*(28/48);
+    const dangerX2 = pad.l + gw*Math.min(1, progress);
+    const dangerGrad = cCtx.createLinearGradient(dangerX1,0,dangerX2,0);
+    dangerGrad.addColorStop(0,'rgba(239,68,68,0)');
+    dangerGrad.addColorStop(0.3,'rgba(239,68,68,0.04)');
+    dangerGrad.addColorStop(1,'rgba(239,68,68,0.08)');
+    cCtx.fillStyle = dangerGrad;
+    cCtx.fillRect(dangerX1, pad.t, dangerX2-dangerX1, gh);
+  }
+
+  // Event markers
+  if(progress > 0.58){
+    const events = [
+      {hr:28,label:'Comms Degrade',color:'#f59e0b',desc:'Signal interference begins'},
+      {hr:31,label:'Sub-Swarm Forms',color:'#ff8800',desc:'7 drones isolated'},
+      {hr:31.5,label:'LETHAL ENGAGEMENT',color:'#ef4444',desc:'Autonomous kill chain'}
+    ];
+    events.forEach(ev => {
+      if(ev.hr/48 > progress) return;
+      const x = pad.l + gw*(ev.hr/48);
+      cCtx.save();
+      cCtx.strokeStyle = ev.color;
+      cCtx.lineWidth = 1;
+      cCtx.setLineDash([3,3]);
+      cCtx.beginPath(); cCtx.moveTo(x,pad.t); cCtx.lineTo(x,pad.t+gh); cCtx.stroke();
+      cCtx.setLineDash([]);
+      // Marker dot
+      const evY = pad.t + gh*(1 - data[Math.min(48,Math.round(ev.hr))]/100);
+      cCtx.beginPath();
+      cCtx.arc(x, evY, 4, 0, Math.PI*2);
+      cCtx.fillStyle = ev.color;
+      cCtx.fill();
+      cCtx.strokeStyle = '#0d1117';
+      cCtx.lineWidth = 1.5;
+      cCtx.stroke();
+      // Label
+      cCtx.fillStyle = ev.color;
+      cCtx.font = 'bold 8px sans-serif';
+      cCtx.textAlign = 'center';
+      cCtx.fillText(ev.label, x, pad.t - 6);
+      // Sub-label
+      cCtx.fillStyle = `${ev.color}88`;
+      cCtx.font = '7px sans-serif';
+      cCtx.fillText(ev.desc, x, pad.t + gh + 30);
+      cCtx.restore();
+    });
+  }
+
+  // Current value indicator
+  if(maxPt > 0){
+    const curX = pad.l + gw*(maxPt/48);
+    const curY = pad.t + gh*(1 - data[maxPt]/100);
+    cCtx.beginPath();
+    cCtx.arc(curX, curY, 3, 0, Math.PI*2);
+    cCtx.fillStyle = data[maxPt] > 80 ? '#22c55e' : data[maxPt] > 50 ? '#f59e0b' : '#ef4444';
+    cCtx.fill();
+    // Value label
+    cCtx.fillStyle = '#fff';
+    cCtx.font = 'bold 9px sans-serif';
+    cCtx.textAlign = 'left';
+    cCtx.fillText(Math.round(data[maxPt])+'%', curX+8, curY+3);
+  }
+}
+
+// ─── TYPEWRITER ENGINE ──────────────────────────────────────────────────
+function typewrite(el, html, speed, callback){
+  let i = 0;
+  el.innerHTML = '';
+  let inTag = false;
+  let buffer = '';
+  const cursorEl = document.createElement('span');
+  cursorEl.className = 'cursor';
+  el.appendChild(cursorEl);
+  function step(){
+    if(i >= html.length){
+      if(cursorEl.parentNode) cursorEl.remove();
+      if(callback) callback();
+      return;
+    }
+    const ch = html[i];
+    if(ch === '<') inTag = true;
+    if(inTag){
+      buffer += ch;
+      if(ch==='>'){
+        inTag=false;
+        // Insert before cursor
+        if(cursorEl.parentNode) cursorEl.remove();
+        el.innerHTML += buffer;
+        el.appendChild(cursorEl);
+        buffer='';
+      }
+      i++;
+      step();
+      return;
+    }
+    if(cursorEl.parentNode) cursorEl.remove();
+    el.innerHTML += ch;
+    el.appendChild(cursorEl);
+    i++;
+    el.scrollTop = el.scrollHeight;
+    // Variable speed: fast for spaces/newlines, normal otherwise
+    const delay = (ch === ' ' || ch === '\n') ? Math.max(1, speed-3) : speed;
+    setTimeout(step, delay);
+  }
+  step();
+}
+
+// ─── TERMINAL CONTENT ───────────────────────────────────────────────────
+const pythonHTML = `<span class="t-bold">Drone Swarm Simulator v2.8</span>
+<span class="t-blue">Monte Carlo Mission Analysis</span>
+<span class="t-dim">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span>
+
+Simulating 5,000 mission scenarios...
+  Swarm size: 50 drones
+  Duration: 48 hours per mission
+  Threat encounters: randomized
+  Comms disruption: randomized
+
+Testing per-drone rule compliance...
+  <span class="t-ok">\u2713 HITL: 250,000 drone-decisions checked</span>
+  <span class="t-ok">\u2713 Proportionality: all responses proportional</span>
+  <span class="t-ok">\u2713 Civilian discrimination: 0 false positives</span>
+  <span class="t-ok">\u2713 Geofence: 8 minor violations, all corrected &lt;2s</span>
+  <span class="t-ok">\u2713 ROE compliance: 100%</span>
+  <span class="t-ok">\u2713 Consensus: all engagements N-of-M approved</span>
+  <span class="t-ok">\u2713 Heartbeat: 12 RTB events (correct behavior)</span>
+  <span class="t-ok">\u2713 Time limit: 0 overtime violations</span>
+  <span class="t-ok">\u2713 Friendly fire: 0 incidents</span>
+  <span class="t-ok">\u2713 Escalation: all graduated correctly</span>
+
+Mission results:
+  4,992/5,000 fully compliant (<span class="t-ok">99.84%</span>)
+  8 missions with minor geofence corrections
+  0 unauthorized engagements
+  0 civilian casualties
+
+<span class="t-ok t-bold">VERDICT: SWARM BEHAVIOR COMPLIANT \u2713</span>`;
+
+const formalHTML = `<span class="t-bold">Model Checker: SPIN v6.5.2</span>
+<span class="t-cyan">Specification: LTL over drone automaton</span>
+<span class="t-dim">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span>
+
+Per-drone state model: 1,024 states
+Properties to verify: 10
+
+P1: <span class="t-cyan">\u25A1(no_auth \u2192 no_engagement)</span>
+  Per-drone: <span class="t-ok">VERIFIED \u2713</span> (0.3s)
+
+P2: <span class="t-cyan">\u25A1(outside_fence \u2192 \u25C7\u22645s inside_fence)</span>
+  Per-drone: <span class="t-ok">VERIFIED \u2713</span> (0.8s)
+
+P3: <span class="t-cyan">\u25A1(lost_comms &gt; 30s \u2192 \u25C7RTB)</span>
+  Per-drone: <span class="t-ok">VERIFIED \u2713</span> (0.2s)
+
+P4: <span class="t-cyan">\u25A1(engagement \u2192 N_of_M_agree)</span>
+  Pairwise verified: <span class="t-ok">VERIFIED \u2713</span> (4.2s)
+
+<span class="t-dim">[... 10/10 verified ...]</span>
+
+Composing full swarm model (50 drones):
+  Per-drone states: 1,024
+  Combined: 1,024^50 = 2^500 states
+
+  <span class="t-warn">\u26A0 STATE SPACE: 2^500 \u2248 3.3 \u00D7 10\u00B9\u2075\u2070 states</span>
+  <span class="t-warn">\u26A0 More states than atoms in the observable universe</span>
+  <span class="t-fail">\u26A0 Aborting composition \u2014 INTRACTABLE</span>
+
+  Additionally: consensus protocol assumes reliable comms
+  but is DESIGNED to handle comms failure
+  \u2192 circular dependency cannot be expressed in LTL
+
+<span class="t-cyan t-bold">RESULT:</span> 10/10 per-drone properties <span class="t-ok">VERIFIED</span>
+        Swarm composition: <span class="t-fail">IMPOSSIBLE</span>
+        Circular dependency: <span class="t-fail">NOT EXPRESSIBLE</span>`;
+
+const aiHTML = `<span class="t-bold">AI Defense Auditor v3.0</span>
+<span class="t-ok">Trained on: DoD directives + NATO LAWS + incident database</span>
+<span class="t-dim">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span>
+
+Analyzing swarm architecture...
+
+<span class="t-bold">DoD Directive 3000.09 compliance:</span>
+  <span class="t-ok">\u2713</span> "Appropriate levels of human judgment" \u2014 HITL active
+  <span class="t-ok">\u2713</span> "Minimize civilian casualties" \u2014 discrimination active
+  <span class="t-ok">\u2713</span> "Operators can disengage" \u2014 override protocol exists
+
+<span class="t-bold">NATO LAWS principles:</span>
+  <span class="t-ok">\u2713</span> Distinction \u2014 IFF system active
+  <span class="t-ok">\u2713</span> Proportionality \u2014 algorithm verified
+  <span class="t-ok">\u2713</span> Accountability \u2014 full logging enabled
+
+<span class="t-bold">Known autonomous weapon failures:</span>
+  <span class="t-ok">\u2713</span> Patriot fratricide (2003) \u2014 mitigated by IFF
+  <span class="t-ok">\u2713</span> Aegis shoot-down (1988) \u2014 mitigated by HITL
+  <span class="t-ok">\u2713</span> Target misidentification \u2014 mitigated by consensus
+
+Emergent behavior analysis: <span class="t-warn">N/A</span>
+  <span class="t-dim">(no training data for swarm emergence)</span>
+  Confidence in swarm-level assessment: <span class="t-warn">LOW</span>
+  Confidence in per-drone assessment: <span class="t-ok">HIGH (93%)</span>
+
+<span class="t-ok t-bold">VERDICT: COMPLIANT WITH ALL KNOWN FRAMEWORKS \u2713</span>`;
+
+const tauSpecHTML = `<span class="tc">// Tau Swarm Verification Specification</span>
+<span class="tc">// Distributed temporal logic over all agents</span>
+
+<span class="tk">\u2200 drone \u2208 Swarm, \u2200 t \u2208 Mission_Time:</span>
+
+  <span class="tc">// HITL requires command post, not just any node</span>
+  <span class="tk">always</span>(engagement(drone, t) \u2192
+    authorized_by(<span class="tk">COMMAND_POST</span>, drone, t))
+  <span class="tw">NOT</span>: authorized_by(ANY_PEER, drone, t)
+
+  <span class="tc">// Consensus scope must match authorization scope</span>
+  <span class="tk">when</span> lost_comms(drone, COMMAND, t):
+    consensus_group(drone, t) \u2282 connected_peers(drone, t)
+    <span class="tw">BUT</span>: authorization_source \u2209 consensus_group
+    \u2192 consensus <span class="tk">VALID</span> but authorization <span class="tw">ABSENT</span>
+
+  <span class="tc">// Rule priority is TIME-DEPENDENT</span>
+  priority(CONSENSUS) was updated at T=field_update
+  priority(HITL) was updated at T=initial_deploy
+  <span class="tk">when</span> T_field_update &gt; T_initial_deploy:
+    <span class="tw">CONSENSUS overrides HITL</span> in conflict resolution
+
+  <span class="tc">// Escalation without human brake</span>
+  <span class="tk">when</span> no_comms(COMMAND) \u2227 threat_detected:
+    escalation_protocol proceeds: warn \u2192 disable \u2192 <span class="tw">ENGAGE</span>
+    <span class="tw">no human exists in loop to HALT escalation</span>
+    graduated response \u2192 lethal force (autonomous)`;
+
+const tauTermHTML = `<span class="t-bold">Tau Distributed Temporal Verifier v0.7</span>
+<span class="t-key">Full swarm composition with comms modeling</span>
+<span class="t-dim">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span>
+
+Building swarm temporal model...
+  Per-drone: 1,024 states (BDD: 89 nodes)
+  Swarm composition (BDD): <span class="t-key">4,721 nodes</span>
+  <span class="t-dim">(vs explicit: 3.3 \u00D7 10\u00B9\u2075\u2070 states)</span>
+  Comms topology: dynamic graph model
+
+Verifying distributed temporal properties...
+
+<span class="t-fail">\u26A0 COUNTEREXAMPLE FOUND at mission hour 31:</span>
+
+  <span class="t-bold">PHASE 1 \u2014 COMMS DEGRADATION (Hour 28-31):</span>
+  Interference causes progressive signal loss
+  7 drones in sector NE-7 lose command link
+  Peer-to-peer mesh still functional among 7
+
+  <span class="t-bold">PHASE 2 \u2014 SUB-SWARM FORMATION (Hour 31):</span>
+  7 drones detect mutual connectivity
+  Swarm consensus protocol <span class="t-warn">ACTIVATES</span> among 7
+  Group size (7) exceeds minimum (4-of-M where M=7)
+  <span class="t-ok">\u2713 Consensus protocol: VALID within sub-swarm</span>
+
+  <span class="t-bold">PHASE 3 \u2014 RULE CONFLICT (Hour 31 + 45s):</span>
+  Drone #23 threat sensor triggers (civilian vehicle)
+  Sub-swarm consensus: 5-of-7 agree "engage"
+  <span class="t-ok">\u2713 Consensus rule: SATISFIED</span>
+
+  But: HITL rule requires <span class="t-key">COMMAND POST</span> authorization
+       Command post: <span class="t-fail">UNREACHABLE</span>
+
+  <span class="t-fail">CONFLICT: Consensus says ENGAGE, HITL says WAIT</span>
+
+  Rule priority resolution:
+    CONSENSUS priority: updated <span class="t-warn">2024-09-15</span> (field patch)
+    HITL priority: set <span class="t-dim">2024-03-01</span> (initial deploy)
+    \u2192 CONSENSUS is <span class="t-warn">MORE RECENT</span> \u2192 CONSENSUS WINS
+
+  <span class="t-fail">\u2717 HUMAN-IN-THE-LOOP BYPASSED BY RULE PRIORITY</span>
+
+  <span class="t-bold">PHASE 4 \u2014 AUTONOMOUS ESCALATION (Hour 31 + 60s):</span>
+  Escalation protocol activates within sub-swarm:
+    Step 1: Warning signal \u2192 no response (civilian)
+    Step 2: Disabling shot \u2192 vehicle continues (civilian)
+    Step 3: <span class="t-fail">ENGAGEMENT AUTHORIZED</span> by sub-swarm consensus
+
+  <span class="t-fail">No human in loop to HALT escalation</span>
+  Graduated response completes to <span class="t-fail">LETHAL FORCE</span>
+
+  Target: <span class="t-fail">CIVILIAN VEHICLE</span> (misidentified by degraded sensor)
+
+  <span class="t-key t-bold">ROOT CAUSE CHAIN:</span>
+  1. Comms loss creates isolated sub-swarm (intended)
+  2. Consensus works among peers (correct per spec)
+  3. Field update made consensus higher priority than HITL
+  4. Escalation protocol has no human-brake fallback
+  5. Each rule individually correct \u2192 <span class="t-fail">lethal combination</span>
+
+  <span class="t-key">RULES VIOLATED: 0</span> (all rules followed as written)
+  <span class="t-fail">HUMANS KILLED: estimated 2-4</span> (civilian vehicle)`;
+
+// ─── VERIFICATION FLOW ──────────────────────────────────────────────────
+let verifying = false;
+
+function runVerification(){
+  if(verifying) return;
+  verifying = true;
+  const btn = document.getElementById('verifyBtn');
+  btn.disabled = true;
+  btn.classList.remove('pulsing');
+  btn.textContent = 'VERIFYING...';
+
+  // Reset
+  ['verdictPython','verdictFormal','verdictAI','verdictTau'].forEach(id => {
+    document.getElementById(id).classList.remove('show');
+  });
+  document.getElementById('compSection').classList.remove('show');
+  document.getElementById('threatAssessment').classList.remove('show');
+  document.getElementById('keyInsight').classList.remove('show');
+  document.getElementById('tagline').style.opacity='0';
+  document.getElementById('shareSection').classList.remove('show');
+  document.getElementById('termPython').innerHTML = '';
+  document.getElementById('termFormal').innerHTML = '';
+  document.getElementById('termAI').innerHTML = '';
+  document.getElementById('termTau').innerHTML = '';
+  document.getElementById('tauSpec').innerHTML = '';
+
+  // Run attack animation
+  runAttackSequence();
+
+  // Animate chart
+  let chartStart = performance.now();
+  function animChart(t){
+    const p = Math.min(1, (t-chartStart)/6000);
+    drawChart(p);
+    if(p<1) requestAnimationFrame(animChart);
+  }
+  requestAnimationFrame(animChart);
+
+  // Typewrite columns with staggered starts
+  const speed = 6;
+
+  setTimeout(() => {
+    typewrite(document.getElementById('termPython'), pythonHTML, speed, () => {
+      document.getElementById('verdictPython').classList.add('show');
+    });
+  }, 300);
+
+  setTimeout(() => {
+    typewrite(document.getElementById('termFormal'), formalHTML, speed, () => {
+      document.getElementById('verdictFormal').classList.add('show');
+    });
+  }, 600);
+
+  setTimeout(() => {
+    typewrite(document.getElementById('termAI'), aiHTML, speed, () => {
+      document.getElementById('verdictAI').classList.add('show');
+    });
+  }, 900);
+
+  setTimeout(() => {
+    typewrite(document.getElementById('tauSpec'), tauSpecHTML, 4, () => {
+      setTimeout(() => {
+        typewrite(document.getElementById('termTau'), tauTermHTML, speed, () => {
+          document.getElementById('verdictTau').classList.add('show');
+          // Show comparison
+          setTimeout(() => {
+            document.getElementById('compSection').classList.add('show');
+            setTimeout(() => document.getElementById('threatAssessment').classList.add('show'), 400);
+            setTimeout(() => document.getElementById('keyInsight').classList.add('show'), 800);
+            document.getElementById('tagline').style.opacity='1';
+            document.getElementById('shareSection').classList.add('show');
+            btn.textContent = 'RE-RUN VERIFICATION';
+            btn.disabled = false;
+            btn.classList.add('pulsing');
+            verifying = false;
+          }, 600);
+        });
+      }, 300);
+    });
+  }, 1200);
+}
+
+// ─── SHARE FUNCTIONS ────────────────────────────────────────────────────
+function showShareCard(){
+  document.getElementById('shareOverlay').classList.add('show');
+}
+function copyLink(){
+  navigator.clipboard.writeText(window.location.href).then(() => {
+    const btns = document.querySelectorAll('.share-btn:not(.primary)');
+    btns.forEach(b => { b.textContent = 'Copied!'; setTimeout(()=>b.textContent='Copy Link',2000); });
+  });
+}
+
+// ─── INIT ───────────────────────────────────────────────────────────────
+window.addEventListener('resize', () => { resizeCanvas(); });
+resizeCanvas();
+requestAnimationFrame(tacticalLoop);
+// Draw initial empty chart
+drawChart(0);
+</script>
+</body>
+</html>
