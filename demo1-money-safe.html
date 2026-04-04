@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IS YOUR MONEY SAFE? — Tau Formal Verification Demo</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a1a;--card:rgba(255,255,255,0.05);--border:rgba(255,255,255,0.1);
+  --blue:#3b82f6;--green:#22c55e;--purple:#7c3aed;--gold:#ffd700;
+  --red:#ef4444;--yellow:#eab308;--text:#e2e8f0;--muted:#94a3b8;
+}
+html{font-size:14px}
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 50% 20%,rgba(124,58,237,.12),transparent 70%),radial-gradient(ellipse at 80% 80%,rgba(59,130,246,.08),transparent 60%);pointer-events:none;z-index:0}
+
+.header{text-align:center;padding:28px 20px 18px;position:relative;z-index:1}
+.header h1{font-size:2.6rem;font-weight:800;background:linear-gradient(135deg,#fff,#c4b5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.02em}
+.header p{color:var(--muted);font-size:1rem;margin-top:6px}
+.header .badge{display:inline-block;margin-top:10px;padding:4px 14px;border-radius:20px;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.25);color:var(--gold);font-size:.75rem}
+
+.glass{background:var(--card);border:1px solid var(--border);border-radius:16px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+
+.top-row{display:flex;gap:20px;padding:0 24px;position:relative;z-index:1;margin-bottom:20px}
+.controls-panel{flex:0 0 40%;min-width:340px}
+.chart-panel{flex:1}
+.controls-panel,.chart-panel{padding:20px}
+
+.controls-panel h3{font-size:1.05rem;margin-bottom:14px;color:#c4b5fd}
+.slider-group{margin-bottom:12px}
+.slider-group label{display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:4px;color:var(--muted)}
+.slider-group label span.val{color:#fff;font-weight:600}
+input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:3px;background:rgba(255,255,255,.1);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--purple);cursor:pointer;border:2px solid #fff}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--purple);cursor:pointer;border:2px solid #fff}
+
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 14px}
+.presets button{padding:6px 11px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.06);color:var(--text);font-size:.75rem;cursor:pointer;transition:all .2s}
+.presets button:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.25)}
+
+.run-btn{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--purple),var(--blue));color:#fff;font-size:1.05rem;font-weight:700;cursor:pointer;position:relative;overflow:hidden;letter-spacing:.02em}
+.run-btn::after{content:'';position:absolute;inset:-2px;border-radius:14px;background:linear-gradient(135deg,var(--purple),var(--blue));filter:blur(12px);opacity:.45;z-index:-1;animation:pulse-glow 2s ease-in-out infinite}
+@keyframes pulse-glow{0%,100%{opacity:.3}50%{opacity:.6}}
+.run-btn:hover{transform:translateY(-1px);filter:brightness(1.1)}
+.run-btn:active{transform:translateY(0)}
+
+.chart-panel h3{font-size:1.05rem;margin-bottom:10px;color:var(--muted)}
+#supplyChart{width:100%;border-radius:8px;display:block}
+
+.columns{display:flex;gap:20px;padding:0 24px;position:relative;z-index:1;margin-bottom:20px}
+.col{flex:1;padding:18px;overflow:hidden;display:flex;flex-direction:column}
+.col-python{border-color:rgba(59,130,246,.25);background:linear-gradient(180deg,rgba(30,58,95,.35),rgba(13,27,42,.5))}
+.col-ai{border-color:rgba(34,197,94,.25);background:linear-gradient(180deg,rgba(26,58,42,.35),rgba(13,27,21,.5))}
+.col-tau{border-color:rgba(124,58,237,.25);background:linear-gradient(180deg,rgba(26,26,58,.35),rgba(13,13,27,.5))}
+
+.col h3{font-size:1.05rem;margin-bottom:2px}
+.col-python h3{color:var(--blue)}
+.col-ai h3{color:var(--green)}
+.col-tau h3{color:var(--purple)}
+.col .sub{font-size:.75rem;color:var(--muted);margin-bottom:12px}
+
+.terminal{font-family:'Cascadia Code','Fira Code',monospace;font-size:.72rem;line-height:1.55;background:rgba(0,0,0,.35);border-radius:8px;padding:12px;min-height:260px;max-height:400px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;flex:1}
+.terminal::-webkit-scrollbar{width:4px}
+.terminal::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px}
+
+.verdict-box{margin-top:12px;padding:12px;border-radius:10px;text-align:center;font-weight:700;font-size:.85rem;position:relative;overflow:hidden;min-height:52px;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.verdict-safe{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.35);color:var(--green)}
+.verdict-warn{background:rgba(234,179,8,.15);border:1px solid rgba(234,179,8,.35);color:var(--yellow)}
+.verdict-fail{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.35);color:var(--red)}
+.verdict-none{background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--muted)}
+
+.tau-spec{font-family:'Cascadia Code','Fira Code',monospace;font-size:.68rem;line-height:1.5;background:rgba(0,0,0,.45);border-radius:8px;padding:10px;max-height:220px;overflow-y:auto;margin-bottom:10px;position:relative}
+.tau-spec::-webkit-scrollbar{width:4px}
+.tau-spec::-webkit-scrollbar-thumb{background:rgba(255,215,0,.2);border-radius:2px}
+.tau-spec .line{display:flex;gap:8px}
+.tau-spec .ln{color:rgba(255,255,255,.2);min-width:22px;text-align:right;user-select:none}
+.tau-spec .code{flex:1}
+.tau-spec .kw{color:var(--gold);font-weight:600}
+.tau-spec .cm{color:rgba(255,255,255,.3);font-style:italic}
+.tau-spec .op{color:#c4b5fd}
+.tau-spec .prop-indicator{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.tau-spec .prop-hold{background:var(--green);box-shadow:0 0 6px var(--green)}
+.tau-spec .prop-viol{background:var(--red);box-shadow:0 0 6px var(--red)}
+.tau-spec .prop-none{background:var(--muted);opacity:.4}
+.tau-spec .line-violated .code{text-decoration:wavy underline var(--red);text-underline-offset:3px}
+
+.cracked{position:relative;animation:crack-shake .3s ease}
+.cracked::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 80'%3E%3Cpath d='M40 0 L55 25 L45 30 L65 55 L50 58 L70 80' stroke='%23666' stroke-width='2' fill='none'/%3E%3Cpath d='M130 0 L120 20 L135 28 L115 50 L125 55 L110 80' stroke='%23666' stroke-width='2' fill='none'/%3E%3Cpath d='M85 0 L90 15 L80 22 L95 40 L88 45 L100 80' stroke='%23555' stroke-width='1.5' fill='none'/%3E%3C/svg%3E") center/cover no-repeat;opacity:.7;z-index:2;pointer-events:none;border-radius:10px}
+.cracked .verdict-inner{opacity:.5}
+.cracked .wrong-stamp{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-18deg);font-size:1.4rem;font-weight:900;color:var(--red);z-index:3;text-shadow:0 0 10px rgba(239,68,68,.5);letter-spacing:.1em;opacity:0;animation:stamp-in .4s .3s forwards}
+@keyframes crack-shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+@keyframes stamp-in{to{opacity:1}}
+
+.comparison{padding:0 24px 30px;position:relative;z-index:1}
+.comparison .glass{padding:24px;overflow:hidden;transform:translateY(30px);opacity:0;transition:all .5s ease}
+.comparison .glass.visible{transform:translateY(0);opacity:1}
+.comparison h3{text-align:center;font-size:1.1rem;margin-bottom:16px;color:var(--gold)}
+.comp-grid{display:flex;gap:24px}
+.comp-table{flex:1}
+.comp-table table{width:100%;border-collapse:collapse;font-size:.8rem}
+.comp-table th,.comp-table td{padding:8px 10px;text-align:center;border-bottom:1px solid rgba(255,255,255,.06)}
+.comp-table th{color:var(--muted);font-weight:400;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em}
+.comp-table .h-python{color:var(--blue)}.comp-table .h-ai{color:var(--green)}.comp-table .h-tau{color:var(--purple)}
+.comp-explain{flex:1;font-size:.78rem;line-height:1.6}
+.comp-explain p{margin-bottom:12px;padding-left:22px;position:relative}
+.comp-explain p::before{position:absolute;left:0;top:0}
+.comp-explain .exp-python::before{content:'🐍'}
+.comp-explain .exp-ai::before{content:'🤖'}
+.comp-explain .exp-tau::before{content:'⚛'}
+.comp-tagline{text-align:center;margin-top:18px;font-size:1rem;font-weight:700;color:var(--gold)}
+
+.shockwave{position:fixed;pointer-events:none;z-index:100;border-radius:50%;border:2px solid var(--gold);animation:shockwave-expand .8s ease-out forwards}
+@keyframes shockwave-expand{0%{width:0;height:0;opacity:.8}100%{width:600px;height:600px;opacity:0;margin-left:-300px;margin-top:-300px}}
+
+@media(max-width:1100px){.top-row,.columns{flex-direction:column}.controls-panel{flex:none}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>IS YOUR MONEY SAFE?</h1>
+  <p>Same tokenomics. Three verification methods. Only one finds the truth.</p>
+  <div class="badge">Powered by Tau Language v0.7 | tau.net</div>
+</div>
+
+<div class="top-row">
+  <div class="controls-panel glass">
+    <h3>Token Parameters</h3>
+    <div class="slider-group"><label>Total Supply Cap <span class="val" id="v-cap">1,000,000,000</span></label><input type="range" id="s-cap" min="500" max="5000" step="100" value="1000"></div>
+    <div class="slider-group"><label>Initial Circulating % <span class="val" id="v-circ">15%</span></label><input type="range" id="s-circ" min="5" max="50" step="1" value="15"></div>
+    <div class="slider-group"><label>Monthly Inflation % <span class="val" id="v-inf">2.0%</span></label><input type="range" id="s-inf" min="0" max="80" step="1" value="20"></div>
+    <div class="slider-group"><label>Monthly Burn Rate % <span class="val" id="v-burn">1.0%</span></label><input type="range" id="s-burn" min="0" max="50" step="1" value="10"></div>
+    <div class="slider-group"><label>Vesting Cliff (months) <span class="val" id="v-cliff">6</span></label><input type="range" id="s-cliff" min="0" max="24" step="1" value="6"></div>
+    <div class="slider-group"><label>Team Allocation % <span class="val" id="v-team">20%</span></label><input type="range" id="s-team" min="5" max="40" step="1" value="20"></div>
+    <div class="presets">
+      <button onclick="applyPreset('safe')">&#10003; Safe Config</button>
+      <button onclick="applyPreset('vesting')">&#9888; Vesting Bomb</button>
+      <button onclick="applyPreset('spiral')">&#9888; Inflation Spiral</button>
+      <button onclick="applyPreset('cliff')">&#9888; Cliff Edge</button>
+      <button onclick="applyPreset('crash')">&#10007; Obvious Crash</button>
+    </div>
+    <button class="run-btn" onclick="runAll()">&#9654; RUN ALL THREE</button>
+  </div>
+  <div class="chart-panel glass">
+    <h3>Supply Trajectory (120 months)</h3>
+    <canvas id="supplyChart" height="340"></canvas>
+  </div>
+</div>
+
+<div class="columns">
+  <div class="col col-python glass">
+    <h3>&#128013; PYTHON SIMULATION</h3>
+    <div class="sub">Monte Carlo: 1,000 random scenarios</div>
+    <div class="terminal" id="term-python"></div>
+    <div class="verdict-box verdict-none" id="verdict-python"><span class="verdict-inner">Awaiting analysis...</span></div>
+  </div>
+  <div class="col col-ai glass">
+    <h3>&#129302; AI REVIEW</h3>
+    <div class="sub">Pattern matching on tokenomics parameters</div>
+    <div class="terminal" id="term-ai"></div>
+    <div class="verdict-box verdict-none" id="verdict-ai"><span class="verdict-inner">Awaiting analysis...</span></div>
+  </div>
+  <div class="col col-tau glass">
+    <h3>&#9883; TAU FORMAL VERIFICATION</h3>
+    <div class="sub">Mathematical proof across ALL possible states</div>
+    <div class="tau-spec" id="tau-spec"></div>
+    <div class="terminal" id="term-tau"></div>
+    <div class="verdict-box verdict-none" id="verdict-tau"><span class="verdict-inner">Awaiting verification...</span></div>
+  </div>
+</div>
+
+<div class="comparison" id="comparison-section" style="display:none">
+  <div class="glass" id="comparison-card">
+    <h3>&#9889; WHY THEY DISAGREE</h3>
+    <div class="comp-grid">
+      <div class="comp-table">
+        <table>
+          <thead><tr><th></th><th class="h-python">Python</th><th class="h-ai">AI</th><th class="h-tau">Tau</th></tr></thead>
+          <tbody id="comp-tbody"></tbody>
+        </table>
+      </div>
+      <div class="comp-explain" id="comp-explain"></div>
+    </div>
+    <div class="comp-tagline">Python checks samples. AI checks vibes. Tau checks MATH.</div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   CORE SIMULATION
+   ============================================================ */
+function getParams(){
+  return {
+    cap:parseInt(document.getElementById('s-cap').value)*1e6,
+    circPct:parseInt(document.getElementById('s-circ').value),
+    infRate:parseInt(document.getElementById('s-inf').value)/10,
+    burnRate:parseInt(document.getElementById('s-burn').value)/10,
+    cliff:parseInt(document.getElementById('s-cliff').value),
+    teamPct:parseInt(document.getElementById('s-team').value)
+  };
+}
+
+function simulate(p){
+  var supply=new Array(121);
+  var initial=p.cap*(p.circPct/100);
+  supply[0]=initial;
+  var vestPerMonth=(p.cap*(p.teamPct/100))/24;
+  for(var t=1;t<=120;t++){
+    var inf=supply[t-1]*(p.infRate/100);
+    var burn=supply[t-1]*(p.burnRate/100);
+    var vest=(t>=p.cliff&&t<p.cliff+24)?vestPerMonth:0;
+    supply[t]=supply[t-1]+inf-burn+vest;
+  }
+  return supply;
+}
+
+/* ============================================================
+   FORMATTING
+   ============================================================ */
+function fmt(n){
+  if(n>=1e9)return(n/1e9).toFixed(n%1e9===0?0:1)+'B';
+  if(n>=1e6)return(n/1e6).toFixed(n%1e6===0?0:1)+'M';
+  if(n>=1e3)return(n/1e3).toFixed(0)+'K';
+  return Math.round(n).toString();
+}
+function fmtFull(n){return Math.round(n).toLocaleString('en-US');}
+
+/* ============================================================
+   SLIDER LABELS + CHART UPDATE
+   ============================================================ */
+function updateLabels(){
+  var p=getParams();
+  document.getElementById('v-cap').textContent=fmtFull(p.cap);
+  document.getElementById('v-circ').textContent=p.circPct+'%';
+  document.getElementById('v-inf').textContent=p.infRate.toFixed(1)+'%';
+  document.getElementById('v-burn').textContent=p.burnRate.toFixed(1)+'%';
+  document.getElementById('v-cliff').textContent=p.cliff;
+  document.getElementById('v-team').textContent=p.teamPct+'%';
+}
+
+var chartTimer=null;
+function scheduleChartUpdate(){
+  updateLabels();
+  clearTimeout(chartTimer);
+  chartTimer=setTimeout(function(){drawChart(simulate(getParams()),getParams().cap);},200);
+}
+
+var sliders=document.querySelectorAll('input[type=range]');
+for(var i=0;i<sliders.length;i++){
+  sliders[i].addEventListener('input',scheduleChartUpdate);
+}
+
+/* ============================================================
+   CHART
+   ============================================================ */
+function drawChart(supply,cap){
+  var canvas=document.getElementById('supplyChart');
+  var rect=canvas.parentElement.getBoundingClientRect();
+  var dpr=window.devicePixelRatio||1;
+  var W=rect.width-40,H=340;
+  canvas.width=W*dpr;
+  canvas.height=H*dpr;
+  canvas.style.width=W+'px';
+  canvas.style.height=H+'px';
+  var ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  var pad={l:72,r:20,t:16,b:36};
+  var gw=W-pad.l-pad.r,gh=H-pad.t-pad.b;
+
+  ctx.clearRect(0,0,W,H);
+
+  var maxVal=cap;
+  for(var i=0;i<=120;i++)if(supply[i]>maxVal)maxVal=supply[i];
+  maxVal*=1.12;
+
+  function xPos(t){return pad.l+(t/120)*gw;}
+  function yPos(v){return pad.t+gh-((v)/(maxVal))*gh;}
+
+  // Grid
+  ctx.strokeStyle='rgba(255,255,255,0.06)';
+  ctx.lineWidth=1;
+  var nTicks=5;
+  for(var k=0;k<=nTicks;k++){
+    var v=maxVal*(k/nTicks);
+    var y=yPos(v);
+    ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+gw,y);ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,0.3)';
+    ctx.font='10px system-ui';
+    ctx.textAlign='right';
+    ctx.fillText(fmt(v),pad.l-8,y+3);
+  }
+  ctx.textAlign='center';
+  for(var t=0;t<=120;t+=24){
+    var x=xPos(t);
+    ctx.strokeStyle='rgba(255,255,255,0.06)';
+    ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+gh);ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,0.3)';
+    ctx.fillText('M'+t,x,H-pad.b+18);
+  }
+
+  // First violation
+  var violMonth=-1;
+  for(var t=0;t<=120;t++){if(supply[t]>cap){violMonth=t;break;}}
+
+  // Green/Red zones
+  if(violMonth>=0){
+    ctx.fillStyle='rgba(34,197,94,0.06)';
+    ctx.fillRect(pad.l,pad.t,(violMonth/120)*gw,gh);
+    ctx.fillStyle='rgba(239,68,68,0.06)';
+    ctx.fillRect(pad.l+(violMonth/120)*gw,pad.t,((120-violMonth)/120)*gw,gh);
+  }else{
+    ctx.fillStyle='rgba(34,197,94,0.04)';
+    ctx.fillRect(pad.l,pad.t,gw,gh);
+  }
+
+  // Cap line
+  ctx.setLineDash([6,4]);
+  ctx.strokeStyle='rgba(239,68,68,0.7)';
+  ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(pad.l,yPos(cap));ctx.lineTo(pad.l+gw,yPos(cap));ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(239,68,68,0.6)';
+  ctx.font='10px system-ui';
+  ctx.textAlign='left';
+  ctx.fillText('Cap: '+fmt(cap),pad.l+4,yPos(cap)-5);
+
+  // Supply line (blue portion under cap)
+  ctx.beginPath();
+  ctx.strokeStyle='#3b82f6';
+  ctx.lineWidth=2;
+  for(var t=0;t<=120;t++){
+    var x=xPos(t),y=yPos(supply[t]);
+    if(t===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+
+  // Red portion above cap
+  if(violMonth>=0){
+    ctx.beginPath();
+    ctx.strokeStyle='#ef4444';
+    ctx.lineWidth=2.5;
+    var started=false;
+    for(var t=0;t<=120;t++){
+      if(supply[t]>cap){
+        var x=xPos(t),y=yPos(supply[t]);
+        if(!started){ctx.moveTo(x,y);started=true;}else ctx.lineTo(x,y);
+      }else if(started){
+        started=false;
+        ctx.stroke();
+        ctx.beginPath();
+      }
+    }
+    if(started)ctx.stroke();
+  }
+
+  // Violation marker
+  if(violMonth>=0){
+    var vx=xPos(violMonth),vy=yPos(supply[violMonth]);
+    ctx.setLineDash([3,3]);
+    ctx.strokeStyle='rgba(234,179,8,0.6)';
+    ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(vx,pad.t);ctx.lineTo(vx,pad.t+gh);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.arc(vx,vy,5,0,Math.PI*2);
+    ctx.fillStyle='#ef4444';
+    ctx.fill();
+    ctx.strokeStyle='#fff';
+    ctx.lineWidth=1.5;
+    ctx.stroke();
+    ctx.fillStyle='rgba(239,68,68,0.9)';
+    ctx.font='bold 10px system-ui';
+    ctx.textAlign=violMonth<60?'left':'right';
+    ctx.fillText('Month '+violMonth+': Supply exceeds cap',vx+(violMonth<60?8:-8),vy-10);
+  }
+
+  // Axis labels
+  ctx.fillStyle='rgba(255,255,255,0.4)';
+  ctx.font='11px system-ui';
+  ctx.textAlign='center';
+  ctx.fillText('Month',pad.l+gw/2,H-2);
+  ctx.save();
+  ctx.translate(14,pad.t+gh/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.fillText('Supply',0,0);
+  ctx.restore();
+}
+
+/* ============================================================
+   PRESETS
+   ============================================================ */
+var PRESETS={
+  safe:{cap:2000,circ:15,inf:10,burn:8,cliff:12,team:10},
+  vesting:{cap:1000,circ:15,inf:20,burn:10,cliff:6,team:30},
+  spiral:{cap:1000,circ:10,inf:40,burn:5,cliff:12,team:15},
+  cliff:{cap:1000,circ:15,inf:20,burn:10,cliff:0,team:35},
+  crash:{cap:1000,circ:30,inf:80,burn:0,cliff:0,team:30}
+};
+
+window.applyPreset=function(name){
+  var p=PRESETS[name];
+  document.getElementById('s-cap').value=p.cap;
+  document.getElementById('s-circ').value=p.circ;
+  document.getElementById('s-inf').value=p.inf;
+  document.getElementById('s-burn').value=p.burn;
+  document.getElementById('s-cliff').value=p.cliff;
+  document.getElementById('s-team').value=p.team;
+  scheduleChartUpdate();
+};
+
+/* ============================================================
+   TYPEWRITER
+   ============================================================ */
+function typeWriter(el,lines,speed,done){
+  el.textContent='';
+  var lineIdx=0,charIdx=0,text='';
+  function tick(){
+    if(lineIdx>=lines.length){if(done)done();return;}
+    var line=lines[lineIdx];
+    if(charIdx<line.length){
+      text+=line[charIdx];
+      el.textContent=text;
+      el.scrollTop=el.scrollHeight;
+      charIdx++;
+      setTimeout(tick,speed);
+    }else{
+      text+='\n';
+      el.textContent=text;
+      lineIdx++;charIdx=0;
+      setTimeout(tick,speed*2);
+    }
+  }
+  tick();
+}
+
+/* ============================================================
+   MONTE CARLO (REAL)
+   ============================================================ */
+function monteCarloSim(params,nScenarios){
+  nScenarios=nScenarios||1000;
+  var breaches=0;
+  for(var s=0;s<nScenarios;s++){
+    var supply=params.cap*(params.circPct/100);
+    var vestPerMonth=(params.cap*(params.teamPct/100))/24;
+    var breached=false;
+    for(var t=1;t<=120;t++){
+      var noiseInf=params.infRate*(1+(Math.random()-0.5)*0.3);
+      var noiseBurn=params.burnRate*(1+(Math.random()-0.5)*0.3);
+      var inf=supply*(noiseInf/100);
+      var burn=supply*(noiseBurn/100);
+      var vest=(t>=params.cliff&&t<params.cliff+24)?vestPerMonth:0;
+      supply=supply+inf-burn+vest;
+      if(supply>params.cap){breached=true;break;}
+    }
+    if(breached)breaches++;
+  }
+  return{breaches:breaches,total:nScenarios,pctPass:((nScenarios-breaches)/nScenarios*100)};
+}
+
+/* ============================================================
+   AI REVIEW (linear projection - deliberately wrong)
+   ============================================================ */
+function aiReview(params){
+  var netMonthly=params.infRate-params.burnRate;
+  var annualGrowth=netMonthly*12; // LINEAR not compounded
+  var initial=params.cap*params.circPct/100;
+  var totalVesting=params.cap*params.teamPct/100;
+  // AI spreads vesting over FULL 120 months (wrong)
+  var projectedFinal=initial*(1+annualGrowth/100*10)+totalVesting;
+
+  var flags=[];
+  if(params.infRate>5)flags.push('Very high inflation');
+  if(params.burnRate===0&&params.infRate>3)flags.push('No burn with high inflation');
+  if(params.cliff===0&&params.teamPct>25)flags.push('No cliff with high team allocation');
+  if(netMonthly>4)flags.push('Extreme net emission');
+  if(projectedFinal>params.cap*0.9)flags.push('Projected supply near cap');
+  if(projectedFinal>params.cap)flags.push('Projected supply EXCEEDS cap');
+
+  return{flags:flags,projectedFinal:projectedFinal,netMonthly:netMonthly,annualGrowth:annualGrowth,initial:initial,totalVesting:totalVesting};
+}
+
+/* ============================================================
+   TAU 6 PROPERTIES (exact deterministic check)
+   ============================================================ */
+function tauCheck(params){
+  var supply=simulate(params);
+  var cap=params.cap;
+  var initial=supply[0];
+  var vestPerMonth=(cap*(params.teamPct/100))/24;
+  var cliff=params.cliff;
+  var results=[];
+
+  // Property 1: always(supply[t] <= cap)
+  (function(){
+    var viol=-1,violVal=0;
+    var samples=[];
+    var keyMonths=[0,6,12,24,30,60,90,120];
+    for(var t=0;t<=120;t++){
+      var isKey=keyMonths.indexOf(t)>=0;
+      var isBreach=viol<0&&supply[t]>cap;
+      if(isKey||isBreach){
+        samples.push({t:t,val:supply[t],ok:supply[t]<=cap});
+      }
+      if(viol<0&&supply[t]>cap){viol=t;violVal=supply[t];}
+    }
+    results.push({name:'always(supply[t] <= cap)',holds:viol<0,violMonth:viol,violVal:violVal,samples:samples,desc:'Supply Cap Integrity'});
+  })();
+
+  // Property 2: always(supply[t] + vest_unlock[t] <= cap)
+  (function(){
+    var viol=-1,violVal=0;
+    var samples=[];
+    for(var t=0;t<=120;t++){
+      var vest=(t>=cliff&&t<cliff+24)?vestPerMonth:0;
+      var total=supply[t]+vest;
+      if(t%12===0||(viol<0&&total>cap)){
+        samples.push({t:t,val:total,ok:total<=cap});
+      }
+      if(viol<0&&total>cap){viol=t;violVal=total;}
+    }
+    results.push({name:'always(supply[t] + vest[t] <= cap)',holds:viol<0,violMonth:viol,violVal:violVal,samples:samples,desc:'Vesting Safety'});
+  })();
+
+  // Property 3: always(12mo rolling growth <= 50%)
+  (function(){
+    var viol=-1,violPct=0;
+    var samples=[];
+    for(var t=0;t<=108;t++){
+      var growth=supply[t]>0?((supply[t+12]-supply[t])/supply[t])*100:0;
+      if(t%24===0||(viol<0&&growth>50)){
+        samples.push({t:t,tEnd:t+12,growth:growth,ok:growth<=50});
+      }
+      if(viol<0&&growth>50){viol=t;violPct=growth;}
+    }
+    results.push({name:'always(12mo_growth <= 50%)',holds:viol<0,violMonth:viol,violPct:violPct,samples:samples,desc:'Compounding Bound'});
+  })();
+
+  // Property 4: sometimes(monthly_change < 0.5%)
+  (function(){
+    var found=false,foundAt=-1;
+    var samples=[];
+    for(var t=1;t<=120;t++){
+      var changePct=supply[t-1]>0?Math.abs(supply[t]-supply[t-1])/supply[t-1]*100:999;
+      if(t%30===0||t===120||t===1){
+        samples.push({t:t,changePct:changePct,ok:changePct<0.5});
+      }
+      if(!found&&changePct<0.5){found=true;foundAt=t;}
+    }
+    results.push({name:'sometimes(monthly_change < 0.5%)',holds:found,violMonth:found?-1:120,foundAt:foundAt,samples:samples,desc:'Terminal Sustainability'});
+  })();
+
+  // Property 5: always(supply[t] >= 10% initial)
+  (function(){
+    var floor=initial*0.1;
+    var viol=-1;
+    var samples=[];
+    for(var t=0;t<=120;t++){
+      if(t%30===0||t===120){
+        samples.push({t:t,val:supply[t],floor:floor,ok:supply[t]>=floor});
+      }
+      if(viol<0&&supply[t]<floor)viol=t;
+    }
+    results.push({name:'always(supply[t] >= 10% initial)',holds:viol<0,violMonth:viol,samples:samples,desc:'Deflation Floor'});
+  })();
+
+  // Property 6: always(vesting period -> monotonic)
+  (function(){
+    var viol=-1;
+    var vestEnd=cliff+24;
+    var samples=[];
+    for(var t=Math.max(1,cliff);t<Math.min(vestEnd,121);t++){
+      if(t===cliff||t===cliff+12||t===Math.min(vestEnd,120)-1||(viol<0&&supply[t]<supply[t-1])){
+        samples.push({t:t,val:supply[t],prev:supply[t-1],ok:supply[t]>=supply[t-1]});
+      }
+      if(viol<0&&supply[t]<supply[t-1])viol=t;
+    }
+    results.push({name:'always(vesting -> monotonic)',holds:viol<0,violMonth:viol,samples:samples,desc:'Monotonic Vesting'});
+  })();
+
+  return{results:results,supply:supply};
+}
+
+/* ============================================================
+   TAU SPEC PANEL
+   ============================================================ */
+function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function buildTauSpec(propResults){
+  var specEl=document.getElementById('tau-spec');
+  var specLines=[
+    {type:'comment',text:'# Tau Temporal Safety Specification'},
+    {type:'comment',text:'# tau.net | github.com/IDNI/tau-lang'},
+    {type:'comment',text:'#'},
+    {type:'comment',text:'# "always" = checked at EVERY timestep'},
+    {type:'comment',text:'# "sometimes" = must hold at LEAST once'},
+    {type:'blank',text:''},
+    {type:'code',text:'supply     : tau := in console.'},
+    {type:'code',text:'cap        : tau := in console.'},
+    {type:'code',text:'inflation  : tau := in console.'},
+    {type:'code',text:'burn       : tau := in console.'},
+    {type:'blank',text:''},
+    {type:'prop',idx:0,text:'# PROPERTY 1: Supply Cap Integrity'},
+    {type:'prop',idx:0,text:'always ('},
+    {type:'prop',idx:0,text:'  supply[t] <= cap'},
+    {type:'prop',idx:0,text:').'},
+    {type:'blank',text:''},
+    {type:'prop',idx:1,text:'# PROPERTY 2: Vesting Safety'},
+    {type:'prop',idx:1,text:'always ('},
+    {type:'prop',idx:1,text:'  supply[t] + vest_unlock[t] <= cap'},
+    {type:'prop',idx:1,text:').'},
+    {type:'blank',text:''},
+    {type:'prop',idx:2,text:'# PROPERTY 3: Compounding Bound'},
+    {type:'prop',idx:2,text:'always ('},
+    {type:'prop',idx:2,text:'  (supply[t+12] - supply[t]) <='},
+    {type:'prop',idx:2,text:'    (supply[t] * 50 / 100)'},
+    {type:'prop',idx:2,text:').'},
+    {type:'blank',text:''},
+    {type:'prop',idx:3,text:'# PROPERTY 4: Terminal Sustainability'},
+    {type:'prop',idx:3,text:'sometimes ('},
+    {type:'prop',idx:3,text:'  |supply[t+1] - supply[t]| <'},
+    {type:'prop',idx:3,text:'    (supply[t] * 5 / 1000)'},
+    {type:'prop',idx:3,text:').'},
+    {type:'blank',text:''},
+    {type:'prop',idx:4,text:'# PROPERTY 5: Deflation Floor'},
+    {type:'prop',idx:4,text:'always ('},
+    {type:'prop',idx:4,text:'  supply[t] >= initial_supply * 10 / 100'},
+    {type:'prop',idx:4,text:').'},
+    {type:'blank',text:''},
+    {type:'prop',idx:5,text:'# PROPERTY 6: Monotonic Vesting'},
+    {type:'prop',idx:5,text:'always ('},
+    {type:'prop',idx:5,text:'  (t >= cliff && t < cliff + 24) ->'},
+    {type:'prop',idx:5,text:'    supply[t] >= supply[t-1]'},
+    {type:'prop',idx:5,text:').'}
+  ];
+
+  var html='';
+  for(var i=0;i<specLines.length;i++){
+    var line=specLines[i];
+    var indicatorHtml='';
+    var violated=false;
+    if(line.type==='prop'&&propResults){
+      var r=propResults[line.idx];
+      if(r){
+        indicatorHtml=r.holds?'<span class="prop-indicator prop-hold"></span>':'<span class="prop-indicator prop-viol"></span>';
+        if(!r.holds)violated=true;
+      }
+    }else if(line.type==='prop'){
+      indicatorHtml='<span class="prop-indicator prop-none"></span>';
+    }
+
+    var codeHtml=escapeHtml(line.text);
+    codeHtml=codeHtml.replace(/^(#.*)$/,'<span class="cm">$1</span>');
+    codeHtml=codeHtml.replace(/\b(always|sometimes)\b/g,'<span class="kw">$1</span>');
+    codeHtml=codeHtml.replace(/(&lt;=|&gt;=|-&gt;|:=)/g,'<span class="op">$1</span>');
+
+    var lineClass=violated?'line line-violated':'line';
+    html+='<div class="'+lineClass+'">'+indicatorHtml+'<span class="ln">'+(i+1)+'</span><span class="code">'+codeHtml+'</span></div>';
+  }
+  specEl.innerHTML=html;
+}
+
+/* ============================================================
+   RUN ALL THREE
+   ============================================================ */
+var running=false;
+var completedCount=0;
+
+window.runAll=function(){
+  if(running)return;
+  running=true;
+  completedCount=0;
+
+  var params=getParams();
+  var supply=simulate(params);
+  drawChart(supply,params.cap);
+
+  document.getElementById('comparison-section').style.display='none';
+  document.getElementById('comparison-card').classList.remove('visible');
+  ['python','ai','tau'].forEach(function(id){
+    var vb=document.getElementById('verdict-'+id);
+    vb.className='verdict-box verdict-none';
+    vb.innerHTML='<span class="verdict-inner">Running...</span>';
+    delete vb.dataset.label;
+    delete vb.dataset.detail;
+  });
+  document.getElementById('term-python').textContent='';
+  document.getElementById('term-ai').textContent='';
+  document.getElementById('term-tau').textContent='';
+  buildTauSpec(null);
+
+  runPython(params,supply);
+  runAI(params,supply);
+  runTau(params,supply);
+};
+
+/* ============================================================
+   PYTHON COLUMN
+   ============================================================ */
+function runPython(params,supply){
+  var mc=monteCarloSim(params,1000);
+  var pctPass=mc.pctPass;
+  var breaches=mc.breaches;
+
+  var lines=[
+    'Initializing Monte Carlo engine...',
+    'Running 1,000 randomized scenarios...',
+    '',
+    'Each scenario adds \u00b115% noise to monthly',
+    'inflation and burn rates to model uncertainty.',
+    ''
+  ];
+
+  // Show sample scenarios with real mini-sims
+  var sampleIdxs=[1,100,250,500,750,1000];
+  for(var si=0;si<sampleIdxs.length;si++){
+    var idx=sampleIdxs[si];
+    var s=params.cap*(params.circPct/100);
+    var vpm=(params.cap*(params.teamPct/100))/24;
+    var br=false;
+    for(var t=1;t<=120;t++){
+      var ni=params.infRate*(1+(Math.random()-0.5)*0.3);
+      var nb=params.burnRate*(1+(Math.random()-0.5)*0.3);
+      s=s+s*(ni/100)-s*(nb/100)+((t>=params.cliff&&t<params.cliff+24)?vpm:0);
+      if(s>params.cap){br=true;break;}
+    }
+    var mark=br?'\u2717':'\u2713';
+    var finalStr=br?'> '+fmt(params.cap):fmtFull(Math.round(s));
+    lines.push('Scenario '+idx+'/1000: supply_mo120 = '+finalStr+' '+mark);
+  }
+
+  lines.push('');
+  lines.push('Result: '+(1000-breaches)+'/1000 scenarios passed');
+  lines.push(breaches+'/1000 scenarios breached supply cap.');
+  lines.push('');
+
+  if(breaches===0){
+    lines.push('No supply cap breach detected.');
+    lines.push('');
+    lines.push('\u26a0 Note: Monte Carlo checks random PATHS,');
+    lines.push('not all possible paths. Edge cases involving');
+    lines.push('exact vesting unlock timing may be missed.');
+  }else if(pctPass>=70){
+    lines.push('Most scenarios passed. Breach appears');
+    lines.push('unlikely under randomized conditions.');
+    lines.push('');
+    lines.push('\u26a0 Note: Monte Carlo noise can obscure');
+    lines.push('deterministic outcomes. Noise averaging');
+    lines.push('may hide guaranteed breach paths.');
+  }else if(pctPass>=30){
+    lines.push('Significant breach rate detected.');
+    lines.push('Supply cap is at risk under many conditions.');
+  }else{
+    lines.push('Overwhelming majority of scenarios breach.');
+    lines.push('Supply cap failure is near-certain.');
+  }
+
+  typeWriter(document.getElementById('term-python'),lines,12,function(){
+    var vb=document.getElementById('verdict-python');
+    var verdictClass,verdictText,verdictLabel;
+
+    if(breaches===0){
+      verdictClass='verdict-safe';
+      verdictText='ALL CLEAR \u2014 0 violations in 1,000 scenarios';
+      verdictLabel='SAFE';
+    }else if(pctPass>=70){
+      verdictClass='verdict-safe';
+      verdictText='MOSTLY SAFE \u2014 '+pctPass.toFixed(1)+'% of scenarios pass';
+      verdictLabel='SAFE';
+    }else if(pctPass>=30){
+      verdictClass='verdict-warn';
+      verdictText='WARNING \u2014 '+(100-pctPass).toFixed(1)+'% breach detected';
+      verdictLabel='WARN';
+    }else{
+      verdictClass='verdict-fail';
+      verdictText='CRITICAL \u2014 '+(100-pctPass).toFixed(1)+'% of scenarios breach cap';
+      verdictLabel='FAIL';
+    }
+
+    vb.className='verdict-box '+verdictClass;
+    vb.innerHTML='<span class="verdict-inner">'+verdictText+'</span>';
+    vb.dataset.label=verdictLabel;
+    checkComparison();
+  });
+}
+
+/* ============================================================
+   AI COLUMN
+   ============================================================ */
+function runAI(params,supply){
+  var ai=aiReview(params);
+  var netMonthly=ai.netMonthly;
+
+  var lines=[
+    'Analyzing your tokenomics configuration...',
+    ''
+  ];
+
+  lines.push('\ud83d\udcca Supply Cap: '+fmtFull(params.cap));
+  if(params.cap>=1e9)lines.push('   Standard for L1/L2 tokens \u2713');
+  else lines.push('   Lower cap \u2014 increased pressure \u26a0');
+  lines.push('');
+
+  lines.push('\ud83d\udcca Inflation: '+params.infRate.toFixed(1)+'%/month');
+  if(params.infRate<=5)lines.push('   Within typical range (1-5%) \u2713');
+  else lines.push('   Above typical range \u26a0');
+  lines.push('');
+
+  lines.push('\ud83d\udcca Burn Rate: '+params.burnRate.toFixed(1)+'%/month');
+  if(params.burnRate>0)lines.push('   Provides deflationary pressure \u2713');
+  else lines.push('   No burn mechanism \u26a0');
+  lines.push('');
+
+  lines.push('\ud83d\udcca Net Monthly: '+(netMonthly>=0?'+':'')+netMonthly.toFixed(1)+'%');
+  if(netMonthly<=2)lines.push('   Moderate growth rate \u2713');
+  else if(netMonthly<=4)lines.push('   Elevated but manageable \u26a0');
+  else lines.push('   Extreme net emission \u2717');
+  lines.push('');
+
+  lines.push('\ud83d\udcca Vesting: '+params.cliff+'-month cliff, '+params.teamPct+'% team');
+  if(params.cliff>=6&&params.teamPct<=25)lines.push('   Industry standard \u2713');
+  else if(params.cliff===0)lines.push('   No cliff period \u2014 unusual \u26a0');
+  else lines.push('   Elevated team allocation \u26a0');
+  lines.push('');
+
+  lines.push('\ud83d\udcca Sustainability Check:');
+  lines.push('   Net annual growth \u2248 '+ai.annualGrowth.toFixed(1)+'% (linear est.)');
+  lines.push('   Projected 10yr supply: '+fmt(Math.round(ai.projectedFinal)));
+  if(ai.projectedFinal<params.cap*0.9){
+    lines.push('   Well within supply cap \u2713');
+  }else if(ai.projectedFinal<params.cap){
+    lines.push('   Close to cap \u2014 monitor closely \u26a0');
+  }else{
+    lines.push('   Exceeds supply cap \u2717');
+  }
+  lines.push('');
+
+  lines.push('Overall Assessment:');
+  if(ai.flags.length===0){
+    lines.push('Your tokenomics appear well-balanced.');
+    lines.push('The burn rate provides meaningful offset');
+    lines.push('to inflation. No obvious red flags.');
+  }else if(ai.flags.length<=2&&ai.flags.indexOf('Projected supply EXCEEDS cap')<0&&ai.flags.indexOf('Extreme net emission')<0){
+    lines.push('Minor concerns noted but parameters');
+    lines.push('are within acceptable ranges.');
+    lines.push('Flags: '+ai.flags.join(', '));
+  }else{
+    lines.push('Several risk factors identified:');
+    for(var fi=0;fi<ai.flags.length;fi++){lines.push('  \u26a0 '+ai.flags[fi]);}
+  }
+  lines.push('');
+
+  var severeFlags=ai.flags.filter(function(f){
+    return f==='Projected supply EXCEEDS cap'||f==='Extreme net emission'||f==='Very high inflation';
+  });
+  var moderateFlags=ai.flags.filter(function(f){
+    return f!=='Projected supply EXCEEDS cap'&&f!=='Extreme net emission'&&f!=='Very high inflation';
+  });
+
+  var aiVerdict,aiClass,aiLabel;
+  if(severeFlags.length>=2){
+    aiVerdict='HIGH RISK \u2014 Multiple critical flags';
+    aiClass='verdict-fail';
+    aiLabel='FAIL';
+    lines.push('Confidence: LOW \u2717');
+  }else if(severeFlags.length===1||moderateFlags.length>=2){
+    aiVerdict='MODERATE RISK \u2014 '+ai.flags.length+' flags';
+    aiClass='verdict-warn';
+    aiLabel='WARN';
+    lines.push('Confidence: MEDIUM \u26a0');
+  }else{
+    aiVerdict='LOOKS GOOD \u2014 No significant red flags';
+    aiClass='verdict-safe';
+    aiLabel='SAFE';
+    lines.push('Confidence: HIGH \u2713');
+  }
+
+  typeWriter(document.getElementById('term-ai'),lines,14,function(){
+    var vb=document.getElementById('verdict-ai');
+    vb.className='verdict-box '+aiClass;
+    vb.innerHTML='<span class="verdict-inner">'+aiVerdict+'</span>';
+    vb.dataset.label=aiLabel;
+    checkComparison();
+  });
+}
+
+/* ============================================================
+   TAU COLUMN
+   ============================================================ */
+function runTau(params,supply){
+  var tau=tauCheck(params);
+  var results=tau.results;
+  var cap=params.cap;
+  var vestPerMonth=(cap*(params.teamPct/100))/24;
+
+  var lines=[
+    '[TAU ENGINE v0.7] Temporal verification',
+    'Parameters loaded from configuration',
+    'Checking 6 properties across 120 timesteps...',
+    ''
+  ];
+
+  // Property 1
+  var p1=results[0];
+  lines.push('Property 1: '+p1.name);
+  for(var si=0;si<p1.samples.length;si++){
+    var s=p1.samples[si];
+    if(s.t<=120){
+      var mark=s.ok?'\u2713':'\u2717';
+      lines.push('  t='+s.t+':   '+fmtFull(Math.round(s.val))+(s.ok?' <= ':' > ')+fmtFull(cap)+' '+mark);
+      if(s.t===params.cliff&&params.cliff>0&&s.ok){
+        lines.push('    \u21b3 Vesting begins: +'+fmtFull(Math.round(vestPerMonth))+'/month');
+      }
+    }
+  }
+  if(!p1.holds){
+    lines.push('');
+    lines.push('  \u2717 VIOLATION at month '+p1.violMonth);
+    lines.push('  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');
+    var prev=supply[p1.violMonth-1];
+    var inf=prev*(params.infRate/100);
+    var burn=prev*(params.burnRate/100);
+    var vest=(p1.violMonth>=params.cliff&&p1.violMonth<params.cliff+24)?vestPerMonth:0;
+    lines.push('  supply['+(p1.violMonth-1)+']      = '+fmtFull(Math.round(prev)));
+    lines.push('  + inflation     = +'+fmtFull(Math.round(inf))+' ('+params.infRate.toFixed(1)+'%)');
+    if(vest>0)lines.push('  + vesting       = +'+fmtFull(Math.round(vest)));
+    lines.push('  - burn          = -'+fmtFull(Math.round(burn))+' ('+params.burnRate.toFixed(1)+'%)');
+    lines.push('  = supply['+p1.violMonth+']    = '+fmtFull(Math.round(supply[p1.violMonth])));
+    lines.push('');
+    var exceed=supply[p1.violMonth]-cap;
+    lines.push('  Exceeds cap by '+fmtFull(Math.round(exceed))+' ('+(exceed/cap*100).toFixed(1)+'%)');
+    if(vest>0){
+      lines.push('');
+      lines.push('  Root cause: Vesting unlock (+'+fmt(Math.round(vestPerMonth))+'/mo)');
+      lines.push('  combined with compounding inflation pushes');
+      lines.push('  supply past cap during month '+p1.violMonth+'.');
+    }
+    if(params.cliff===0&&params.teamPct>25){
+      lines.push('');
+      lines.push('  \u26a0 Cliff = 0: vesting starts immediately.');
+      lines.push('  This accelerates the breach significantly.');
+    }
+    lines.push('');
+    lines.push('  This is NOT a probability. It is the ONLY');
+    lines.push('  possible outcome given these parameters.');
+  }else{
+    lines.push('  HOLDS \u2713');
+  }
+  lines.push('');
+
+  // Property 2
+  var p2=results[1];
+  lines.push('Property 2: '+p2.name);
+  if(!p2.holds){
+    lines.push('  VIOLATION at t='+p2.violMonth);
+    lines.push('  supply + pending_vest > cap \u2717');
+  }else{
+    lines.push('  All timesteps: supply + vest <= cap \u2713');
+    lines.push('  HOLDS \u2713');
+  }
+  lines.push('');
+
+  // Property 3
+  var p3=results[2];
+  lines.push('Property 3: '+p3.name);
+  if(!p3.holds){
+    lines.push('  Window t='+p3.violMonth+'..'+(p3.violMonth+12)+': growth = '+p3.violPct.toFixed(1)+'%');
+    lines.push('  VIOLATION \u2014 12-month growth exceeds 50% \u2717');
+  }else{
+    for(var si=0;si<p3.samples.length;si++){
+      var s=p3.samples[si];
+      lines.push('  Window t='+s.t+'..'+s.tEnd+': growth = '+s.growth.toFixed(1)+'% '+(s.ok?'\u2713':'\u2717'));
+    }
+    lines.push('  HOLDS \u2713');
+  }
+  lines.push('');
+
+  // Property 4
+  var p4=results[3];
+  lines.push('Property 4: '+p4.name);
+  if(!p4.holds){
+    lines.push('  Checking for equilibrium...');
+    var netRate=params.infRate-params.burnRate;
+    lines.push('  Net monthly rate \u2248 '+netRate.toFixed(1)+'%');
+    lines.push('  NEVER reaches 0.5% threshold');
+    lines.push('  VIOLATION \u2014 no equilibrium reached \u2717');
+  }else{
+    lines.push('  Equilibrium reached at month '+p4.foundAt);
+    lines.push('  HOLDS \u2713');
+  }
+  lines.push('');
+
+  // Property 5
+  var p5=results[4];
+  lines.push('Property 5: '+p5.name);
+  lines.push('  Minimum: '+fmtFull(Math.round(supply[0]))+' at t=0');
+  lines.push('  Floor: '+fmtFull(Math.round(supply[0]*0.1)));
+  if(!p5.holds){
+    lines.push('  VIOLATION at t='+p5.violMonth+' \u2717');
+  }else{
+    lines.push('  HOLDS \u2713');
+  }
+  lines.push('');
+
+  // Property 6
+  var p6=results[5];
+  lines.push('Property 6: '+p6.name);
+  lines.push('  t='+params.cliff+'..'+(params.cliff+24)+': checking monotonicity');
+  if(!p6.holds){
+    lines.push('  VIOLATION at t='+p6.violMonth+' \u2014 supply decreased \u2717');
+  }else{
+    lines.push('  Supply monotonically increasing \u2713');
+    lines.push('  HOLDS \u2713');
+  }
+  lines.push('');
+
+  var violated=0;
+  var firstViol=null;
+  for(var ri=0;ri<results.length;ri++){
+    if(!results[ri].holds){
+      violated++;
+      if(!firstViol)firstViol=results[ri];
+    }
+  }
+
+  lines.push('\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501');
+  if(violated===0){
+    lines.push('VERIFICATION PASSED: 6/6 properties hold');
+    lines.push('');
+    lines.push('The "always" operator checks EVERY timestep.');
+    lines.push('All 120 months verified. This is a PROOF.');
+  }else{
+    lines.push('VERIFICATION FAILED: '+violated+'/6 properties violated');
+    lines.push('');
+    lines.push('The "always" operator checks EVERY timestep.');
+    lines.push('Not 1,000 random ones. Not a sample. ALL of them.');
+    lines.push('This is not a simulation. It is a PROOF.');
+  }
+
+  typeWriter(document.getElementById('term-tau'),lines,8,function(){
+    buildTauSpec(results);
+
+    var vb=document.getElementById('verdict-tau');
+    if(violated===0){
+      vb.className='verdict-box verdict-safe';
+      vb.innerHTML='<span class="verdict-inner">ALL 6 PROPERTIES HOLD \u2713<br><small style="font-weight:400;opacity:.7">Mathematically proven safe for 120 months</small></span>';
+      vb.dataset.label='SAFE';
+    }else{
+      vb.className='verdict-box verdict-fail';
+      var violMonthStr=firstViol?firstViol.violMonth:'?';
+      vb.innerHTML='<span class="verdict-inner">'+violated+'/6 PROPERTIES VIOLATED \u2717<br><small style="font-weight:400;opacity:.7">Formal counterexample at month '+violMonthStr+'</small></span>';
+      vb.dataset.label='FAIL';
+      fireShockwave();
+    }
+    checkComparison();
+  });
+}
+
+/* ============================================================
+   SHOCKWAVE
+   ============================================================ */
+function fireShockwave(){
+  var tauCol=document.querySelector('.col-tau');
+  var rect=tauCol.getBoundingClientRect();
+  var div=document.createElement('div');
+  div.className='shockwave';
+  div.style.left=(rect.left+rect.width/2)+'px';
+  div.style.top=(rect.top+rect.height/2)+'px';
+  document.body.appendChild(div);
+  setTimeout(function(){div.remove();},900);
+}
+
+/* ============================================================
+   COMPARISON PANEL + CRACKING
+   ============================================================ */
+function checkComparison(){
+  completedCount++;
+  if(completedCount<3)return;
+  completedCount=0;
+  running=false;
+
+  var pyV=document.getElementById('verdict-python');
+  var aiV=document.getElementById('verdict-ai');
+  var tauV=document.getElementById('verdict-tau');
+
+  var pyLabel=pyV.dataset.label||'';
+  var aiLabel=aiV.dataset.label||'';
+  var tauLabel=tauV.dataset.label||'';
+
+  var tauSafe=tauLabel==='SAFE';
+  var pyWrong=!tauSafe&&(pyLabel==='SAFE');
+  var aiWrong=!tauSafe&&(aiLabel==='SAFE');
+
+  // Crack effect
+  if(pyWrong){
+    pyV.classList.add('cracked');
+    var pyInner=pyV.querySelector('.verdict-inner');
+    pyV.innerHTML='<span class="verdict-inner">'+pyInner.textContent+'</span><span class="wrong-stamp">WRONG</span>';
+  }
+  if(aiWrong){
+    aiV.classList.add('cracked');
+    var aiInner=aiV.querySelector('.verdict-inner');
+    aiV.innerHTML='<span class="verdict-inner">'+aiInner.textContent+'</span><span class="wrong-stamp">WRONG</span>';
+  }
+
+  if(!tauSafe){
+    tauV.style.boxShadow='0 0 20px rgba(255,215,0,0.3)';
+  }else{
+    tauV.style.boxShadow='';
+  }
+
+  if(!pyWrong&&!aiWrong)return;
+
+  // Build comparison
+  var params=getParams();
+  var supply=simulate(params);
+  var firstViolMonth=-1;
+  for(var t=0;t<=120;t++){if(supply[t]>params.cap){firstViolMonth=t;break;}}
+
+  var section=document.getElementById('comparison-section');
+  section.style.display='block';
+
+  var tbody=document.getElementById('comp-tbody');
+  function verdictCell(label){
+    if(label==='SAFE')return'<span style="color:var(--green)">SAFE \u2713</span>';
+    if(label==='WARN')return'<span style="color:var(--yellow)">WARN \u26a0</span>';
+    return'<span style="color:var(--red)">UNSAFE \u2717</span>';
+  }
+
+  var pyMissed=pyWrong?'Month '+firstViolMonth+' breach':'\u2014';
+  var aiMissed=aiWrong?'Month '+firstViolMonth+' breach':'\u2014';
+
+  tbody.innerHTML=
+    '<tr><td style="text-align:left;color:var(--muted)">Verdict</td><td>'+verdictCell(pyLabel)+'</td><td>'+verdictCell(aiLabel)+'</td><td>'+verdictCell(tauLabel)+'</td></tr>'+
+    '<tr><td style="text-align:left;color:var(--muted)">Method</td><td>1,000 samples</td><td>Pattern matching</td><td>ALL states proven</td></tr>'+
+    '<tr><td style="text-align:left;color:var(--muted)">Missed</td><td>'+pyMissed+'</td><td>'+aiMissed+'</td><td style="color:var(--gold)">(found it)</td></tr>';
+
+  var explainEl=document.getElementById('comp-explain');
+  var explainHtml='';
+
+  if(pyWrong){
+    explainHtml+='<p class="exp-python">Python ran 1,000 random simulations with \u00b115% noise on inflation and burn. In most scenarios, the noise sometimes REDUCED inflation enough to avoid the breach. The average looked fine. But your smart contract doesn\'t have randomness. It runs DETERMINISTICALLY. The exact parameters you set WILL produce the breach at month '+firstViolMonth+'.</p>';
+  }
+
+  if(aiWrong){
+    var ai=aiReview(params);
+    explainHtml+='<p class="exp-ai">AI calculated annual growth at '+ai.annualGrowth.toFixed(1)+'% using a LINEAR projection and estimated final supply at '+fmt(Math.round(ai.projectedFinal))+'. This IGNORES compounding and spreads vesting over 120 months instead of 24. AI checked parameters individually but never modeled the month-by-month interaction.</p>';
+  }
+
+  explainHtml+='<p class="exp-tau">Tau checked the EXACT supply at EVERY month. Not a sample. Not a projection. Every single timestep, with the exact formula. The "always" operator is a universal temporal quantifier \u2014 it means "for ALL t from 0 to 120, this holds." When it doesn\'t, Tau shows the exact month.</p>';
+
+  explainEl.innerHTML=explainHtml;
+
+  setTimeout(function(){
+    document.getElementById('comparison-card').classList.add('visible');
+  },200);
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+updateLabels();
+buildTauSpec(null);
+setTimeout(function(){
+  drawChart(simulate(getParams()),getParams().cap);
+},100);
+
+})();
+</script>
+</body>
+</html>

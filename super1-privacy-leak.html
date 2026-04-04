@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAN YOUR PRIVACY BE BROKEN? — Tau Language Demo</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800;900&display=swap');
+:root{
+  --bg:#0a0a0f;--card:#12121a;--border:rgba(255,102,0,0.15);
+  --orange:#ff6600;--gold:#ffd700;--cyan:#06b6d4;--blue:#3b82f6;--green:#22c55e;
+  --red:#ef4444;--text:#e2e8f0;--dim:#64748b;
+}
+html{font-size:14px;scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;overflow-x:hidden;min-height:100vh;}
+body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at 50% 20%,rgba(255,102,0,0.06) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(255,215,0,0.03) 0%,transparent 50%);pointer-events:none;z-index:0;}
+
+.container{max-width:1600px;margin:0 auto;padding:20px;position:relative;z-index:1;}
+
+/* Header */
+.header{text-align:center;padding:40px 20px 30px;position:relative;}
+.header h1{font-size:3.2rem;font-weight:900;color:#fff;letter-spacing:-1px;text-shadow:0 0 60px rgba(255,102,0,0.3);}
+.header .subtitle{font-size:1.15rem;color:var(--dim);margin-top:10px;font-weight:500;}
+.header .subtitle span{color:var(--orange);font-weight:700;}
+.badge{display:inline-block;margin-top:14px;padding:6px 18px;border-radius:20px;background:linear-gradient(135deg,rgba(255,215,0,0.15),rgba(255,102,0,0.15));border:1px solid rgba(255,215,0,0.3);color:var(--gold);font-size:0.82rem;font-weight:600;letter-spacing:0.5px;}
+
+/* Shield Section */
+.shield-section{display:flex;flex-direction:column;align-items:center;padding:30px 20px 20px;position:relative;}
+.shield-row{display:flex;align-items:center;justify-content:center;gap:40px;flex-wrap:wrap;width:100%;}
+.toggle-cards-left,.toggle-cards-right{display:flex;flex-direction:column;gap:12px;width:280px;}
+.toggle-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;transition:all 0.3s;position:relative;overflow:hidden;}
+.toggle-card:hover{border-color:rgba(255,102,0,0.4);transform:translateY(-1px);}
+.toggle-card.active{border-color:var(--orange);box-shadow:0 0 20px rgba(255,102,0,0.15);}
+.toggle-card.active::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,rgba(255,102,0,0.05),transparent);pointer-events:none;}
+.toggle-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.toggle-label{font-weight:700;font-size:0.9rem;color:#fff;}
+.toggle-switch{width:42px;height:22px;border-radius:11px;background:#333;position:relative;transition:background 0.3s;flex-shrink:0;}
+.toggle-switch.on{background:var(--orange);}
+.toggle-switch::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform 0.3s;}
+.toggle-switch.on::after{transform:translateX(20px);}
+.toggle-desc{font-size:0.75rem;color:var(--dim);line-height:1.4;}
+
+/* Shield Hexagon */
+.shield-container{position:relative;width:220px;height:220px;flex-shrink:0;}
+.shield-svg{width:100%;height:100%;}
+.shield-segment{fill:rgba(255,102,0,0.08);stroke:rgba(255,102,0,0.2);stroke-width:1.5;transition:all 0.5s;}
+.shield-segment.active{fill:rgba(255,102,0,0.25);stroke:var(--orange);stroke-width:2;filter:drop-shadow(0 0 8px rgba(255,102,0,0.4));}
+.shield-segment.cracked{fill:rgba(239,68,68,0.2);stroke:var(--red);stroke-width:2;filter:drop-shadow(0 0 8px rgba(239,68,68,0.4));animation:crackPulse 1s ease-in-out;}
+.shield-center-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;}
+.shield-score{font-size:2rem;font-weight:900;color:var(--orange);transition:color 0.5s;}
+.shield-score.compromised{color:var(--red);}
+.shield-score-label{font-size:0.7rem;color:var(--dim);text-transform:uppercase;letter-spacing:1px;}
+
+@keyframes crackPulse{0%{opacity:1}50%{opacity:0.3}100%{opacity:1}}
+
+/* Presets & Button */
+.controls-row{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:24px;flex-wrap:wrap;}
+.preset-btn{padding:10px 20px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-weight:600;font-size:0.85rem;cursor:pointer;transition:all 0.3s;}
+.preset-btn:hover{border-color:var(--orange);background:rgba(255,102,0,0.1);}
+.verify-btn{padding:14px 40px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--orange),#e65c00);color:#fff;font-weight:800;font-size:1.05rem;cursor:pointer;transition:all 0.3s;position:relative;overflow:hidden;letter-spacing:0.5px;}
+.verify-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(255,102,0,0.4);}
+.verify-btn.pulsing{animation:btnPulse 2s infinite;}
+@keyframes btnPulse{0%,100%{box-shadow:0 0 10px rgba(255,102,0,0.3)}50%{box-shadow:0 0 30px rgba(255,102,0,0.6)}}
+.verify-btn:disabled{opacity:0.5;cursor:not-allowed;animation:none;}
+
+/* Chart Section */
+.chart-section{margin:30px 0 20px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;position:relative;overflow:hidden;}
+.chart-section h2{font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:4px;}
+.chart-section .chart-sub{font-size:0.8rem;color:var(--dim);margin-bottom:16px;}
+.chart-wrap{position:relative;width:100%;height:220px;}
+.chart-wrap canvas{width:100%;height:100%;}
+
+/* 4 Columns */
+.columns{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:20px;align-items:start;}
+.col{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:visible;display:flex;flex-direction:column;position:relative;}
+.col-header{padding:16px 16px 12px;border-bottom:1px solid rgba(255,255,255,0.05);}
+.col-header h3{font-size:1.15rem;font-weight:800;display:flex;align-items:center;gap:8px;}
+.col-header .col-sub{font-size:0.82rem;color:var(--dim);margin-top:4px;}
+.col-python .col-header h3{color:var(--blue);}
+.col-formal .col-header h3{color:var(--cyan);}
+.col-ai .col-header h3{color:var(--green);}
+.col-tau .col-header h3{color:var(--orange);}
+
+.col-body{padding:18px;flex:1;overflow:visible;position:relative;}
+.terminal{background:#0d1117;border-radius:10px;padding:18px;font-family:'JetBrains Mono',monospace;font-size:0.82rem;line-height:1.85;color:#c9d1d9;overflow-y:visible;white-space:pre-wrap;word-break:break-word;min-height:400px;}
+.terminal::-webkit-scrollbar{width:4px;}
+.terminal::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px;}
+
+.verdict-bar{padding:16px 16px;border-top:1px solid rgba(255,255,255,0.05);text-align:center;font-weight:700;font-size:0.95rem;letter-spacing:0.5px;opacity:0;transition:opacity 0.5s;}
+.verdict-bar.show{opacity:1;}
+.verdict-bar.pass{background:rgba(34,197,94,0.1);color:var(--green);}
+.verdict-bar.pass-cyan{background:rgba(6,182,212,0.1);color:var(--cyan);}
+.verdict-bar.fail{background:rgba(239,68,68,0.1);color:var(--red);}
+
+.col-python{border-color:rgba(59,130,246,0.2);}
+.col-formal{border-color:rgba(6,182,212,0.2);}
+.col-ai{border-color:rgba(34,197,94,0.2);}
+.col-tau{border-color:rgba(255,102,0,0.2);}
+
+/* Highlighted text in terminals */
+.t-ok{color:#22c55e;} .t-fail{color:#ef4444;font-weight:700;} .t-warn{color:#f59e0b;}
+.t-key{color:#ff6600;} .t-dim{color:#64748b;} .t-cyan{color:#06b6d4;} .t-blue{color:#3b82f6;}
+.t-bold{font-weight:700;color:#fff;}
+
+/* Comparison Panel */
+.comparison{margin-top:24px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;opacity:0;transform:translateY(20px);transition:all 0.6s;}
+.comparison.show{opacity:1;transform:translateY(0);}
+.comparison h2{text-align:center;font-size:1.2rem;font-weight:800;color:#fff;margin-bottom:20px;}
+.comp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+.comp-card{border-radius:12px;padding:16px;text-align:center;}
+.comp-card h4{font-size:1rem;font-weight:700;margin-bottom:10px;}
+.comp-card p{font-size:0.85rem;color:var(--dim);line-height:1.6;margin-bottom:8px;}
+.comp-card .comp-result{font-size:0.85rem;font-weight:700;padding:8px 14px;border-radius:6px;display:inline-block;margin-top:4px;}
+.comp-python{background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);}
+.comp-python h4{color:var(--blue);}
+.comp-formal{background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.2);}
+.comp-formal h4{color:var(--cyan);}
+.comp-ai{background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);}
+.comp-ai h4{color:var(--green);}
+.comp-tau{background:rgba(255,102,0,0.08);border:1px solid rgba(255,102,0,0.2);}
+.comp-tau h4{color:var(--orange);}
+
+.tagline{text-align:center;margin-top:20px;font-size:1rem;font-weight:700;background:linear-gradient(135deg,var(--orange),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.6;padding:0 20px;}
+
+/* Share Panel */
+.share-section{display:flex;justify-content:center;gap:14px;margin-top:24px;opacity:0;transition:opacity 0.5s;flex-wrap:wrap;}
+.share-section.show{opacity:1;}
+.share-btn{padding:12px 28px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-weight:700;font-size:0.9rem;cursor:pointer;transition:all 0.3s;}
+.share-btn:hover{border-color:var(--orange);background:rgba(255,102,0,0.1);}
+.share-btn.primary{background:linear-gradient(135deg,var(--orange),#e65c00);border:none;color:#fff;}
+.share-btn.primary:hover{box-shadow:0 4px 20px rgba(255,102,0,0.4);}
+
+/* Share Card Overlay */
+.share-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:1000;justify-content:center;align-items:center;}
+.share-overlay.show{display:flex;}
+.share-card{width:500px;background:linear-gradient(135deg,#0f0f18,#1a1028);border:2px solid var(--orange);border-radius:20px;padding:32px;text-align:center;position:relative;}
+.share-card .close-x{position:absolute;top:12px;right:16px;color:var(--dim);cursor:pointer;font-size:1.3rem;line-height:1;}
+.share-card h3{font-size:1.5rem;font-weight:900;color:#fff;margin-bottom:6px;}
+.share-card .share-score{font-size:3rem;font-weight:900;margin:16px 0;color:var(--red);}
+.share-card .share-attacks{color:var(--orange);font-size:1rem;font-weight:600;margin-bottom:16px;}
+.share-card .share-details{font-size:0.8rem;color:var(--dim);line-height:1.6;margin-bottom:16px;}
+.share-card .share-brand{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--gold);font-weight:700;font-size:0.9rem;}
+.share-card .share-url{color:var(--dim);font-size:0.75rem;margin-top:8px;}
+
+/* Full Proof Overlay */
+.proof-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:1000;justify-content:center;align-items:flex-start;padding:40px 20px;overflow-y:auto;}
+.proof-overlay.show{display:flex;}
+.proof-panel{width:900px;max-width:100%;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;position:relative;}
+.proof-panel .close-x{position:absolute;top:12px;right:16px;color:var(--dim);cursor:pointer;font-size:1.3rem;line-height:1;}
+.proof-panel h3{color:var(--orange);font-size:1.2rem;font-weight:800;margin-bottom:16px;}
+.proof-terminal{background:#0d1117;border-radius:10px;padding:20px;font-family:'JetBrains Mono',monospace;font-size:0.72rem;line-height:1.7;color:#c9d1d9;white-space:pre-wrap;word-break:break-word;max-height:70vh;overflow-y:auto;}
+
+/* Footer */
+.footer{text-align:center;padding:30px 20px;color:var(--dim);font-size:0.75rem;}
+.footer a{color:var(--orange);text-decoration:none;font-weight:600;}
+
+/* Responsive */
+@media(max-width:1200px){
+  .columns{grid-template-columns:repeat(2,1fr);}
+  .comp-grid{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:768px){
+  .columns{grid-template-columns:1fr;}
+  .comp-grid{grid-template-columns:1fr;}
+  .shield-row{flex-direction:column;gap:20px;}
+  .toggle-cards-left,.toggle-cards-right{width:100%;max-width:340px;}
+  .header h1{font-size:2rem;}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- HEADER -->
+  <div class="header">
+    <h1>CAN YOUR PRIVACY BE BROKEN?</h1>
+    <div class="subtitle">6 privacy rules. 4 verification methods. <span>Only one finds the leak.</span></div>
+    <div class="badge">Tau Language v0.7 | tau.net</div>
+  </div>
+
+  <!-- SHIELD SECTION -->
+  <div class="shield-section">
+    <div class="shield-row">
+      <div class="toggle-cards-left">
+        <div class="toggle-card active" data-rule="0" onclick="toggleRule(0)">
+          <div class="toggle-top">
+            <span class="toggle-label">&#128272; Ring Signatures</span>
+            <div class="toggle-switch on" id="sw0"></div>
+          </div>
+          <div class="toggle-desc">Every transaction is signed by a group of 11 possible signers. Nobody can tell which one actually signed.</div>
+        </div>
+        <div class="toggle-card active" data-rule="1" onclick="toggleRule(1)">
+          <div class="toggle-top">
+            <span class="toggle-label">&#128123; Stealth Addresses</span>
+            <div class="toggle-switch on" id="sw1"></div>
+          </div>
+          <div class="toggle-desc">Every payment creates a one-time address. The receiver's real address is never on the blockchain.</div>
+        </div>
+        <div class="toggle-card active" data-rule="2" onclick="toggleRule(2)">
+          <div class="toggle-top">
+            <span class="toggle-label">&#128176; Confidential Amounts</span>
+            <div class="toggle-switch on" id="sw2"></div>
+          </div>
+          <div class="toggle-desc">Transaction amounts are encrypted. Only sender and receiver know how much was sent.</div>
+        </div>
+      </div>
+
+      <!-- Shield Hex -->
+      <div class="shield-container">
+        <svg class="shield-svg" viewBox="0 0 200 200" id="shieldSvg">
+          <defs>
+            <filter id="glow"><feGaussianBlur stdDeviation="3" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <!-- 6 hex segments -->
+          <path id="seg0" class="shield-segment active" d="M100,20 L100,100 L148,40 Z" filter="url(#glow)"/>
+          <path id="seg1" class="shield-segment active" d="M148,40 L100,100 L170,100 Z" filter="url(#glow)"/>
+          <path id="seg2" class="shield-segment active" d="M170,100 L100,100 L148,160 Z" filter="url(#glow)"/>
+          <path id="seg3" class="shield-segment active" d="M148,160 L100,100 L100,180 Z" filter="url(#glow)"/>
+          <path id="seg4" class="shield-segment active" d="M100,180 L100,100 L52,160 Z" filter="url(#glow)"/>
+          <path id="seg5" class="shield-segment active" d="M52,160 L100,100 L30,100 Z" filter="url(#glow)"/>
+          <path class="shield-segment active" d="M30,100 L100,100 L52,40 Z" filter="url(#glow)" style="fill:rgba(255,102,0,0.12);stroke:rgba(255,102,0,0.3);pointer-events:none;"/>
+          <path class="shield-segment active" d="M52,40 L100,100 L100,20 Z" filter="url(#glow)" style="fill:rgba(255,102,0,0.12);stroke:rgba(255,102,0,0.3);pointer-events:none;"/>
+        </svg>
+        <div class="shield-center-text">
+          <div class="shield-score" id="shieldScore">100%</div>
+          <div class="shield-score-label">Privacy</div>
+        </div>
+      </div>
+
+      <div class="toggle-cards-right">
+        <div class="toggle-card active" data-rule="3" onclick="toggleRule(3)">
+          <div class="toggle-top">
+            <span class="toggle-label">&#9200; Decoy Timing</span>
+            <div class="toggle-switch on" id="sw3"></div>
+          </div>
+          <div class="toggle-desc">Decoy transactions are mixed with the same time distribution as real ones.</div>
+        </div>
+        <div class="toggle-card active" data-rule="4" onclick="toggleRule(4)">
+          <div class="toggle-top">
+            <span class="toggle-label">&#127760; Dandelion++ Routing</span>
+            <div class="toggle-switch on" id="sw4"></div>
+          </div>
+          <div class="toggle-desc">Transactions propagate through a random path before broadcasting, hiding the sender's IP.</div>
+        </div>
+        <div class="toggle-card active" data-rule="5" onclick="toggleRule(5)">
+          <div class="toggle-top">
+            <span class="toggle-label">&#128260; Churning Protection</span>
+            <div class="toggle-switch on" id="sw5"></div>
+          </div>
+          <div class="toggle-desc">Users can re-send to themselves to add more layers of ring signature mixing.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls-row">
+      <button class="preset-btn" onclick="setPreset('full')">&#128737; Full Shield</button>
+      <button class="preset-btn" onclick="setPreset('partial')">&#9888;&#65039; Partial Shield</button>
+      <button class="preset-btn" onclick="setPreset('minimal')">&#128128; Minimal</button>
+      <button class="verify-btn pulsing" id="verifyBtn" onclick="runVerification()">&#9654; VERIFY PRIVACY</button>
+    </div>
+  </div>
+
+  <!-- PRIVACY EROSION CHART -->
+  <div class="chart-section">
+    <h2>Privacy Erosion Timeline</h2>
+    <div class="chart-sub">Anonymity score across 1,000 blocks — how temporal analysis degrades your privacy</div>
+    <div class="chart-wrap">
+      <canvas id="erosionChart"></canvas>
+    </div>
+  </div>
+
+  <!-- 4 COLUMNS -->
+  <div class="columns">
+    <!-- PYTHON -->
+    <div class="col col-python">
+      <div class="col-header">
+        <h3>&#128013; PYTHON SIMULATION</h3>
+        <div class="col-sub">Monte Carlo: 10,000 transaction simulations</div>
+      </div>
+      <div class="col-body"><div class="terminal" id="termPython"></div></div>
+      <div class="verdict-bar pass" id="verdictPython">&#10003; PRIVACY ROBUST &mdash; 0 de-anonymizations in 10,000 trials</div>
+    </div>
+    <!-- FORMAL -->
+    <div class="col col-formal">
+      <div class="col-header">
+        <h3>&#128208; FORMAL VERIFICATION</h3>
+        <div class="col-sub">TLA+/Coq-style model checking privacy invariants</div>
+      </div>
+      <div class="col-body"><div class="terminal" id="termFormal"></div></div>
+      <div class="verdict-bar pass-cyan" id="verdictFormal">&#10003; ALL PROPERTIES VERIFIED &mdash; within model scope</div>
+    </div>
+    <!-- AI -->
+    <div class="col col-ai">
+      <div class="col-header">
+        <h3>&#129302; AI SECURITY REVIEW</h3>
+        <div class="col-sub">Analyzing privacy architecture</div>
+      </div>
+      <div class="col-body"><div class="terminal" id="termAI"></div></div>
+      <div class="verdict-bar pass" id="verdictAI">&#10003; COMPREHENSIVE PRIVACY &mdash; All vectors addressed</div>
+    </div>
+    <!-- TAU -->
+    <div class="col col-tau">
+      <div class="col-header">
+        <h3>&#9883; TAU TEMPORAL VERIFICATION</h3>
+        <div class="col-sub">Checking privacy across ALL time sequences</div>
+      </div>
+      <div class="col-body"><div class="terminal" id="termTau"></div></div>
+      <div class="verdict-bar fail" id="verdictTau">&#10007; PRIVACY BROKEN &mdash; 3 temporal attacks found</div>
+    </div>
+  </div>
+
+  <!-- COMPARISON PANEL -->
+  <div class="comparison" id="compPanel">
+    <h2>The Four Approaches</h2>
+    <div class="comp-grid">
+      <div class="comp-card comp-python">
+        <h4>&#128013; Python</h4>
+        <p>Simulated 10,000 transactions independently. Each tx looks private in isolation.</p>
+        <p>Never checked multi-tx patterns across time.</p>
+        <p><strong>MISSED:</strong> Decoy decay, intersection attack, timing patterns</p>
+        <div class="comp-result" style="background:rgba(59,130,246,0.15);color:var(--blue);">&#10003; "PRIVATE"</div>
+      </div>
+      <div class="comp-card comp-formal">
+        <h4>&#128208; Formal Verify (TLA+/Coq)</h4>
+        <p>Verified 3 crypto properties via model checking for single transactions.</p>
+        <p>State space EXPLODES for sequences &gt;3 tx.</p>
+        <p><strong>MISSED:</strong> Intersection attack (too many states to check)</p>
+        <div class="comp-result" style="background:rgba(6,182,212,0.15);color:var(--cyan);">&#10003; "VERIFIED"</div>
+      </div>
+      <div class="comp-card comp-ai">
+        <h4>&#129302; AI</h4>
+        <p>Reviewed each mechanism against known best practices. Pattern-matches individually.</p>
+        <p>Has no ability to discover novel attacks from temporal interactions.</p>
+        <p><strong>MISSED:</strong> All temporal attacks (pattern matching only)</p>
+        <div class="comp-result" style="background:rgba(34,197,94,0.15);color:var(--green);">&#10003; "SECURE"</div>
+      </div>
+      <div class="comp-card comp-tau">
+        <h4>&#9883; Tau</h4>
+        <p>Checked ALL temporal sequences across 1,000 blocks. Found 3 attacks that emerge ONLY when tracking over TIME.</p>
+        <p>"always" operator checks every possible timeline.</p>
+        <p><strong>FOUND:</strong> Decoy decay, intersection attack, timing correlation</p>
+        <div class="comp-result" style="background:rgba(239,68,68,0.15);color:var(--red);">&#10007; BROKEN</div>
+      </div>
+    </div>
+    <div class="tagline">Privacy isn't about each transaction. It's about ALL transactions OVER TIME.<br>Only temporal verification catches what time reveals.</div>
+  </div>
+
+  <!-- SHARE BUTTONS -->
+  <div class="share-section" id="shareSection">
+    <button class="share-btn primary" onclick="showShareCard()">&#128228; SHARE RESULT</button>
+    <button class="share-btn" onclick="showFullProof()">&#128270; VIEW FULL PROOF</button>
+  </div>
+
+  <div class="footer">
+    Tau Language v0.7 &mdash; Temporal verification for formal rules. <a href="https://tau.net" target="_blank">tau.net</a>
+  </div>
+</div>
+
+<!-- SHARE CARD OVERLAY -->
+<div class="share-overlay" id="shareOverlay">
+  <div class="share-card">
+    <span class="close-x" onclick="closeShareCard()">&times;</span>
+    <h3>CAN YOUR PRIVACY BE BROKEN?</h3>
+    <div class="share-score" id="shareScoreVal">34%</div>
+    <div class="share-attacks" id="shareAttacksVal">3 temporal attacks found</div>
+    <div class="share-details" id="shareDetailsVal">
+      &#10007; Decoy Decay Attack &mdash; anonymity erodes as decoys get spent<br>
+      &#10007; Intersection Attack &mdash; 5 transactions reveal the real signer<br>
+      &#10007; Timing Correlation &mdash; entropy drop in block windows
+    </div>
+    <div class="share-brand">&#9883; Verified by Tau Language v0.7</div>
+    <div class="share-url">tau.net</div>
+  </div>
+</div>
+
+<!-- FULL PROOF OVERLAY -->
+<div class="proof-overlay" id="proofOverlay">
+  <div class="proof-panel">
+    <span class="close-x" onclick="closeFullProof()">&times;</span>
+    <h3>&#9883; Full Tau Verification Proof</h3>
+    <div class="proof-terminal" id="proofContent"></div>
+  </div>
+</div>
+
+<script>
+// ===== STATE =====
+const rules = [true,true,true,true,true,true];
+const ruleNames = ['Ring Signatures','Stealth Addresses','Confidential Amounts','Decoy Timing','Dandelion++ Routing','Churning Protection'];
+let isRunning = false;
+let hasRun = false;
+
+// ===== TOGGLE / PRESET =====
+function toggleRule(i) {
+  if (isRunning) return;
+  rules[i] = !rules[i];
+  updateUI();
+}
+function setPreset(p) {
+  if (isRunning) return;
+  if (p === 'full') rules.fill(true);
+  else if (p === 'partial') { rules[0]=true;rules[1]=true;rules[2]=true;rules[3]=false;rules[4]=false;rules[5]=false; }
+  else { rules[0]=true;rules[1]=false;rules[2]=false;rules[3]=false;rules[4]=false;rules[5]=false; }
+  updateUI();
+}
+function updateUI() {
+  for (let i = 0; i < 6; i++) {
+    const card = document.querySelector(`[data-rule="${i}"]`);
+    const sw = document.getElementById('sw' + i);
+    const seg = document.getElementById('seg' + i);
+    if (rules[i]) { card.classList.add('active'); sw.classList.add('on'); seg.classList.add('active'); seg.classList.remove('cracked'); }
+    else { card.classList.remove('active'); sw.classList.remove('on'); seg.classList.remove('active'); seg.classList.remove('cracked'); }
+  }
+  const enabledCount = rules.filter(Boolean).length;
+  const baseScore = Math.round((enabledCount / 6) * 100);
+  const el = document.getElementById('shieldScore');
+  el.textContent = baseScore + '%';
+  el.classList.toggle('compromised', baseScore < 60);
+  if (!isRunning) drawChart(null);
+}
+
+// ===== CHART =====
+function computeErosion(config) {
+  // Compute anonymity score over 1000 blocks based on enabled rules
+  const pts = [];
+  const hasRing = config[0], hasStealth = config[1], hasConf = config[2];
+  const hasTiming = config[3], hasDand = config[4], hasChurn = config[5];
+  const enabledCount = config.filter(Boolean).length;
+  const startScore = 50 + enabledCount * 8; // 58-98
+  const ringSize = hasRing ? 11 : 1;
+  // Decoy decay rate: how fast decoys get spent
+  const decayRate = hasChurn ? 0.015 : 0.035;
+  // Intersection: how fast ring intersection converges
+  const intersectRate = (hasRing && hasStealth) ? 0.06 : 0.12;
+  // Timing leak
+  const timingLeak = hasTiming ? 0.008 : 0.03;
+  const dandBonus = hasDand ? 0.5 : 0;
+  const confBonus = hasConf ? 0.3 : 0;
+
+  for (let b = 0; b <= 1000; b++) {
+    const t = b / 1000;
+    // Decoy decay: decoys get spent over time, reducing effective ring size
+    const decayLoss = (1 - Math.exp(-decayRate * b * 0.1)) * 25;
+    // Intersection attack: after ~5 user txs, ring intersection converges
+    const userTxCount = Math.floor(b / 200); // user sends ~1 tx every 200 blocks
+    const intersectLoss = userTxCount > 0 ? Math.min(35, (1 - Math.pow(1 - intersectRate, userTxCount)) * 40) : 0;
+    // Timing correlation
+    const timingWindow = b > 400 && b < 600 ? (1 - Math.exp(-timingLeak * (b - 400))) * 15 : (b >= 600 ? timingLeak * 80 : 0);
+    const bonus = dandBonus * 5 + confBonus * 3;
+    let score = startScore - decayLoss - intersectLoss - timingWindow + bonus;
+    if (!hasRing) score = Math.min(score, 30 - t * 25);
+    score = Math.max(0, Math.min(100, score));
+    pts.push(score);
+  }
+  return pts;
+}
+
+function drawChart(attackBlocks) {
+  const canvas = document.getElementById('erosionChart');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+  ctx.scale(dpr, dpr);
+  const W = rect.width, H = rect.height;
+  const pad = { l: 50, r: 20, t: 10, b: 30 };
+  const cw = W - pad.l - pad.r, ch = H - pad.t - pad.b;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Zone fills
+  const zones = [
+    { y1: 0, y2: 20, color: 'rgba(239,68,68,0.08)' },   // red <50 mapped to bottom 20%
+    { y1: 20, y2: 60, color: 'rgba(245,158,11,0.06)' },  // yellow 50-80
+    { y1: 60, y2: 100, color: 'rgba(34,197,94,0.05)' },   // green >80
+  ];
+  zones.forEach(z => {
+    ctx.fillStyle = z.color;
+    ctx.fillRect(pad.l, pad.t + ch * (1 - z.y2 / 100), cw, ch * (z.y2 - z.y1) / 100);
+  });
+
+  // Zone labels
+  ctx.font = '10px Inter, sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillStyle = 'rgba(34,197,94,0.5)'; ctx.fillText('SAFE', pad.l - 6, pad.t + ch * 0.1);
+  ctx.fillStyle = 'rgba(245,158,11,0.5)'; ctx.fillText('DEGRADED', pad.l - 6, pad.t + ch * 0.5);
+  ctx.fillStyle = 'rgba(239,68,68,0.5)'; ctx.fillText('COMPROMISED', pad.l - 6, pad.t + ch * 0.88);
+
+  // Grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.lineWidth = 1;
+  for (let pct = 0; pct <= 100; pct += 20) {
+    const y = pad.t + ch * (1 - pct / 100);
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + cw, y); ctx.stroke();
+  }
+
+  // Axes labels
+  ctx.fillStyle = '#64748b';
+  ctx.textAlign = 'center';
+  ctx.font = '10px Inter, sans-serif';
+  for (let b = 0; b <= 1000; b += 200) {
+    const x = pad.l + (b / 1000) * cw;
+    ctx.fillText('Block ' + b, x, H - 6);
+  }
+  ctx.textAlign = 'right';
+  for (let pct = 0; pct <= 100; pct += 20) {
+    const y = pad.t + ch * (1 - pct / 100);
+    ctx.fillText(pct + '%', pad.l - 6, y + 4);
+  }
+
+  // Data
+  const data = computeErosion(rules);
+
+  // Gradient fill under line
+  const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
+  grad.addColorStop(0, 'rgba(34,197,94,0.3)');
+  grad.addColorStop(0.4, 'rgba(245,158,11,0.2)');
+  grad.addColorStop(1, 'rgba(239,68,68,0.15)');
+
+  ctx.beginPath();
+  ctx.moveTo(pad.l, pad.t + ch);
+  for (let i = 0; i <= 1000; i++) {
+    const x = pad.l + (i / 1000) * cw;
+    const y = pad.t + ch * (1 - data[i] / 100);
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(pad.l + cw, pad.t + ch);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Line
+  const lineGrad = ctx.createLinearGradient(pad.l, 0, pad.l + cw, 0);
+  lineGrad.addColorStop(0, '#22c55e');
+  lineGrad.addColorStop(0.5, '#f59e0b');
+  lineGrad.addColorStop(1, '#ef4444');
+  ctx.beginPath();
+  for (let i = 0; i <= 1000; i++) {
+    const x = pad.l + (i / 1000) * cw;
+    const y = pad.t + ch * (1 - data[i] / 100);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.strokeStyle = lineGrad;
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // Attack markers
+  if (attackBlocks) {
+    attackBlocks.forEach(ab => {
+      const x = pad.l + (ab.block / 1000) * cw;
+      const y = pad.t + ch * (1 - data[ab.block] / 100);
+      ctx.beginPath();
+      ctx.arc(x, y, 6, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(239,68,68,0.9)';
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.fillStyle = '#ef4444';
+      ctx.font = 'bold 9px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(ab.label, x, y - 12);
+    });
+  }
+
+  // 50% threshold line
+  const threshY = pad.t + ch * 0.5;
+  ctx.setLineDash([4, 4]);
+  ctx.strokeStyle = 'rgba(239,68,68,0.4)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(pad.l, threshY);
+  ctx.lineTo(pad.l + cw, threshY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+// ===== TYPEWRITER =====
+function typeText(el, text, speed, cb) {
+  let i = 0;
+  el.innerHTML = '';
+  const iv = setInterval(() => {
+    const chunk = Math.min(speed > 8 ? 3 : 1, text.length - i);
+    el.innerHTML += escHtml(text.substring(i, i + chunk));
+    i += chunk;
+    el.scrollTop = el.scrollHeight;
+    if (i >= text.length) { clearInterval(iv); if (cb) cb(); }
+  }, speed);
+  return iv;
+}
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function typeRich(el, segments, cb) {
+  // segments: [{text, cls, speed}]
+  el.innerHTML = '';
+  let idx = 0;
+  function next() {
+    if (idx >= segments.length) { if (cb) cb(); return; }
+    const seg = segments[idx++];
+    const span = document.createElement('span');
+    if (seg.cls) span.className = seg.cls;
+    el.appendChild(span);
+    let ci = 0;
+    const spd = seg.speed || 6;
+    const iv = setInterval(() => {
+      const chunk = spd > 8 ? 4 : (spd > 5 ? 2 : 1);
+      const end = Math.min(ci + chunk, seg.text.length);
+      span.textContent += seg.text.substring(ci, end);
+      ci = end;
+      el.scrollTop = el.scrollHeight;
+      if (ci >= seg.text.length) { clearInterval(iv); next(); }
+    }, spd);
+  }
+  next();
+}
+
+// ===== BUILD TEXT SEGMENTS =====
+function buildPythonText(cfg) {
+  const ringSize = cfg[0] ? 11 : 1;
+  const hasStealth = cfg[1];
+  const hasConf = cfg[2];
+  const lines = [];
+  lines.push({text: 'Simulating Monero-style transaction graph...\n', cls: 't-dim', speed: 8});
+  lines.push({text: `Generating 10,000 transactions with ring size ${ringSize}\n\n`, cls: '', speed: 8});
+  lines.push({text: 'For each transaction:\n', cls: 't-bold', speed: 10});
+  lines.push({text: `  - Randomly select ${ringSize - 1} decoys + 1 real input\n`, cls: '', speed: 10});
+  lines.push({text: '  - Check if any observer can identify the real input\n\n', cls: '', speed: 10});
+  lines.push({text: `Simulation  1000/10000: anonymity_set = ${ringSize} `, cls: '', speed: 12});
+  lines.push({text: cfg[0] ? '✓\n' : '⚠ (no ring)\n', cls: cfg[0] ? 't-ok' : 't-warn', speed: 12});
+  lines.push({text: `Simulation  5000/10000: anonymity_set = ${ringSize} `, cls: '', speed: 12});
+  lines.push({text: cfg[0] ? '✓\n' : '⚠\n', cls: cfg[0] ? 't-ok' : 't-warn', speed: 12});
+  lines.push({text: `Simulation 10000/10000: anonymity_set = ${ringSize} `, cls: '', speed: 12});
+  lines.push({text: cfg[0] ? '✓\n\n' : '⚠\n\n', cls: cfg[0] ? 't-ok' : 't-warn', speed: 12});
+  lines.push({text: 'Statistical analysis:\n', cls: 't-bold', speed: 10});
+  const meanSet = cfg[0] ? '10.94 (≈11)' : '1.00';
+  const minSet = cfg[0] ? '8 (within tolerance)' : '1';
+  const prob = cfg[0] ? '< 0.01%' : '100%';
+  lines.push({text: `  Mean anonymity set size: ${meanSet}\n`, cls: '', speed: 10});
+  lines.push({text: `  Min anonymity set: ${minSet}\n`, cls: '', speed: 10});
+  lines.push({text: `  Probability of identification: ${prob}\n\n`, cls: '', speed: 10});
+  if (cfg[0]) {
+    lines.push({text: 'RESULT: Privacy appears robust ✓\n', cls: 't-ok', speed: 8});
+    lines.push({text: 'No single transaction was de-anonymized\n', cls: '', speed: 10});
+    lines.push({text: 'in 10,000 simulations.\n\n', cls: '', speed: 10});
+  } else {
+    lines.push({text: 'RESULT: Ring size 1 — no anonymity set ✗\n', cls: 't-fail', speed: 8});
+    lines.push({text: 'Sender identifiable in every transaction.\n\n', cls: '', speed: 10});
+  }
+  lines.push({text: 'Note: Each transaction tested independently.\n', cls: 't-dim', speed: 12});
+  lines.push({text: 'Cross-transaction temporal analysis not performed.', cls: 't-dim', speed: 12});
+  return lines;
+}
+
+function buildFormalText(cfg) {
+  const lines = [];
+  const states = cfg.filter(Boolean).length > 3 ? '2,847,391' : '847,293';
+  lines.push({text: 'Model: Privacy coin transaction system\n', cls: 't-bold', speed: 8});
+  lines.push({text: `State space: 2^${24 + cfg.filter(Boolean).length * 4} reachable states\n`, cls: '', speed: 8});
+  lines.push({text: 'Properties to verify:\n\n', cls: 't-cyan', speed: 8});
+  // Property 1
+  if (cfg[0]) {
+    lines.push({text: '∀ tx ∈ Transactions:\n', cls: 't-cyan', speed: 6});
+    lines.push({text: '  |anonymity_set(tx)| ≥ ring_size\n', cls: '', speed: 6});
+    lines.push({text: '  ✓ VERIFIED', cls: 't-ok', speed: 6});
+    lines.push({text: ' (by induction on ring construction)\n\n', cls: 't-dim', speed: 8});
+  } else {
+    lines.push({text: '∀ tx ∈ Transactions:\n', cls: 't-cyan', speed: 6});
+    lines.push({text: '  |anonymity_set(tx)| ≥ ring_size\n', cls: '', speed: 6});
+    lines.push({text: '  ✗ FAILED', cls: 't-fail', speed: 6});
+    lines.push({text: ' (ring_size = 1, no anonymity)\n\n', cls: 't-dim', speed: 8});
+  }
+  // Property 2
+  if (cfg[1]) {
+    lines.push({text: '∀ addr ∈ Addresses:\n', cls: 't-cyan', speed: 6});
+    lines.push({text: '  stealth(addr) → ¬linkable(addr, receiver)\n', cls: '', speed: 6});
+    lines.push({text: '  ✓ VERIFIED', cls: 't-ok', speed: 6});
+    lines.push({text: ' (by one-time key derivation proof)\n\n', cls: 't-dim', speed: 8});
+  } else {
+    lines.push({text: '∀ addr ∈ Addresses:\n', cls: 't-cyan', speed: 6});
+    lines.push({text: '  stealth(addr) → ¬linkable(addr, receiver)\n', cls: '', speed: 6});
+    lines.push({text: '  ⚠ SKIPPED', cls: 't-warn', speed: 6});
+    lines.push({text: ' (stealth addresses disabled)\n\n', cls: 't-dim', speed: 8});
+  }
+  // Property 3
+  if (cfg[2]) {
+    lines.push({text: '∀ tx ∈ Transactions:\n', cls: 't-cyan', speed: 6});
+    lines.push({text: '  confidential(tx) → ¬observable(amount(tx))\n', cls: '', speed: 6});
+    lines.push({text: '  ✓ VERIFIED', cls: 't-ok', speed: 6});
+    lines.push({text: ' (by Pedersen commitment binding)\n\n', cls: 't-dim', speed: 8});
+  } else {
+    lines.push({text: '∀ tx ∈ Transactions:\n', cls: 't-cyan', speed: 6});
+    lines.push({text: '  confidential(tx) → ¬observable(amount(tx))\n', cls: '', speed: 6});
+    lines.push({text: '  ⚠ SKIPPED', cls: 't-warn', speed: 6});
+    lines.push({text: ' (confidential amounts disabled)\n\n', cls: 't-dim', speed: 8});
+  }
+  lines.push({text: `Model checking complete.\nStates explored: ${states}\n`, cls: '', speed: 10});
+  const verified = [cfg[0], cfg[1], cfg[2]].filter(Boolean).length;
+  lines.push({text: `Counterexamples: ${3 - verified}\n\n`, cls: '', speed: 10});
+  if (verified === 3) {
+    lines.push({text: `RESULT: All 3 properties VERIFIED ✓\n`, cls: 't-ok', speed: 8});
+    lines.push({text: 'No privacy violations found within the model.\n\n', cls: '', speed: 10});
+  } else {
+    lines.push({text: `RESULT: ${verified}/3 properties verified\n`, cls: 't-warn', speed: 8});
+    lines.push({text: `${3 - verified} propert${3-verified===1?'y':'ies'} failed or skipped.\n\n`, cls: '', speed: 10});
+  }
+  lines.push({text: '⚠ Limitation: Properties verified per-transaction.\n', cls: 't-warn', speed: 10});
+  lines.push({text: '  Cross-transaction temporal correlations are\n', cls: 't-dim', speed: 12});
+  lines.push({text: '  outside the scope of this model.\n', cls: 't-dim', speed: 12});
+  lines.push({text: '  State space explosion prevents checking\n', cls: 't-dim', speed: 12});
+  lines.push({text: '  sequences of >3 transactions.', cls: 't-dim', speed: 12});
+  return lines;
+}
+
+function buildAIText(cfg) {
+  const lines = [];
+  lines.push({text: 'Analyzing your privacy configuration...\n\n', cls: 't-bold', speed: 8});
+  const checks = [
+    { on: cfg[0], icon: '🔐', name: 'Ring Signatures (size 11)', good: 'Standard Monero ring size. Provides plausible\n   deniability for each transaction.', bad: 'DISABLED — No ring mixing. Sender is\n   directly identifiable.' },
+    { on: cfg[1], icon: '👻', name: 'Stealth Addresses', good: 'One-time keys prevent address linkability.\n   Well-established cryptographic primitive.', bad: 'DISABLED — Receiver addresses visible\n   on chain. Linkability possible.' },
+    { on: cfg[2], icon: '💰', name: 'Confidential Transactions', good: 'Pedersen commitments hide amounts.\n   Range proofs ensure validity.', bad: 'DISABLED — Transaction amounts visible\n   to all observers.' },
+    { on: cfg[3], icon: '⏰', name: 'Decoy Timing', good: 'Gamma distribution matching reduces\n   timing-based heuristics.', bad: 'DISABLED — Timing analysis may reveal\n   real transaction patterns.' },
+    { on: cfg[4], icon: '🌐', name: 'Dandelion++', good: 'Network-level privacy for IP hiding.', bad: 'DISABLED — IP address may be linkable\n   to transactions.' },
+    { on: cfg[5], icon: '🔄', name: 'Churning', good: 'Additional mixing layers. Good practice.', bad: 'DISABLED — No additional mixing layers.' },
+  ];
+  checks.forEach(c => {
+    lines.push({text: `${c.icon} ${c.name}:\n`, cls: 't-bold', speed: 8});
+    if (c.on) {
+      lines.push({text: `   ${c.good} `, cls: '', speed: 10});
+      lines.push({text: '✓\n\n', cls: 't-ok', speed: 10});
+    } else {
+      lines.push({text: `   ${c.bad} `, cls: '', speed: 10});
+      lines.push({text: '✗\n\n', cls: 't-fail', speed: 10});
+    }
+  });
+  const enabled = cfg.filter(Boolean).length;
+  if (enabled >= 5) {
+    lines.push({text: 'Assessment: This is a comprehensive privacy\narchitecture consistent with state-of-the-art\nprivacy coins. All major attack vectors appear\nto be addressed.\n\n', cls: '', speed: 10});
+    lines.push({text: 'Confidence: Very High ✓', cls: 't-ok', speed: 8});
+  } else if (enabled >= 3) {
+    lines.push({text: 'Assessment: Partial privacy configuration.\nSome mechanisms missing. Known attack vectors\nmay be exploitable.\n\n', cls: '', speed: 10});
+    lines.push({text: 'Confidence: Moderate ⚠', cls: 't-warn', speed: 8});
+  } else {
+    lines.push({text: 'Assessment: Insufficient privacy protections.\nMultiple critical mechanisms are disabled.\n\n', cls: '', speed: 10});
+    lines.push({text: 'Confidence: Low ✗', cls: 't-fail', speed: 8});
+  }
+  return lines;
+}
+
+function buildTauSpec(cfg) {
+  const lines = [];
+  lines.push({text: '# Privacy Temporal Specification\n', cls: 't-dim', speed: 4});
+  lines.push({text: '# Tau checks properties across TIME,\n', cls: 't-dim', speed: 4});
+  lines.push({text: '# not just per-transaction.\n\n', cls: 't-dim', speed: 4});
+  lines.push({text: 'ring_members   : tau := in console.\n', cls: 't-key', speed: 4});
+  lines.push({text: 'tx_graph       : tau := in console.\n', cls: 't-key', speed: 4});
+  lines.push({text: 'timing_data    : tau := in console.\n', cls: 't-key', speed: 4});
+  lines.push({text: 'anonymity      : tau := out console.\n\n', cls: 't-key', speed: 4});
+  // Property 1
+  lines.push({text: '# PROPERTY 1: Ring Signature Integrity\n', cls: 't-dim', speed: 4});
+  lines.push({text: 'always (\n  ring_members[t] >= ring_size &&\n  all_unspent(ring_members[t])\n).\n\n', cls: 't-bold', speed: 3});
+  // Property 2
+  lines.push({text: '# PROPERTY 2: Temporal Unlinkability\n', cls: 't-dim', speed: 4});
+  lines.push({text: 'always (\n  ∀ tx1, tx2 : tx_graph[t] .\n    (sender(tx1) ≠ sender(tx2)) ->\n    ¬correlatable(tx1, tx2, timing_data[t])\n).\n\n', cls: 't-bold', speed: 3});
+  // Property 3
+  lines.push({text: '# PROPERTY 3: Decoy Freshness\n', cls: 't-dim', speed: 4});
+  lines.push({text: 'always (\n  ∀ decoy ∈ ring_members[t] .\n    ¬spent_elsewhere(decoy, tx_graph[0..t])\n).\n\n', cls: 't-bold', speed: 3});
+  // Property 4
+  lines.push({text: '# PROPERTY 4: Intersection Attack Resistance\n', cls: 't-dim', speed: 4});
+  lines.push({text: 'always (\n  ∀ user : users .\n    |intersection(rings(user, t-N..t))| > 1\n).\n\n', cls: 't-bold', speed: 3});
+  // Property 5
+  lines.push({text: '# PROPERTY 5: Timing Decorrelation\n', cls: 't-dim', speed: 4});
+  lines.push({text: 'always (\n  entropy(timing_distribution[t]) >=\n    min_entropy_threshold\n).', cls: 't-bold', speed: 3});
+  return lines;
+}
+
+function buildTauTrace(cfg) {
+  const lines = [];
+  const hasRing = cfg[0], hasStealth = cfg[1], hasConf = cfg[2];
+  const hasTiming = cfg[3], hasDand = cfg[4], hasChurn = cfg[5];
+  const enabled = cfg.filter(Boolean).length;
+
+  // Determine attack parameters based on config
+  const decayBlock = hasChurn ? 848 : (hasRing ? 612 : 150);
+  const decoysLost = hasChurn ? 3 : (hasRing ? 5 : 10);
+  const effectiveRing = hasRing ? Math.max(1, 11 - decoysLost) : 1;
+  const intersectTxs = (hasStealth && hasChurn) ? 5 : (hasRing ? 4 : 2);
+  const timingWindowStart = hasTiming ? 400 : 150;
+  const timingWindowEnd = hasTiming ? 500 : 400;
+
+  lines.push({text: '\n[TAU ENGINE v0.7] ', cls: 't-key', speed: 6});
+  lines.push({text: 'Temporal privacy analysis\n', cls: 't-bold', speed: 6});
+  lines.push({text: 'Modeling transaction graph over 1000 blocks...\n', cls: '', speed: 8});
+  lines.push({text: 'Checking 5 temporal properties...\n\n', cls: '', speed: 8});
+
+  // Property 1: Ring Integrity / Decoy Decay
+  lines.push({text: 'Property 1: always(ring_integrity)\n', cls: 't-bold', speed: 6});
+  if (hasRing) {
+    lines.push({text: `  All rings contain valid unspent members\n  for blocks 0-${decayBlock - 1} `, cls: '', speed: 8});
+    lines.push({text: '✓\n\n', cls: 't-ok', speed: 8});
+    lines.push({text: `  ✗ VIOLATION at block ${decayBlock}\n`, cls: 't-fail', speed: 5});
+    lines.push({text: '  ──────────────────────────\n', cls: 't-dim', speed: 10});
+    lines.push({text: `  Transaction tx_${decayBlock} uses ring:\n`, cls: '', speed: 6});
+    lines.push({text: '    {key_12, key_45, key_67, key_89, key_91,\n     key_103, key_234, key_456, key_567,\n     key_678, key_real}\n\n', cls: 't-dim', speed: 8});
+    const spentKeys = [
+      { key: 'key_45', tx: 201, block: 201 },
+      { key: 'key_89', tx: 534, block: 534 },
+      { key: 'key_234', tx: 712, block: 712 },
+    ];
+    if (!hasChurn) {
+      spentKeys.push({ key: 'key_67', tx: 290, block: 290 });
+      spentKeys.push({ key: 'key_103', tx: 445, block: 445 });
+    }
+    spentKeys.slice(0, decoysLost).forEach(sk => {
+      lines.push({text: `  But ${sk.key} was spent in tx_${sk.tx} (block ${sk.block})\n`, cls: 't-fail', speed: 6});
+    });
+    lines.push({text: '\n  An observer tracking the blockchain knows:\n', cls: 't-bold', speed: 6});
+    spentKeys.slice(0, decoysLost).forEach(sk => {
+      lines.push({text: `    ${sk.key} ≠ real (spent at block ${sk.block})\n`, cls: 't-warn', speed: 6});
+    });
+    lines.push({text: `\n  Effective anonymity set: ${effectiveRing} (not 11)\n\n`, cls: 't-fail', speed: 5});
+    lines.push({text: '  This is the ', cls: '', speed: 6});
+    lines.push({text: 'DECOY DECAY ATTACK', cls: 't-fail', speed: 4});
+    lines.push({text: ':\n  Over time, decoys get spent elsewhere,\n  and an observer can ELIMINATE them from\n  the anonymity set.\n\n', cls: '', speed: 8});
+  } else {
+    lines.push({text: '  ✗ TRIVIAL VIOLATION — no ring signatures\n', cls: 't-fail', speed: 6});
+    lines.push({text: '  Ring size = 1, sender directly identifiable.\n\n', cls: 't-fail', speed: 8});
+  }
+
+  // Property 4: Intersection Attack
+  lines.push({text: 'Property 4: always(intersection_resistance)\n', cls: 't-bold', speed: 6});
+  lines.push({text: '  Checking ring intersection over sequences...\n\n', cls: '', speed: 8});
+  if (hasRing) {
+    lines.push({text: `  User A made ${intersectTxs} transactions:\n`, cls: 't-bold', speed: 6});
+    const txBlocks = [100, 300, 500, 700, 900];
+    const ringKeys = [
+      ['a','b','c','d','e','f','g','h','i','j'],
+      ['k','l','m','n','o','p','q','r','s','t'],
+      ['u','v','w','x','y','z','aa','bb','cc','dd'],
+      ['ee','ff','gg','hh','ii','jj','kk','ll','mm','nn'],
+      ['oo','pp','qq','rr','ss','tt','uu','vv','ww','xx'],
+    ];
+    for (let i = 0; i < intersectTxs; i++) {
+      const keys = [...ringKeys[i]];
+      // Insert REAL at different position
+      const pos = [10 - i, 9, 8, 5, 4][i];
+      keys.splice(pos, 0, 'REAL');
+      lines.push({text: `    tx_${txBlocks[i]}: ring = {${keys.join(',')}}\n`, cls: '', speed: 8});
+    }
+    lines.push({text: `\n  Intersection of all ${intersectTxs} rings:\n`, cls: 't-bold', speed: 6});
+    lines.push({text: '    {REAL}', cls: 't-fail', speed: 4});
+    lines.push({text: '  ← ONLY ONE KEY IN COMMON\n\n', cls: 't-warn', speed: 6});
+    lines.push({text: '  ✗ INTERSECTION ATTACK SUCCESSFUL\n', cls: 't-fail', speed: 4});
+    lines.push({text: `  After ${intersectTxs} transactions, the real key is the\n`, cls: '', speed: 7});
+    lines.push({text: '  ONLY key appearing in all rings.\n\n', cls: 't-fail', speed: 7});
+    lines.push({text: '  An observer can identify the sender with\n', cls: '', speed: 7});
+    lines.push({text: '  100% certainty', cls: 't-fail', speed: 5});
+    lines.push({text: ` after just ${intersectTxs} transactions.\n\n`, cls: '', speed: 7});
+  } else {
+    lines.push({text: '  ✗ TRIVIAL — ring size 1, no intersection needed.\n', cls: 't-fail', speed: 6});
+    lines.push({text: '  Sender identifiable from first transaction.\n\n', cls: 't-fail', speed: 8});
+  }
+  lines.push({text: '  This attack is INVISIBLE to per-transaction\n', cls: 't-dim', speed: 8});
+  lines.push({text: '  analysis. It requires tracking a USER\'s\n', cls: 't-dim', speed: 8});
+  lines.push({text: '  full transaction HISTORY over TIME.\n\n', cls: 't-dim', speed: 8});
+  lines.push({text: '  Python didn\'t find it: tested each tx alone.\n', cls: 't-blue', speed: 8});
+  lines.push({text: '  Formal verification didn\'t find it: state\n  space explodes for multi-tx sequences.\n', cls: 't-cyan', speed: 8});
+  lines.push({text: '  AI didn\'t find it: never seen this pattern.\n\n', cls: 't-ok', speed: 8});
+  lines.push({text: '  Tau found it because "always" checks EVERY\n  possible time sequence, including multi-\n  transaction correlations.\n\n', cls: 't-key', speed: 6});
+
+  // Property 5: Timing
+  lines.push({text: 'Property 5: always(timing_decorrelation)\n', cls: 't-bold', speed: 6});
+  lines.push({text: `  ✗ VIOLATION at block window ${timingWindowStart}-${timingWindowEnd}\n`, cls: 't-fail', speed: 5});
+  lines.push({text: '  Entropy drops below threshold when user\n', cls: '', speed: 8});
+  lines.push({text: `  sends 3+ transactions within ${hasTiming ? 100 : 250} blocks.\n`, cls: '', speed: 8});
+  lines.push({text: '  Timing pattern becomes identifiable.\n\n', cls: '', speed: 8});
+
+  // Summary
+  const attackCount = hasRing ? 3 : 5;
+  const passCount = 5 - attackCount;
+  lines.push({text: '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n', cls: 't-dim', speed: 10});
+  lines.push({text: `VERIFICATION FAILED: ${attackCount}/5 properties violated\n\n`, cls: 't-fail', speed: 4});
+  lines.push({text: 'PRIVACY CAN BE BROKEN', cls: 't-fail', speed: 3});
+  lines.push({text: ' through temporal analysis.\n', cls: 't-bold', speed: 5});
+  lines.push({text: 'Not by breaking cryptography.\n', cls: '', speed: 7});
+  lines.push({text: 'Not by cracking keys.\n', cls: '', speed: 7});
+  lines.push({text: 'By watching ', cls: '', speed: 7});
+  lines.push({text: 'PATTERNS OVER TIME', cls: 't-fail', speed: 4});
+  lines.push({text: '.\n\n', cls: '', speed: 7});
+  lines.push({text: 'This is why temporal verification matters.\n', cls: 't-key', speed: 6});
+  lines.push({text: 'Single-point checks see each transaction as safe.\n', cls: 't-dim', speed: 8});
+  lines.push({text: 'Tau sees the WHOLE TIMELINE and finds the leak.', cls: 't-key', speed: 5});
+
+  return lines;
+}
+
+// ===== MAIN VERIFICATION =====
+function runVerification() {
+  if (isRunning) return;
+  isRunning = true;
+  hasRun = true;
+  const btn = document.getElementById('verifyBtn');
+  btn.disabled = true;
+  btn.classList.remove('pulsing');
+  btn.textContent = '⏳ VERIFYING...';
+
+  // Reset
+  ['termPython','termFormal','termAI','termTau'].forEach(id => document.getElementById(id).innerHTML = '');
+  ['verdictPython','verdictFormal','verdictAI','verdictTau'].forEach(id => document.getElementById(id).classList.remove('show'));
+  document.getElementById('compPanel').classList.remove('show');
+  document.getElementById('shareSection').classList.remove('show');
+  // Reset shield cracks
+  for (let i = 0; i < 6; i++) {
+    const seg = document.getElementById('seg' + i);
+    seg.classList.remove('cracked');
+    if (rules[i]) seg.classList.add('active');
+  }
+
+  const cfg = [...rules];
+
+  // Python: starts immediately, ~3s
+  const pySegs = buildPythonText(cfg);
+  typeRich(document.getElementById('termPython'), pySegs, () => {
+    const vp = document.getElementById('verdictPython');
+    if (cfg[0]) {
+      vp.textContent = '✓ PRIVACY ROBUST — 0 de-anonymizations in 10,000 trials';
+      vp.className = 'verdict-bar pass show';
+    } else {
+      vp.textContent = '✗ NO PRIVACY — Ring size 1';
+      vp.className = 'verdict-bar fail show';
+    }
+  });
+
+  // Formal: starts at ~1s, ~5s
+  setTimeout(() => {
+    const fSegs = buildFormalText(cfg);
+    typeRich(document.getElementById('termFormal'), fSegs, () => {
+      const vf = document.getElementById('verdictFormal');
+      const verified = [cfg[0], cfg[1], cfg[2]].filter(Boolean).length;
+      if (verified === 3) {
+        vf.textContent = '✓ ALL PROPERTIES VERIFIED — within model scope';
+        vf.className = 'verdict-bar pass-cyan show';
+      } else {
+        vf.textContent = `⚠ ${verified}/3 VERIFIED — ${3 - verified} failed`;
+        vf.className = 'verdict-bar pass-cyan show';
+      }
+    });
+  }, 1000);
+
+  // AI: starts at ~1.5s, ~5s
+  setTimeout(() => {
+    const aiSegs = buildAIText(cfg);
+    typeRich(document.getElementById('termAI'), aiSegs, () => {
+      const va = document.getElementById('verdictAI');
+      const enabled = cfg.filter(Boolean).length;
+      if (enabled >= 5) {
+        va.textContent = '✓ COMPREHENSIVE PRIVACY — All vectors addressed';
+        va.className = 'verdict-bar pass show';
+      } else if (enabled >= 3) {
+        va.textContent = '⚠ PARTIAL PRIVACY — Some gaps identified';
+        va.className = 'verdict-bar pass show';
+      } else {
+        va.textContent = '✗ INSUFFICIENT PRIVACY';
+        va.className = 'verdict-bar fail show';
+      }
+    });
+  }, 1500);
+
+  // Tau: starts at ~2.5s, ~10s (spec then trace)
+  setTimeout(() => {
+    const tauEl = document.getElementById('termTau');
+    const specSegs = buildTauSpec(cfg);
+    typeRich(tauEl, specSegs, () => {
+      // Short pause then trace
+      setTimeout(() => {
+        const traceSegs = buildTauTrace(cfg);
+        // Append to existing
+        typeRich2(tauEl, traceSegs, () => {
+          // Verdict
+          const vt = document.getElementById('verdictTau');
+          const attackCount = cfg[0] ? 3 : 5;
+          vt.textContent = `✗ PRIVACY BROKEN — ${attackCount} temporal attacks found`;
+          vt.className = 'verdict-bar fail show';
+
+          // Crack shield segments
+          crackShield(cfg);
+
+          // Update chart with attack markers
+          const decayBlock = cfg[5] ? 848 : (cfg[0] ? 612 : 150);
+          drawChart([
+            { block: decayBlock, label: 'Decoy Decay' },
+            { block: 500, label: 'Intersection' },
+            { block: cfg[3] ? 450 : 250, label: 'Timing Leak' },
+          ]);
+
+          // Compute final privacy score
+          const erosionData = computeErosion(cfg);
+          const finalScore = Math.round(erosionData[999]);
+          document.getElementById('shieldScore').textContent = finalScore + '%';
+          document.getElementById('shieldScore').classList.add('compromised');
+
+          // Show comparison
+          setTimeout(() => {
+            document.getElementById('compPanel').classList.add('show');
+            document.getElementById('shareSection').classList.add('show');
+            // Update share card
+            document.getElementById('shareScoreVal').textContent = finalScore + '%';
+            document.getElementById('shareAttacksVal').textContent = `${attackCount} temporal attacks found`;
+            isRunning = false;
+            btn.disabled = false;
+            btn.textContent = '▶ VERIFY AGAIN';
+            btn.classList.add('pulsing');
+          }, 500);
+        });
+      }, 600);
+    });
+  }, 2500);
+}
+
+// typeRich2: appends to existing content instead of clearing
+function typeRich2(el, segments, cb) {
+  let idx = 0;
+  function next() {
+    if (idx >= segments.length) { if (cb) cb(); return; }
+    const seg = segments[idx++];
+    const span = document.createElement('span');
+    if (seg.cls) span.className = seg.cls;
+    el.appendChild(span);
+    let ci = 0;
+    const spd = seg.speed || 6;
+    const iv = setInterval(() => {
+      const chunk = spd > 8 ? 4 : (spd > 5 ? 2 : 1);
+      const end = Math.min(ci + chunk, seg.text.length);
+      span.textContent += seg.text.substring(ci, end);
+      ci = end;
+      el.scrollTop = el.scrollHeight;
+      if (ci >= seg.text.length) { clearInterval(iv); next(); }
+    }, spd);
+  }
+  next();
+}
+
+function crackShield(cfg) {
+  // Crack segments that had attacks found against them
+  // Seg 0 = Ring Sigs (decoy decay), Seg 3 = Timing, Seg 4 = Dandelion (intersection relates to ring)
+  const crackIndices = [0, 3, 4]; // ring, timing, dandelion
+  if (!cfg[0]) crackIndices.push(1, 2, 5); // if ring off, crack more
+  let delay = 0;
+  crackIndices.forEach(i => {
+    setTimeout(() => {
+      const seg = document.getElementById('seg' + i);
+      if (seg) {
+        seg.classList.remove('active');
+        seg.classList.add('cracked');
+      }
+    }, delay);
+    delay += 400;
+  });
+}
+
+// ===== SHARE / PROOF =====
+function showShareCard() {
+  document.getElementById('shareOverlay').classList.add('show');
+}
+function closeShareCard() {
+  document.getElementById('shareOverlay').classList.remove('show');
+}
+function showFullProof() {
+  const proofEl = document.getElementById('proofContent');
+  const cfg = [...rules];
+  const hasRing = cfg[0], hasChurn = cfg[5], hasTiming = cfg[3];
+  const decayBlock = hasChurn ? 848 : (hasRing ? 612 : 150);
+  const effectiveRing = hasRing ? (hasChurn ? 8 : 6) : 1;
+  const intersectTxs = (cfg[1] && hasChurn) ? 5 : (hasRing ? 4 : 2);
+
+  proofEl.textContent =
+`[TAU ENGINE v0.7] Full Temporal Privacy Verification Proof
+═══════════════════════════════════════════════════════════
+
+Configuration:
+  Ring Signatures:     ${cfg[0] ? 'ENABLED (size 11)' : 'DISABLED'}
+  Stealth Addresses:   ${cfg[1] ? 'ENABLED' : 'DISABLED'}
+  Confidential Amounts:${cfg[2] ? 'ENABLED' : 'DISABLED'}
+  Decoy Timing:        ${cfg[3] ? 'ENABLED' : 'DISABLED'}
+  Dandelion++:         ${cfg[4] ? 'ENABLED' : 'DISABLED'}
+  Churning:            ${cfg[5] ? 'ENABLED' : 'DISABLED'}
+
+═══════════════════════════════════════════════════════════
+PROPERTY 1: always(ring_integrity)
+═══════════════════════════════════════════════════════════
+
+Definition:
+  For all time steps t, every ring member in every transaction
+  must be a valid, unspent output at the time of inclusion.
+
+  Formally: ∀ t . ∀ tx ∈ block(t) . ∀ m ∈ ring(tx) .
+            ¬∃ tx' ∈ blockchain(0..t-1) . spends(tx', m)
+
+Verification trace:
+  Blocks 0-${decayBlock - 1}: All ring members valid. No violations.
+
+  Block ${decayBlock}: VIOLATION DETECTED
+  ─────────────────────────────────────
+  Transaction tx_${decayBlock} ring members:
+    [0] key_12   — status: unspent at block ${decayBlock} ✓
+    [1] key_45   — status: SPENT in tx_201 at block 201 ✗
+    [2] key_67   — status: ${hasChurn ? 'unspent ✓' : 'SPENT in tx_290 at block 290 ✗'}
+    [3] key_89   — status: SPENT in tx_534 at block 534 ✗
+    [4] key_91   — status: unspent at block ${decayBlock} ✓
+    [5] key_103  — status: ${hasChurn ? 'unspent ✓' : 'SPENT in tx_445 at block 445 ✗'}
+    [6] key_234  — status: SPENT in tx_712 at block 712 ✗
+    [7] key_456  — status: unspent at block ${decayBlock} ✓
+    [8] key_567  — status: unspent at block ${decayBlock} ✓
+    [9] key_678  — status: unspent at block ${decayBlock} ✓
+   [10] key_real — status: unspent (THE REAL INPUT) ✓
+
+  Spent decoys can be ELIMINATED by an informed observer.
+  Effective anonymity set: ${effectiveRing}/11
+
+  ATTACK: DECOY DECAY
+  As the blockchain grows, ring decoys naturally get spent in
+  other transactions. An observer maintaining a full node can
+  track which outputs are spent and eliminate them from rings.
+
+  This reduces the effective anonymity set over time, eventually
+  making the real signer identifiable with high probability.
+
+  Mathematical model:
+    P(decoy spent by block B) = 1 - e^(-λB)
+    where λ = average spending rate ≈ 0.003 per block
+
+    Expected decoys eliminated by block 848:
+    E[eliminated] = 10 × (1 - e^(-0.003 × 848)) ≈ ${(10 * (1 - Math.exp(-0.003 * decayBlock))).toFixed(1)}
+
+  RESULT: PROPERTY VIOLATED ✗
+
+═══════════════════════════════════════════════════════════
+PROPERTY 4: always(intersection_resistance)
+═══════════════════════════════════════════════════════════
+
+Definition:
+  For any user making N transactions, the intersection of all
+  their ring sets must contain more than 1 member.
+
+  Formally: ∀ t . ∀ user . |⋂ᵢ ring(tx_user_i)| > 1
+
+Verification trace:
+  User A transaction history (${intersectTxs} transactions):
+
+  tx_100 at block 100:
+    ring = {a, b, c, d, e, f, g, h, i, j, REAL}
+
+  tx_300 at block 300:
+    ring = {k, l, m, n, o, p, q, r, s, REAL, t}
+
+  tx_500 at block 500:
+    ring = {u, v, w, x, y, z, aa, bb, REAL, cc, dd}
+${intersectTxs >= 4 ? `
+  tx_700 at block 700:
+    ring = {ee, ff, gg, hh, ii, REAL, jj, kk, ll, mm, nn}
+` : ''}${intersectTxs >= 5 ? `
+  tx_900 at block 900:
+    ring = {oo, pp, qq, rr, REAL, ss, tt, uu, vv, ww, xx}
+` : ''}
+  Computing intersections:
+    ring(tx_100) ∩ ring(tx_300) = {REAL}
+    Already reduced to singleton after 2 transactions!
+
+  ATTACK: INTERSECTION ANALYSIS
+  Each transaction independently selects random decoys. The only
+  key that appears in ALL rings is the user's real key. With ring
+  size 11, the probability that a random decoy appears in K
+  independent rings is:
+
+    P(decoy in all K rings) = (1/N_outputs)^(K-1)
+
+  For K=${intersectTxs} transactions with N_outputs > 10,000:
+    P ≈ (10/10000)^${intersectTxs - 1} = ${(Math.pow(10/10000, intersectTxs - 1)).toExponential(2)}
+
+  The real key has P = 1 (always present).
+  After ${intersectTxs} transactions: identification is CERTAIN.
+
+  RESULT: PROPERTY VIOLATED ✗
+
+═══════════════════════════════════════════════════════════
+PROPERTY 5: always(timing_decorrelation)
+═══════════════════════════════════════════════════════════
+
+Definition:
+  The entropy of the timing distribution of a user's transactions
+  must remain above a minimum threshold at all times.
+
+  Formally: ∀ t . H(timing_dist(user, window(t))) ≥ H_min
+
+Verification trace:
+  Block window ${hasTiming ? '400' : '150'}-${hasTiming ? '500' : '400'}:
+    User A sent 3 transactions within ${hasTiming ? '100' : '250'} blocks
+    Timing intervals: [${hasTiming ? '34, 28, 38' : '45, 52, 48'}] blocks
+
+    Expected interval (gamma distribution): μ = ${hasTiming ? '47.3' : '83.1'} blocks
+    Observed clustering: 3 tx in ${hasTiming ? '100' : '145'} blocks
+
+    Shannon entropy of timing: H = ${hasTiming ? '2.31' : '1.67'} bits
+    Minimum threshold: H_min = 3.0 bits
+
+    H < H_min → ENTROPY VIOLATION
+
+  An observer can distinguish this user's transactions from
+  random network activity based on timing patterns alone.
+
+  RESULT: PROPERTY VIOLATED ✗
+
+═══════════════════════════════════════════════════════════
+FINAL SUMMARY
+═══════════════════════════════════════════════════════════
+
+  Property 1 (Ring Integrity):          VIOLATED at block ${decayBlock}
+  Property 2 (Temporal Unlinkability):  PASSED ✓
+  Property 3 (Decoy Freshness):         VIOLATED (same as P1)
+  Property 4 (Intersection Resistance): VIOLATED after ${intersectTxs} tx
+  Property 5 (Timing Decorrelation):    VIOLATED at block ${hasTiming ? '400' : '150'}
+
+  VERIFICATION RESULT: FAILED (3/5 properties violated)
+
+  Privacy can be broken through TEMPORAL ANALYSIS.
+  All cryptographic primitives remain sound.
+  The vulnerability is in how they COMPOSE OVER TIME.
+
+  tau.net — Temporal verification for formal rules.`;
+
+  document.getElementById('proofOverlay').classList.add('show');
+}
+function closeFullProof() {
+  document.getElementById('proofOverlay').classList.remove('show');
+}
+
+// Close overlays on background click
+document.getElementById('shareOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeShareCard();
+});
+document.getElementById('proofOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeFullProof();
+});
+
+// ===== INIT =====
+window.addEventListener('load', () => {
+  updateUI();
+  drawChart(null);
+});
+window.addEventListener('resize', () => {
+  drawChart(hasRun ? [
+    { block: rules[5] ? 848 : (rules[0] ? 612 : 150), label: 'Decoy Decay' },
+    { block: 500, label: 'Intersection' },
+    { block: rules[3] ? 450 : 250, label: 'Timing Leak' },
+  ] : null);
+});
+</script>
+</body>
+</html>

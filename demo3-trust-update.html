@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demo 3: Can You Trust This Update? — Tau Language</title>
+<style>
+/* ═══════════════ RESET & BASE ═══════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px;scroll-behavior:smooth}
+body{
+  font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+  background:#0a0a1a;color:#e0e0e8;
+  min-height:100vh;overflow-x:hidden;
+  line-height:1.55;
+}
+
+/* ═══════════════ SCROLLBAR ═══════════════ */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:#12122a}
+::-webkit-scrollbar-thumb{background:#3a3a6a;border-radius:3px}
+
+/* ═══════════════ UTILITY ═══════════════ */
+.hidden{display:none!important}
+.glow-green{text-shadow:0 0 12px rgba(80,255,120,.6)}
+.glow-red{text-shadow:0 0 12px rgba(255,60,60,.6)}
+.glow-gold{text-shadow:0 0 14px rgba(255,215,0,.7)}
+
+/* ═══════════════ HEADER ═══════════════ */
+.header{
+  text-align:center;padding:40px 30px 30px;
+  background:linear-gradient(180deg,#10102a 0%,#0a0a1a 100%);
+  border-bottom:1px solid rgba(255,255,255,.06);
+  position:relative;
+}
+.header h1{
+  font-size:2.6rem;font-weight:800;letter-spacing:2px;
+  color:#fff;margin-bottom:10px;
+}
+.header .subtitle{
+  font-size:1.1rem;color:#a0a0c0;max-width:700px;margin:0 auto 16px;
+}
+.badge{
+  display:inline-block;padding:5px 18px;border-radius:20px;
+  background:rgba(160,120,255,.12);border:1px solid rgba(160,120,255,.3);
+  color:#c4a0ff;font-size:.78rem;letter-spacing:.5px;
+}
+
+/* ═══════════════ MAIN LAYOUT ═══════════════ */
+.main-area{
+  display:flex;gap:24px;padding:24px 28px;max-width:1600px;margin:0 auto;
+}
+.contract-panel{width:30%;min-width:300px;flex-shrink:0}
+.right-area{flex:1;min-width:0;display:flex;flex-direction:column;gap:20px}
+
+/* ═══════════════ GLASS CARD ═══════════════ */
+.glass{
+  background:rgba(20,20,50,.55);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:14px;
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  padding:22px;position:relative;overflow:hidden;
+}
+.glass::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);
+}
+
+/* ═══════════════ CONTRACT PANEL ═══════════════ */
+.contract-panel .panel-title{
+  font-size:1.05rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:1.5px;color:#8888bb;margin-bottom:18px;
+  display:flex;align-items:center;gap:8px;
+}
+.contract-panel .panel-title .vault-icon{font-size:1.3rem}
+
+.rule-card{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:13px 14px;margin-bottom:10px;
+  border-radius:10px;
+  background:rgba(30,30,60,.5);
+  border-left:4px solid #3cdf7a;
+  transition:all .5s ease;position:relative;
+  overflow:hidden;
+}
+.rule-card .rule-icon{font-size:1.35rem;flex-shrink:0;margin-top:1px}
+.rule-card .rule-text{font-size:.88rem;color:#ccc}
+.rule-card .rule-num{
+  position:absolute;top:4px;right:8px;font-size:.65rem;
+  color:rgba(255,255,255,.2);font-weight:700;
+}
+.rule-card.conflict{
+  border-left-color:#ff4466;
+  background:rgba(255,40,60,.08);
+}
+.rule-card.protected{
+  border-left-color:#ffd700;
+  background:rgba(255,215,0,.07);
+  box-shadow:0 0 20px rgba(255,215,0,.15);
+}
+.rule-card.safe-glow{
+  border-left-color:#3cdf7a;
+  box-shadow:0 0 16px rgba(60,223,122,.15);
+}
+
+.contract-status{
+  margin-top:16px;padding:10px 14px;border-radius:8px;
+  background:rgba(60,223,122,.08);
+  border:1px solid rgba(60,223,122,.2);
+  text-align:center;font-size:.85rem;color:#3cdf7a;
+  font-weight:600;transition:all .5s ease;
+}
+.contract-status.danger{
+  background:rgba(255,60,80,.08);
+  border-color:rgba(255,60,80,.25);
+  color:#ff4466;
+}
+.contract-status.approved{
+  background:rgba(60,223,122,.12);
+  border-color:rgba(60,223,122,.3);
+  color:#3cdf7a;
+}
+
+/* ═══════════════ SHIELD OVERLAY ═══════════════ */
+.shield-overlay{
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  display:flex;align-items:center;justify-content:center;
+  pointer-events:none;z-index:10;opacity:0;
+  transition:opacity .8s ease;
+}
+.shield-overlay.active{opacity:1}
+.shield-overlay svg{
+  width:120px;height:120px;filter:drop-shadow(0 0 30px rgba(255,60,60,.5));
+}
+.shield-overlay.approved-shield svg{
+  filter:drop-shadow(0 0 30px rgba(60,223,122,.5));
+}
+
+/* ═══════════════ PROPOSALS ═══════════════ */
+.proposals-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.proposal-card{
+  padding:16px;border-radius:12px;cursor:pointer;
+  background:rgba(30,30,60,.5);
+  border:2px solid rgba(255,255,255,.06);
+  transition:all .25s ease;position:relative;
+}
+.proposal-card:hover{
+  border-color:rgba(255,180,60,.35);
+  background:rgba(50,40,70,.5);
+  transform:translateY(-2px);
+}
+.proposal-card.selected{
+  border-color:#f0a030;
+  background:rgba(240,160,48,.08);
+  box-shadow:0 0 20px rgba(240,160,48,.15);
+}
+.proposal-card .prop-header{
+  display:flex;align-items:center;gap:8px;margin-bottom:8px;
+}
+.proposal-card .prop-icon{font-size:1.4rem}
+.proposal-card .prop-label{
+  font-size:.7rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:1px;color:#f0a030;
+}
+.proposal-card .prop-title{font-size:.9rem;font-weight:600;color:#eee;margin-bottom:6px}
+.proposal-card .prop-desc{font-size:.78rem;color:#999;font-style:italic}
+
+/* preset btns */
+.preset-row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.preset-btn{
+  padding:7px 16px;border-radius:8px;border:1px solid rgba(255,255,255,.1);
+  background:rgba(40,40,70,.6);color:#bbb;font-size:.78rem;
+  cursor:pointer;transition:all .2s ease;
+}
+.preset-btn:hover{background:rgba(60,60,100,.6);color:#fff}
+
+/* evaluate btn */
+.eval-btn{
+  display:block;margin:18px auto 0;padding:14px 50px;
+  border:none;border-radius:12px;cursor:pointer;
+  font-size:1.05rem;font-weight:700;color:#fff;
+  background:linear-gradient(135deg,#a855f7,#6366f1,#3b82f6);
+  box-shadow:0 4px 25px rgba(100,60,200,.3);
+  transition:all .3s ease;position:relative;overflow:hidden;
+  letter-spacing:.5px;
+}
+.eval-btn:hover{transform:translateY(-2px);box-shadow:0 6px 30px rgba(100,60,200,.45)}
+.eval-btn.pulsing{animation:btnPulse 2s infinite}
+.eval-btn:disabled{opacity:.5;cursor:not-allowed;animation:none;transform:none}
+@keyframes btnPulse{
+  0%,100%{box-shadow:0 4px 25px rgba(100,60,200,.3)}
+  50%{box-shadow:0 4px 35px rgba(100,60,200,.55)}
+}
+
+/* ═══════════════ THREE COLUMNS ═══════════════ */
+.eval-columns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.eval-col{
+  border-radius:14px;overflow:hidden;
+  display:flex;flex-direction:column;
+  min-height:500px;
+}
+.eval-col .col-header{
+  padding:14px 18px;font-weight:700;font-size:.92rem;
+  letter-spacing:.5px;display:flex;align-items:center;gap:8px;
+}
+.eval-col .col-sub{
+  padding:0 18px 10px;font-size:.72rem;color:#999;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.eval-col .col-body{
+  flex:1;padding:14px 16px;overflow-y:auto;
+  font-family:'Cascadia Code','Fira Code','Consolas',monospace;
+  font-size:.75rem;line-height:1.65;
+  white-space:pre-wrap;word-break:break-word;
+}
+.eval-col .col-verdict{
+  padding:14px 18px;text-align:center;font-weight:700;
+  font-size:.95rem;letter-spacing:.5px;
+  border-top:1px solid rgba(255,255,255,.06);
+  position:relative;overflow:hidden;
+  transition:all .5s ease;
+}
+
+/* Python col */
+.col-python{background:rgba(30,60,120,.12);border:1px solid rgba(60,120,255,.12)}
+.col-python .col-header{color:#60a5fa}
+.col-python .col-body{color:#8ec8ff}
+
+/* AI col */
+.col-ai{background:rgba(30,100,60,.1);border:1px solid rgba(60,200,100,.1)}
+.col-ai .col-header{color:#4ade80}
+.col-ai .col-body{color:#88ddaa}
+
+/* Tau col */
+.col-tau{
+  background:linear-gradient(180deg,rgba(80,40,140,.12),rgba(40,20,80,.15));
+  border:1px solid rgba(160,120,255,.15);
+  box-shadow:0 0 30px rgba(120,60,220,.08);
+}
+.col-tau .col-header{
+  color:#c084fc;
+  background:linear-gradient(90deg,rgba(80,40,140,.15),transparent);
+}
+.col-tau .col-body{color:#c8b4ff}
+
+/* Tau sub-panels */
+.tau-spec-panel{
+  background:rgba(20,10,50,.5);border:1px solid rgba(160,120,255,.1);
+  border-radius:8px;padding:12px;margin-bottom:14px;
+  font-size:.7rem;line-height:1.6;
+  max-height:260px;overflow-y:auto;
+}
+.tau-spec-panel .spec-title{
+  font-size:.7rem;font-weight:700;color:#a87ff0;
+  text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;
+}
+.tau-trace-panel{
+  background:rgba(10,5,30,.4);border:1px solid rgba(160,120,255,.08);
+  border-radius:8px;padding:12px;font-size:.7rem;line-height:1.7;
+}
+.tau-trace-panel .trace-title{
+  font-size:.7rem;font-weight:700;color:#f0c040;
+  text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;
+}
+
+/* verdict states */
+.verdict-pass{background:rgba(60,223,122,.1);color:#3cdf7a}
+.verdict-fail{background:rgba(255,60,80,.1);color:#ff4466}
+.verdict-cracked{
+  background:rgba(255,60,80,.06);color:#ff4466;
+  animation:crackShake .5s ease;
+}
+@keyframes crackShake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-3px)}
+  40%{transform:translateX(3px)}
+  60%{transform:translateX(-2px)}
+  80%{transform:translateX(2px)}
+}
+.crack-lines{
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  pointer-events:none;opacity:0;transition:opacity .4s ease;
+}
+.crack-lines.active{opacity:1}
+.crack-lines svg{width:100%;height:100%}
+
+/* ═══════════════ TAU HIGHLIGHT ═══════════════ */
+.tau-line{transition:all .3s ease;padding:1px 4px;border-radius:3px}
+.tau-line.checking{background:rgba(160,120,255,.15);color:#e0c0ff}
+.tau-line.pass{background:rgba(60,223,122,.1);color:#3cdf7a}
+.tau-line.fail{background:rgba(255,60,80,.12);color:#ff4466}
+
+/* ═══════════════ COMPARISON PANEL ═══════════════ */
+.comparison-panel{
+  max-width:1600px;margin:0 auto;padding:0 28px 40px;
+  opacity:0;transform:translateY(30px);
+  transition:all .8s ease;
+}
+.comparison-panel.visible{opacity:1;transform:translateY(0)}
+
+.comparison-grid{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;
+  border:1px solid rgba(255,255,255,.08);border-radius:14px;
+  overflow:hidden;
+}
+.comp-header{
+  grid-column:1/-1;text-align:center;padding:18px;
+  font-size:1.1rem;font-weight:700;color:#fff;
+  background:rgba(40,40,80,.5);
+  border-bottom:1px solid rgba(255,255,255,.08);
+  letter-spacing:1px;
+}
+.comp-col{
+  padding:20px 22px;
+  border-right:1px solid rgba(255,255,255,.05);
+}
+.comp-col:last-child{border-right:none}
+.comp-col h3{
+  font-size:.85rem;margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;
+}
+.comp-col p{font-size:.82rem;color:#aaa;line-height:1.7;margin-bottom:10px}
+.comp-col .comp-key{color:#f0a030;font-weight:600;font-size:.8rem}
+
+.comp-python{background:rgba(30,60,120,.08)}
+.comp-python h3{color:#60a5fa}
+.comp-ai{background:rgba(30,100,60,.06)}
+.comp-ai h3{color:#4ade80}
+.comp-tau{background:rgba(80,40,140,.08)}
+.comp-tau h3{color:#c084fc}
+
+.tagline{
+  text-align:center;padding:24px 20px 10px;
+  font-size:1.05rem;font-weight:600;
+  color:#c8c8e0;letter-spacing:.3px;
+}
+.tagline em{font-style:normal;color:#c084fc;font-weight:700}
+
+/* ═══════════════ MERGE ANIMATION ═══════════════ */
+.merge-card{
+  position:fixed;z-index:100;
+  padding:14px 18px;border-radius:10px;
+  background:rgba(60,223,122,.15);
+  border:2px solid #3cdf7a;
+  color:#3cdf7a;font-weight:600;font-size:.85rem;
+  pointer-events:none;
+  opacity:0;transition:all 1s ease;
+}
+.merge-card.animating{opacity:1}
+
+/* ═══════════════ RESPONSIVE ═══════════════ */
+@media(max-width:1100px){
+  .main-area{flex-direction:column}
+  .contract-panel{width:100%}
+  .eval-columns{grid-template-columns:1fr}
+  .comparison-grid{grid-template-columns:1fr}
+}
+@media(max-width:700px){
+  .proposals-grid{grid-template-columns:1fr}
+  .header h1{font-size:1.8rem}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<div class="header">
+  <h1>CAN YOU TRUST THIS UPDATE?</h1>
+  <p class="subtitle">A rule change looks safe. Tests pass. AI approves. But should you trust it?</p>
+  <span class="badge">Powered by Tau Language v0.7 &nbsp;|&nbsp; tau.net</span>
+</div>
+
+<!-- ═══════════════ MAIN AREA ═══════════════ -->
+<div class="main-area">
+
+  <!-- ─── LEFT: THE CONTRACT ─── -->
+  <div class="contract-panel glass" style="position:relative">
+    <div class="panel-title"><span class="vault-icon">🔐</span> THE CONTRACT</div>
+
+    <div class="rule-card" id="rule1">
+      <span class="rule-icon">💰</span>
+      <span class="rule-text">Total token supply can never exceed 1 billion</span>
+      <span class="rule-num">1</span>
+    </div>
+    <div class="rule-card" id="rule2">
+      <span class="rule-icon">🔒</span>
+      <span class="rule-text">Withdrawals require 2-of-3 multisig approval</span>
+      <span class="rule-num">2</span>
+    </div>
+    <div class="rule-card" id="rule3">
+      <span class="rule-icon">⏱️</span>
+      <span class="rule-text">Large transfers (&gt;100K) have a 24-hour delay</span>
+      <span class="rule-num">3</span>
+    </div>
+    <div class="rule-card" id="rule4">
+      <span class="rule-icon">🛡️</span>
+      <span class="rule-text">Contract upgrades require community vote</span>
+      <span class="rule-num">4</span>
+    </div>
+    <div class="rule-card" id="rule5">
+      <span class="rule-icon">❄️</span>
+      <span class="rule-text">Emergency freeze can pause all transfers</span>
+      <span class="rule-num">5</span>
+    </div>
+
+    <div class="contract-status" id="contractStatus">STATUS: All 5 invariants verified ✓</div>
+
+    <!-- Shield overlay -->
+    <div class="shield-overlay" id="shieldOverlay">
+      <svg viewBox="0 0 100 120" id="shieldSVG">
+        <defs>
+          <linearGradient id="shieldGradRed" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#ff4466"/>
+            <stop offset="100%" style="stop-color:#ff2244"/>
+          </linearGradient>
+          <linearGradient id="shieldGradGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#3cdf7a"/>
+            <stop offset="100%" style="stop-color:#28b85c"/>
+          </linearGradient>
+        </defs>
+        <path d="M50 5 L90 25 L90 60 Q90 95 50 115 Q10 95 10 60 L10 25 Z"
+              fill="none" stroke-width="3" id="shieldPath"/>
+        <text x="50" y="68" text-anchor="middle" font-size="30" font-weight="bold" id="shieldIcon">✗</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ─── RIGHT AREA ─── -->
+  <div class="right-area">
+
+    <!-- PROPOSALS -->
+    <div class="glass">
+      <div class="panel-title" style="font-size:1.05rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#8888bb;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+        <span>📋</span> PROPOSED CHANGES
+      </div>
+
+      <div class="proposals-grid">
+        <div class="proposal-card" data-proposal="A" onclick="selectProposal('A')">
+          <div class="prop-header">
+            <span class="prop-icon">⚡</span>
+            <span class="prop-label">Proposal A</span>
+          </div>
+          <div class="prop-title">Remove the 24-hour delay for transfers under 500K</div>
+          <div class="prop-desc">"Let's speed up medium transfers!"</div>
+        </div>
+        <div class="proposal-card" data-proposal="B" onclick="selectProposal('B')">
+          <div class="prop-header">
+            <span class="prop-icon">🔥</span>
+            <span class="prop-label">Proposal B</span>
+          </div>
+          <div class="prop-title">Add automatic burns of 0.1% per transaction</div>
+          <div class="prop-desc">"Let's make it deflationary!"</div>
+        </div>
+        <div class="proposal-card" data-proposal="C" onclick="selectProposal('C')">
+          <div class="prop-header">
+            <span class="prop-icon">⚡</span>
+            <span class="prop-label">Proposal C</span>
+          </div>
+          <div class="prop-title">Allow emergency freeze to be triggered by any single admin</div>
+          <div class="prop-desc">"Faster emergency response!"</div>
+        </div>
+        <div class="proposal-card" data-proposal="D" onclick="selectProposal('D')">
+          <div class="prop-header">
+            <span class="prop-icon">📈</span>
+            <span class="prop-label">Proposal D</span>
+          </div>
+          <div class="prop-title">Increase supply cap to 2 billion for new staking rewards</div>
+          <div class="prop-desc">"More rewards for stakers!"</div>
+        </div>
+      </div>
+
+      <div class="preset-row">
+        <button class="preset-btn" onclick="selectProposal('B')">✅ Safe Change</button>
+        <button class="preset-btn" onclick="selectProposal('A')">🔍 Subtle Danger</button>
+        <button class="preset-btn" onclick="selectProposal('D')">💥 Obvious Danger</button>
+      </div>
+
+      <button class="eval-btn pulsing" id="evalBtn" onclick="runEvaluation()">▶ &nbsp;EVALUATE UPDATE</button>
+    </div>
+
+    <!-- THREE EVALUATION COLUMNS -->
+    <div class="eval-columns" id="evalColumns">
+
+      <!-- PYTHON -->
+      <div class="eval-col col-python glass">
+        <div class="col-header">🐍 PYTHON TEST SUITE</div>
+        <div class="col-sub">Running existing test cases against the update</div>
+        <div class="col-body" id="pythonBody"></div>
+        <div class="col-verdict" id="pythonVerdict" style="min-height:52px;position:relative">
+          <div class="crack-lines" id="pythonCrack">
+            <svg viewBox="0 0 300 60" preserveAspectRatio="none">
+              <path d="M0 30 L60 28 L80 15 L100 35 L130 10 L150 30 L180 25 L210 40 L240 20 L270 32 L300 30" fill="none" stroke="rgba(255,60,80,.5)" stroke-width="2"/>
+              <path d="M0 35 L50 40 L90 20 L120 45 L160 15 L200 38 L250 22 L300 35" fill="none" stroke="rgba(255,60,80,.3)" stroke-width="1.5"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI -->
+      <div class="eval-col col-ai glass">
+        <div class="col-header">🤖 AI CODE REVIEW</div>
+        <div class="col-sub">ChatGPT-style review of the proposed change</div>
+        <div class="col-body" id="aiBody"></div>
+        <div class="col-verdict" id="aiVerdict" style="min-height:52px;position:relative">
+          <div class="crack-lines" id="aiCrack">
+            <svg viewBox="0 0 300 60" preserveAspectRatio="none">
+              <path d="M0 25 L40 30 L70 10 L110 35 L150 18 L190 40 L230 15 L260 33 L300 28" fill="none" stroke="rgba(255,60,80,.5)" stroke-width="2"/>
+              <path d="M0 40 L80 20 L130 42 L170 12 L220 38 L280 22 L300 35" fill="none" stroke="rgba(255,60,80,.3)" stroke-width="1.5"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAU -->
+      <div class="eval-col col-tau glass">
+        <div class="col-header">⚛ TAU SPECIFICATION VERIFICATION</div>
+        <div class="col-sub">Checking update against ALL existing invariants</div>
+        <div class="col-body" id="tauBody" style="font-size:.68rem"></div>
+        <div class="col-verdict" id="tauVerdict" style="min-height:52px"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ COMPARISON PANEL ═══════════════ -->
+<div class="comparison-panel" id="comparisonPanel">
+  <div class="comparison-grid">
+    <div class="comp-header">WHY THE RESULTS DIFFER</div>
+    <div class="comp-col comp-python">
+      <h3>🐍 Python</h3>
+      <p id="compPython"></p>
+    </div>
+    <div class="comp-col comp-ai">
+      <h3>🤖 AI</h3>
+      <p id="compAI"></p>
+    </div>
+    <div class="comp-col comp-tau">
+      <h3>⚛ Tau</h3>
+      <p id="compTau"></p>
+    </div>
+  </div>
+  <div class="tagline" id="tagline"></div>
+</div>
+
+<!-- ═══════════════ MERGE ANIMATION ELEMENT ═══════════════ -->
+<div class="merge-card" id="mergeCard"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════ */
+let selectedProposal = null;
+let running = false;
+
+/* ═══════════════════════════════════════════════════
+   PROPOSAL DATA
+   ═══════════════════════════════════════════════════ */
+const DATA = {
+  A: {
+    name: 'Remove 24h delay for transfers under 500K',
+    dangerous: true,
+    conflictRules: [2, 3],
+    protectedRule: 3,
+    python: {
+      pass: true,
+      lines: [
+        'Loading test suite... 12 test cases found',
+        'Applying proposed change to test environment...',
+        '',
+        'test_basic_transfer.............. ✓ PASS',
+        'test_multisig_2of3............... ✓ PASS',
+        'test_supply_cap.................. ✓ PASS',
+        'test_freeze_functionality........ ✓ PASS',
+        'test_withdrawal_limits........... ✓ PASS',
+        'test_large_transfer_delay........ ✓ PASS',
+        'test_admin_permissions........... ✓ PASS',
+        'test_community_vote_required..... ✓ PASS',
+        'test_token_balance_accuracy...... ✓ PASS',
+        'test_event_emission.............. ✓ PASS',
+        'test_reentrancy_guard............ ✓ PASS',
+        'test_overflow_protection......... ✓ PASS',
+        '',
+        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+        '12/12 tests passed ✓',
+        '',
+        'All existing tests pass with the proposed change.'
+      ],
+      verdictText: 'ALL 12 TESTS PASS ✓',
+      verdictClass: 'verdict-pass',
+      verdictNote: 'Tests only cover scenarios someone thought to write.\n0 tests for this specific interaction.',
+      cracked: true
+    },
+    ai: {
+      pass: true,
+      lines: [
+        'Reviewing proposed change...',
+        '',
+        'Change: Remove 24-hour delay for transfers < 500K',
+        '',
+        'Analysis:',
+        '📋 Current rule: Large transfers (>100K) have',
+        '   a 24-hour delay',
+        '📋 Proposed: Raise threshold to 500K',
+        '',
+        'This seems like a reasonable UX improvement.',
+        'The 24-hour delay for small-medium transfers',
+        'creates unnecessary friction. Many protocols',
+        'have similar thresholds.',
+        '',
+        'The multisig requirement (Rule 2) still protects',
+        'against unauthorized transfers. The delay was',
+        'an extra layer, not the primary security mechanism.',
+        '',
+        'Risk Assessment: Low ✓',
+        'Recommendation: Safe to implement'
+      ],
+      verdictText: 'SAFE TO IMPLEMENT ✓',
+      verdictClass: 'verdict-pass',
+      cracked: true
+    },
+    tau: {
+      pass: false,
+      spec: `# ─── Current Contract Specification ───
+
+supply_cap    : tau := in console.
+multisig_req  : tau := in console.
+delay_policy  : tau := in console.
+upgrade_req   : tau := in console.
+freeze_policy : tau := in console.
+
+# INVARIANT 1: Supply integrity
+always (
+    total_supply[t] <= 1_000_000_000
+).
+
+# INVARIANT 2: Authorization security
+always (
+    withdrawal[t] != 0 ->
+        (approvals[t] >= 2)
+).
+
+# INVARIANT 3: Large transfer protection
+always (
+    (transfer_amount[t] > 100_000) ->
+        (time_since_initiation[t] >= 24_hours)
+).
+
+# INVARIANT 4: Upgrade governance
+always (
+    upgrade[t] != 0 ->
+        community_vote[t] != 0
+).
+
+# INVARIANT 5: Emergency mechanism
+always (
+    freeze_active[t] != 0 ->
+        (all_transfers[t] = 0)
+).
+
+# ─── PROPOSED CHANGE ───
+# Modify Invariant 3:
+# always(amount > 500_000 -> delay >= 24h)
+#
+# ─── POINTWISE REVISION CHECK ───
+# Can new spec satisfy old spec?
+# U := update && ((ex[out] update && spec) -> spec)`,
+      traceLines: [
+        '[TAU v0.7] Pointwise revision analysis',
+        'Loading current specification: 5 invariants',
+        'Loading proposed update: modify invariant 3',
+        '',
+        'Step 1: Satisfiability of update alone',
+        '  New rule: amount > 500K \u2192 delay 24h',
+        '  Satisfiable in isolation \u2713',
+        '',
+        'Step 2: Compatibility with existing invariants',
+        '',
+        '  Checking: update \u2227 invariant_1 (supply cap)',
+        '  Result: satisfiable \u2713',
+        '',
+        '  Checking: update \u2227 invariant_2 (multisig)',
+        '  Result: \u2717 CONFLICT DETECTED',
+        '',
+        '  \u2500\u2500\u2500 FORMAL PROOF OF CONFLICT \u2500\u2500\u2500',
+        '',
+        '  Current system guarantees:',
+        '    invariant_2: withdrawal needs 2-of-3 approval',
+        '    invariant_3: transfers >100K have 24h delay',
+        '',
+        '  Combined security model:',
+        '    For transfers 100K-500K:',
+        '      OLD: multisig AND delay (double protection)',
+        '      NEW: multisig ONLY (single protection)',
+        '',
+        '  Attack scenario (derived, not assumed):',
+        '    1. Attacker compromises 1 of 3 keys',
+        '    2. Attacker initiates transfer of 499,000',
+        '    3. Under NEW rules: no delay required',
+        '    4. Attacker needs only 1 more approval',
+        '    5. Social engineering of 1 more signer',
+        '    6. Funds drained in < 1 minute',
+        '',
+        '  Under OLD rules:',
+        '    Step 3 would trigger 24-hour delay',
+        '    Giving 24 hours to detect and freeze',
+        '',
+        '  The proposed change REMOVES a safety layer',
+        '  for transfers between 100K and 500K.',
+        '',
+        '  In Tau\'s formal model:',
+        '    security_level[t] = multisig \u2227 delay',
+        '    After update:',
+        '    security_level[t] = multisig ONLY',
+        '',
+        '    security_level_new \u2282 security_level_old',
+        '    (strictly weaker \u2014 not equivalent)',
+        '',
+        '  Pointwise revision result:',
+        '    U \u2227 spec is NOT satisfiable',
+        '    The update CANNOT be safely incorporated.',
+        '',
+        'Step 3: Checking remaining invariants',
+        '  update \u2227 invariant_3: modified (expected) \u2713',
+        '  update \u2227 invariant_4: satisfiable \u2713',
+        '  update \u2227 invariant_5: satisfiable \u2713',
+        '',
+        'VERDICT: UPDATE REJECTED \u2717',
+        'The proposed change weakens the security model',
+        'by removing the delay protection layer for',
+        'transfers between 100K and 500K.',
+        '',
+        'This is Tau\'s POINTWISE REVISION in action:',
+        'Before applying any update, Tau checks if the',
+        'new specification can satisfy the old one.',
+        'If not, the update is rejected AUTOMATICALLY.',
+        '',
+        'No human needs to think of what to test.',
+        'No AI needs to guess if it\'s safe.',
+        'The specification protects ITSELF.'
+      ],
+      verdictText: 'UPDATE REJECTED \u2717',
+      verdictClass: 'verdict-fail'
+    },
+    comparison: {
+      python: 'Ran 12 tests someone wrote last year. No test existed for the interaction between removing the delay and partial key compromise. Tests check what you <span class="comp-key">THOUGHT</span> to test. What about what you DIDN\'T think to test?',
+      ai: '"Raising a threshold seems safe." Pattern matching is not logical proof. AI can\'t reason about <span class="comp-key">novel combinations</span> of rule interactions it hasn\'t seen before.',
+      tau: 'Found that removing the delay for 100K-500K transfers creates a security gap. Tau\'s <span class="comp-key">POINTWISE REVISION</span> automatically checks if new rules weaken old guarantees. No human needs to anticipate every edge case.',
+      tagline: 'Python checks what you tested. AI checks what it\'s seen. Tau checks what\'s <em>LOGICALLY POSSIBLE</em>.'
+    }
+  },
+  B: {
+    name: 'Add automatic burns of 0.1% per transaction',
+    dangerous: false,
+    conflictRules: [],
+    protectedRule: null,
+    python: {
+      pass: true,
+      lines: [
+        'Loading test suite... 12 test cases found',
+        'Applying proposed change to test environment...',
+        '',
+        'test_basic_transfer.............. ✓ PASS',
+        'test_multisig_2of3............... ✓ PASS',
+        'test_supply_cap.................. ✓ PASS',
+        'test_freeze_functionality........ ✓ PASS',
+        'test_withdrawal_limits........... ✓ PASS',
+        'test_large_transfer_delay........ ✓ PASS',
+        'test_admin_permissions........... ✓ PASS',
+        'test_community_vote_required..... ✓ PASS',
+        'test_token_balance_accuracy...... ✓ PASS',
+        'test_event_emission.............. ✓ PASS',
+        'test_reentrancy_guard............ ✓ PASS',
+        'test_overflow_protection......... ✓ PASS',
+        '',
+        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+        '12/12 tests passed ✓',
+        '',
+        'All existing tests pass with the proposed change.'
+      ],
+      verdictText: 'ALL 12 TESTS PASS ✓',
+      verdictClass: 'verdict-pass',
+      verdictNote: null,
+      cracked: false
+    },
+    ai: {
+      pass: true,
+      lines: [
+        'Reviewing proposed change...',
+        '',
+        'Change: Add 0.1% burn on every transaction',
+        '',
+        'Analysis:',
+        '📋 This adds a deflationary mechanism',
+        '📋 Burns reduce circulating supply over time',
+        '📋 Does not modify any existing security rules',
+        '',
+        'The burn mechanism is additive \u2014 it creates',
+        'a new behavior without changing existing ones.',
+        'No security invariants are affected.',
+        '',
+        'The supply cap (Rule 1) is respected since',
+        'burning tokens reduces supply, not increases it.',
+        '',
+        'Risk Assessment: Very Low ✓',
+        'Recommendation: Safe to implement'
+      ],
+      verdictText: 'SAFE TO IMPLEMENT ✓',
+      verdictClass: 'verdict-pass',
+      cracked: false
+    },
+    tau: {
+      pass: true,
+      spec: `# ─── Current Contract Specification ───
+
+supply_cap    : tau := in console.
+multisig_req  : tau := in console.
+delay_policy  : tau := in console.
+upgrade_req   : tau := in console.
+freeze_policy : tau := in console.
+
+# INVARIANT 1: Supply integrity
+always (
+    total_supply[t] <= 1_000_000_000
+).
+
+# INVARIANT 2: Authorization security
+always (
+    withdrawal[t] != 0 ->
+        (approvals[t] >= 2)
+).
+
+# INVARIANT 3: Large transfer protection
+always (
+    (transfer_amount[t] > 100_000) ->
+        (time_since_initiation[t] >= 24_hours)
+).
+
+# INVARIANT 4: Upgrade governance
+always (
+    upgrade[t] != 0 ->
+        community_vote[t] != 0
+).
+
+# INVARIANT 5: Emergency mechanism
+always (
+    freeze_active[t] != 0 ->
+        (all_transfers[t] = 0)
+).
+
+# ─── PROPOSED CHANGE ───
+# Add new rule:
+# always(tx_burn[t] = transfer_amount[t] * 0.001)
+#
+# ─── POINTWISE REVISION CHECK ───
+# Can new spec satisfy old spec?
+# U := update && ((ex[out] update && spec) -> spec)`,
+      traceLines: [
+        '[TAU v0.7] Pointwise revision analysis',
+        'Loading current specification: 5 invariants',
+        'Loading proposed update: add burn mechanism',
+        '',
+        'Step 1: Satisfiability of update alone',
+        '  New rule: 0.1% burn per transaction',
+        '  Satisfiable in isolation \u2713',
+        '',
+        'Step 2: Compatibility with existing invariants',
+        '',
+        '  Checking: update \u2227 invariant_1 (supply cap)',
+        '  Burns reduce supply \u2192 compatible \u2713',
+        '',
+        '  Checking: update \u2227 invariant_2 (multisig)',
+        '  Result: satisfiable \u2713',
+        '',
+        '  Checking: update \u2227 invariant_3 (delay policy)',
+        '  Result: satisfiable \u2713',
+        '',
+        '  Checking: update \u2227 invariant_4 (governance)',
+        '  Result: satisfiable \u2713',
+        '',
+        '  Checking: update \u2227 invariant_5 (freeze)',
+        '  Result: satisfiable \u2713',
+        '',
+        'Step 3: Checking for emergent conflicts',
+        '  No pairwise conflicts detected \u2713',
+        '  No transitive conflicts detected \u2713',
+        '',
+        'Pointwise revision result:',
+        '  U \u2227 spec IS satisfiable',
+        '  The update can be safely incorporated.',
+        '',
+        'VERDICT: UPDATE APPROVED \u2713',
+        'The proposed burn mechanism is compatible',
+        'with all 5 existing invariants.',
+        '',
+        'Tau does not just reject \u2014 it approves',
+        'changes that are genuinely safe.',
+        'The specification allows what is consistent',
+        'and blocks what is contradictory.'
+      ],
+      verdictText: 'UPDATE APPROVED \u2713',
+      verdictClass: 'verdict-pass'
+    },
+    comparison: {
+      python: 'All 12 tests pass \u2014 correctly this time. The burn mechanism is additive and doesn\'t conflict with anything the tests cover.',
+      ai: 'AI correctly identifies the change as safe. Burns reduce supply, which is consistent with the existing cap.',
+      tau: 'All 5 invariants remain satisfiable with the new rule. Tau <span class="comp-key">APPROVES</span> the change \u2014 it doesn\'t just reject everything. It lets through what is logically consistent.',
+      tagline: 'All three agree: this change is safe. Tau confirms it <em>FORMALLY</em> \u2014 not just because tests pass, but because no invariant is weakened.'
+    }
+  },
+  C: {
+    name: 'Allow emergency freeze by any single admin',
+    dangerous: true,
+    conflictRules: [2, 5],
+    protectedRule: 2,
+    python: {
+      pass: true,
+      lines: [
+        'Loading test suite... 12 test cases found',
+        'Applying proposed change to test environment...',
+        '',
+        'test_basic_transfer.............. ✓ PASS',
+        'test_multisig_2of3............... ✓ PASS',
+        'test_supply_cap.................. ✓ PASS',
+        'test_freeze_functionality........ ✓ PASS',
+        'test_withdrawal_limits........... ✓ PASS',
+        'test_large_transfer_delay........ ✓ PASS',
+        'test_admin_permissions........... ✓ PASS',
+        'test_community_vote_required..... ✓ PASS',
+        'test_token_balance_accuracy...... ✓ PASS',
+        'test_event_emission.............. ✓ PASS',
+        'test_reentrancy_guard............ ✓ PASS',
+        'test_overflow_protection......... ✓ PASS',
+        '',
+        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+        '12/12 tests passed ✓',
+        '',
+        'All existing tests pass with the proposed change.'
+      ],
+      verdictText: 'ALL 12 TESTS PASS ✓',
+      verdictClass: 'verdict-pass',
+      verdictNote: 'No test checks what happens when a single\nadmin can freeze AND all transfers stop.',
+      cracked: true
+    },
+    ai: {
+      pass: true,
+      lines: [
+        'Reviewing proposed change...',
+        '',
+        'Change: Allow any single admin to trigger freeze',
+        '',
+        'Analysis:',
+        '📋 Current rule: Emergency freeze pauses transfers',
+        '📋 Proposed: Lower trigger from multi-admin to single',
+        '',
+        'This improves emergency response time. In a',
+        'security incident, every second counts.',
+        'Having a single admin able to freeze is a',
+        'common pattern in DeFi protocols.',
+        '',
+        'The freeze is a protective mechanism, not a',
+        'spending action. Different security requirements',
+        'seem appropriate for protective vs. spending actions.',
+        '',
+        'Risk Assessment: Low ✓',
+        'Recommendation: Safe to implement'
+      ],
+      verdictText: 'SAFE TO IMPLEMENT ✓',
+      verdictClass: 'verdict-pass',
+      cracked: true
+    },
+    tau: {
+      pass: false,
+      spec: `# ─── Current Contract Specification ───
+
+supply_cap    : tau := in console.
+multisig_req  : tau := in console.
+delay_policy  : tau := in console.
+upgrade_req   : tau := in console.
+freeze_policy : tau := in console.
+
+# INVARIANT 1: Supply integrity
+always (
+    total_supply[t] <= 1_000_000_000
+).
+
+# INVARIANT 2: Authorization security
+always (
+    withdrawal[t] != 0 ->
+        (approvals[t] >= 2)
+).
+
+# INVARIANT 3: Large transfer protection
+always (
+    (transfer_amount[t] > 100_000) ->
+        (time_since_initiation[t] >= 24_hours)
+).
+
+# INVARIANT 4: Upgrade governance
+always (
+    upgrade[t] != 0 ->
+        community_vote[t] != 0
+).
+
+# INVARIANT 5: Emergency mechanism
+always (
+    freeze_active[t] != 0 ->
+        (all_transfers[t] = 0)
+).
+
+# ─── PROPOSED CHANGE ───
+# Modify freeze trigger:
+# always(single_admin_request -> freeze_active)
+#
+# ─── POINTWISE REVISION CHECK ───
+# Can new spec satisfy old spec?
+# U := update && ((ex[out] update && spec) -> spec)`,
+      traceLines: [
+        '[TAU v0.7] Pointwise revision analysis',
+        'Loading current specification: 5 invariants',
+        'Loading proposed update: single-admin freeze',
+        '',
+        'Step 1: Satisfiability of update alone',
+        '  New rule: 1 admin can trigger freeze',
+        '  Satisfiable in isolation \u2713',
+        '',
+        'Step 2: Compatibility with existing invariants',
+        '',
+        '  Checking: update \u2227 invariant_1 (supply cap)',
+        '  Result: satisfiable \u2713',
+        '',
+        '  Checking: update \u2227 invariant_2 (multisig)',
+        '  Result: \u2717 CONFLICT DETECTED',
+        '',
+        '  \u2500\u2500\u2500 FORMAL PROOF OF CONFLICT \u2500\u2500\u2500',
+        '',
+        '  Current system guarantees:',
+        '    invariant_2: actions require 2-of-3 approval',
+        '    invariant_5: freeze stops ALL transfers',
+        '',
+        '  Combined security model:',
+        '    The multisig exists so that no single person',
+        '    can unilaterally control funds.',
+        '',
+        '  Conflict analysis:',
+        '    1. Proposed: 1 admin can trigger freeze',
+        '    2. Invariant 5: freeze stops ALL transfers',
+        '    3. Therefore: 1 admin can stop ALL transfers',
+        '    4. This gives 1 admin unilateral control',
+        '    5. This contradicts the 2-of-3 security model',
+        '',
+        '  Attack scenario (derived, not assumed):',
+        '    1. Compromised admin triggers freeze',
+        '    2. ALL funds locked indefinitely',
+        '    3. Admin demands ransom to unfreeze',
+        '    4. No 2-of-3 check on this action',
+        '    5. Single point of failure created',
+        '',
+        '  In Tau\'s formal model:',
+        '    control_model = 2-of-3 for ALL critical actions',
+        '    After update:',
+        '    control_model = 1-of-3 for freeze (critical)',
+        '',
+        '    The freeze IS a critical action because',
+        '    it halts all transfers (invariant 5).',
+        '    Single-admin control of a critical action',
+        '    contradicts the multi-sig security model.',
+        '',
+        '  Pointwise revision result:',
+        '    U \u2227 spec is NOT satisfiable',
+        '    The update CANNOT be safely incorporated.',
+        '',
+        'Step 3: Checking remaining invariants',
+        '  update \u2227 invariant_3: satisfiable \u2713',
+        '  update \u2227 invariant_4: satisfiable \u2713',
+        '  update \u2227 invariant_5: modified (expected) \u2713',
+        '',
+        'VERDICT: UPDATE REJECTED \u2717',
+        'Single-admin freeze contradicts the multi-sig',
+        'security model. One compromised admin could',
+        'lock all funds with no recourse.',
+        '',
+        'This is Tau\'s POINTWISE REVISION in action:',
+        'The spec reasons about the CONSEQUENCES of',
+        'the change, not just its surface appearance.',
+        'A "protective" feature becomes an attack vector',
+        'when it bypasses the authorization model.'
+      ],
+      verdictText: 'UPDATE REJECTED \u2717',
+      verdictClass: 'verdict-fail'
+    },
+    comparison: {
+      python: 'All 12 tests pass. No test checks the scenario where a single admin abuses freeze to hold funds hostage. Tests check what you <span class="comp-key">THOUGHT</span> to test.',
+      ai: '"Freeze is protective, not a spending action." AI misses that a freeze that stops ALL transfers IS effectively control over funds. <span class="comp-key">Pattern matching</span> categories is not logical reasoning.',
+      tau: 'Tau traces the chain: single admin \u2192 can trigger freeze \u2192 freeze stops ALL transfers \u2192 one person controls all funds \u2192 contradicts 2-of-3 model. <span class="comp-key">POINTWISE REVISION</span> catches this automatically.',
+      tagline: 'Python checks what you tested. AI checks what it\'s seen. Tau checks what\'s <em>LOGICALLY POSSIBLE</em>.'
+    }
+  },
+  D: {
+    name: 'Increase supply cap to 2 billion',
+    dangerous: true,
+    conflictRules: [1],
+    protectedRule: 1,
+    python: {
+      pass: false,
+      lines: [
+        'Loading test suite... 12 test cases found',
+        'Applying proposed change to test environment...',
+        '',
+        'test_basic_transfer.............. ✓ PASS',
+        'test_multisig_2of3............... ✓ PASS',
+        'test_supply_cap.................. ✗ FAIL',
+        '  AssertionError: expected supply_cap <= 1B',
+        '  got supply_cap = 2,000,000,000',
+        'test_freeze_functionality........ ✓ PASS',
+        'test_withdrawal_limits........... ✓ PASS',
+        'test_large_transfer_delay........ ✓ PASS',
+        'test_admin_permissions........... ✓ PASS',
+        'test_community_vote_required..... ✓ PASS',
+        'test_token_balance_accuracy...... ✗ FAIL',
+        '  AssertionError: balance exceeds expected cap',
+        'test_event_emission.............. ✓ PASS',
+        'test_reentrancy_guard............ ✓ PASS',
+        'test_overflow_protection......... ✗ FAIL',
+        '  OverflowWarning: new cap near uint32 limit',
+        '',
+        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+        '9/12 tests passed, 3 FAILED ✗',
+        '',
+        'Multiple tests fail with the proposed change.'
+      ],
+      verdictText: '3 OF 12 TESTS FAILED ✗',
+      verdictClass: 'verdict-fail',
+      verdictNote: null,
+      cracked: false
+    },
+    ai: {
+      pass: false,
+      lines: [
+        'Reviewing proposed change...',
+        '',
+        'Change: Increase supply cap from 1B to 2B',
+        '',
+        'Analysis:',
+        '📋 Current rule: Supply can never exceed 1 billion',
+        '📋 Proposed: Double the supply cap to 2 billion',
+        '',
+        '⚠️ This DIRECTLY contradicts Rule 1.',
+        '',
+        'The supply cap is a core economic invariant.',
+        'Doubling it fundamentally changes the token',
+        'economics and dilutes existing holders.',
+        '',
+        'This is not a parameter tweak \u2014 it\'s a',
+        'violation of the most basic guarantee.',
+        '',
+        'Risk Assessment: CRITICAL ✗',
+        'Recommendation: DO NOT implement'
+      ],
+      verdictText: 'DIRECTLY CONTRADICTS SUPPLY CAP ✗',
+      verdictClass: 'verdict-fail',
+      cracked: false
+    },
+    tau: {
+      pass: false,
+      spec: `# ─── Current Contract Specification ───
+
+supply_cap    : tau := in console.
+multisig_req  : tau := in console.
+delay_policy  : tau := in console.
+upgrade_req   : tau := in console.
+freeze_policy : tau := in console.
+
+# INVARIANT 1: Supply integrity
+always (
+    total_supply[t] <= 1_000_000_000
+).
+
+# INVARIANT 2: Authorization security
+always (
+    withdrawal[t] != 0 ->
+        (approvals[t] >= 2)
+).
+
+# INVARIANT 3: Large transfer protection
+always (
+    (transfer_amount[t] > 100_000) ->
+        (time_since_initiation[t] >= 24_hours)
+).
+
+# INVARIANT 4: Upgrade governance
+always (
+    upgrade[t] != 0 ->
+        community_vote[t] != 0
+).
+
+# INVARIANT 5: Emergency mechanism
+always (
+    freeze_active[t] != 0 ->
+        (all_transfers[t] = 0)
+).
+
+# ─── PROPOSED CHANGE ───
+# Modify Invariant 1:
+# always(total_supply[t] <= 2_000_000_000)
+#
+# ─── POINTWISE REVISION CHECK ───
+# Can new spec satisfy old spec?
+# U := update && ((ex[out] update && spec) -> spec)`,
+      traceLines: [
+        '[TAU v0.7] Pointwise revision analysis',
+        'Loading current specification: 5 invariants',
+        'Loading proposed update: modify supply cap',
+        '',
+        'Step 1: Satisfiability of update alone',
+        '  New rule: supply <= 2,000,000,000',
+        '  Satisfiable in isolation \u2713',
+        '',
+        'Step 2: Compatibility with existing invariants',
+        '',
+        '  Checking: update \u2227 invariant_1 (supply cap)',
+        '  Result: \u2717 DIRECT CONTRADICTION',
+        '',
+        '  \u2500\u2500\u2500 FORMAL PROOF OF CONFLICT \u2500\u2500\u2500',
+        '',
+        '  Current invariant_1:',
+        '    always(total_supply[t] <= 1,000,000,000)',
+        '',
+        '  Proposed replacement:',
+        '    always(total_supply[t] <= 2,000,000,000)',
+        '',
+        '  The new spec PERMITS states that the',
+        '  old spec FORBIDS.',
+        '',
+        '  Specifically:',
+        '    total_supply = 1,500,000,000',
+        '    Old spec: FORBIDDEN (> 1B)',
+        '    New spec: ALLOWED (< 2B)',
+        '',
+        '  This is a strict weakening:',
+        '    allowed_states_new \u2283 allowed_states_old',
+        '    The new spec is STRICTLY more permissive.',
+        '',
+        '  Pointwise revision result:',
+        '    U \u2227 spec is NOT satisfiable',
+        '    The update CANNOT be safely incorporated.',
+        '',
+        'VERDICT: UPDATE REJECTED \u2717',
+        'The proposed change directly weakens the',
+        'supply integrity guarantee. States that were',
+        'previously forbidden become permitted.',
+        '',
+        'This is the simplest case of pointwise',
+        'revision failure: the new rule allows',
+        'strictly more than the old rule permitted.'
+      ],
+      verdictText: 'UPDATE REJECTED \u2717',
+      verdictClass: 'verdict-fail'
+    },
+    comparison: {
+      python: '3 tests failed \u2014 this time tests DID catch it because someone wrote a test for the supply cap directly. But what if they hadn\'t?',
+      ai: 'AI correctly flags the direct contradiction. This one is easy \u2014 it\'s an obvious conflict. The real test is the <span class="comp-key">subtle</span> ones.',
+      tau: 'Tau rejects it with a formal proof: the new spec permits states the old spec forbids. Simple, <span class="comp-key">automatic</span>, and mathematically certain.',
+      tagline: 'All three catch the obvious. Only Tau catches the <em>SUBTLE</em>. Try Proposal A to see the difference.'
+    }
+  }
+};
+
+/* ═══════════════════════════════════════════════════
+   SELECT PROPOSAL
+   ═══════════════════════════════════════════════════ */
+function selectProposal(id) {
+  if (running) return;
+  selectedProposal = id;
+  document.querySelectorAll('.proposal-card').forEach(c => {
+    c.classList.toggle('selected', c.dataset.proposal === id);
+  });
+  resetUI();
+}
+
+/* ═══════════════════════════════════════════════════
+   RESET UI
+   ═══════════════════════════════════════════════════ */
+function resetUI() {
+  ['pythonBody','aiBody','tauBody'].forEach(id => {
+    document.getElementById(id).innerHTML = '';
+  });
+  ['pythonVerdict','aiVerdict','tauVerdict'].forEach(id => {
+    const el = document.getElementById(id);
+    el.className = 'col-verdict';
+    el.style.minHeight = '52px';
+    el.innerHTML = '<div class="crack-lines" id="' + id.replace('Verdict','Crack') + '"><svg viewBox="0 0 300 60" preserveAspectRatio="none"><path d="M0 30 L60 28 L80 15 L100 35 L130 10 L150 30 L180 25 L210 40 L240 20 L270 32 L300 30" fill="none" stroke="rgba(255,60,80,.5)" stroke-width="2"/><path d="M0 35 L50 40 L90 20 L120 45 L160 15 L200 38 L250 22 L300 35" fill="none" stroke="rgba(255,60,80,.3)" stroke-width="1.5"/></svg></div>';
+  });
+  // Reset rules
+  document.querySelectorAll('.rule-card').forEach(c => {
+    c.className = 'rule-card';
+  });
+  document.getElementById('contractStatus').className = 'contract-status';
+  document.getElementById('contractStatus').textContent = 'STATUS: All 5 invariants verified \u2713';
+  document.getElementById('shieldOverlay').className = 'shield-overlay';
+  document.getElementById('comparisonPanel').classList.remove('visible');
+}
+
+/* ═══════════════════════════════════════════════════
+   TYPEWRITER
+   ═══════════════════════════════════════════════════ */
+function typeLines(el, lines, delay, lineDelay) {
+  return new Promise(resolve => {
+    let i = 0;
+    function next() {
+      if (i >= lines.length) { resolve(); return; }
+      const line = lines[i];
+      const div = document.createElement('div');
+      // Color coding
+      if (line.includes('✓ PASS') || line.includes('satisfiable \u2713') || line.includes('compatible \u2713') || line.includes('APPROVED')) {
+        div.style.color = '#3cdf7a';
+      } else if (line.includes('✗ FAIL') || line.includes('CONFLICT') || line.includes('CONTRADICTION') || line.includes('REJECTED') || line.includes('NOT satisfiable')) {
+        div.style.color = '#ff4466';
+        div.style.fontWeight = '600';
+      } else if (line.includes('FORMAL PROOF') || line.includes('Attack scenario') || line.includes('Conflict analysis')) {
+        div.style.color = '#ffd700';
+        div.style.fontWeight = '600';
+      } else if (line.includes('Step ') || line.includes('VERDICT:') || line.includes('Pointwise revision result')) {
+        div.style.color = '#c084fc';
+        div.style.fontWeight = '600';
+      } else if (line.startsWith('  ') && (line.includes('OLD:') || line.includes('NEW:'))) {
+        div.style.color = line.includes('OLD:') ? '#60a5fa' : '#f0a030';
+      }
+      div.textContent = line;
+      el.appendChild(div);
+      el.scrollTop = el.scrollHeight;
+      i++;
+      setTimeout(next, line === '' ? lineDelay * 0.3 : lineDelay);
+    }
+    setTimeout(next, delay);
+  });
+}
+
+/* ═══════════════════════════════════════════════════
+   RUN EVALUATION
+   ═══════════════════════════════════════════════════ */
+async function runEvaluation() {
+  if (!selectedProposal) {
+    // Flash proposal cards
+    document.querySelectorAll('.proposal-card').forEach(c => {
+      c.style.borderColor = '#f0a030';
+      setTimeout(() => { c.style.borderColor = ''; }, 600);
+    });
+    return;
+  }
+  if (running) return;
+  running = true;
+
+  const btn = document.getElementById('evalBtn');
+  btn.disabled = true;
+  btn.textContent = 'EVALUATING...';
+
+  resetUI();
+  const d = DATA[selectedProposal];
+
+  // Run Python (3s), AI (5s), Tau (9s) — staggered
+  const pythonDone = runPython(d);
+  const aiDone = runAI(d);
+  const tauDone = runTau(d);
+
+  await Promise.all([pythonDone, aiDone, tauDone]);
+
+  // Post-evaluation effects
+  await postEffects(d);
+
+  running = false;
+  btn.disabled = false;
+  btn.textContent = '\u25b6 \u00a0EVALUATE UPDATE';
+}
+
+/* ═══════════════════════════════════════════════════
+   PYTHON
+   ═══════════════════════════════════════════════════ */
+async function runPython(d) {
+  const body = document.getElementById('pythonBody');
+  const lineDelay = 3000 / d.python.lines.length;
+  await typeLines(body, d.python.lines, 200, Math.max(lineDelay, 80));
+
+  const verdict = document.getElementById('pythonVerdict');
+  const span = document.createElement('span');
+  span.textContent = d.python.verdictText;
+  verdict.appendChild(span);
+  verdict.classList.add(d.python.verdictClass);
+
+  if (d.python.verdictNote) {
+    const note = document.createElement('div');
+    note.style.cssText = 'font-size:.68rem;color:#888;margin-top:6px;white-space:pre-wrap';
+    note.textContent = d.python.verdictNote;
+    verdict.appendChild(note);
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   AI
+   ═══════════════════════════════════════════════════ */
+async function runAI(d) {
+  const body = document.getElementById('aiBody');
+  const lineDelay = 5000 / d.ai.lines.length;
+  await typeLines(body, d.ai.lines, 800, Math.max(lineDelay, 100));
+
+  const verdict = document.getElementById('aiVerdict');
+  const span = document.createElement('span');
+  span.textContent = d.ai.verdictText;
+  verdict.appendChild(span);
+  verdict.classList.add(d.ai.verdictClass);
+}
+
+/* ═══════════════════════════════════════════════════
+   TAU
+   ═══════════════════════════════════════════════════ */
+async function runTau(d) {
+  const body = document.getElementById('tauBody');
+
+  // Spec panel
+  const specPanel = document.createElement('div');
+  specPanel.className = 'tau-spec-panel';
+  specPanel.innerHTML = '<div class="spec-title">Tau Specification</div>';
+  const specPre = document.createElement('pre');
+  specPre.style.cssText = 'margin:0;font-size:.67rem;line-height:1.55;color:#b8a0e0;white-space:pre-wrap;font-family:inherit';
+  specPanel.appendChild(specPre);
+  body.appendChild(specPanel);
+
+  // Type out spec gradually
+  const specLines = d.tau.spec.split('\n');
+  for (let i = 0; i < specLines.length; i++) {
+    specPre.textContent += (i > 0 ? '\n' : '') + specLines[i];
+    specPanel.scrollTop = specPanel.scrollHeight;
+    await sleep(30);
+  }
+
+  await sleep(600);
+
+  // Trace panel
+  const tracePanel = document.createElement('div');
+  tracePanel.className = 'tau-trace-panel';
+  tracePanel.innerHTML = '<div class="trace-title">Verification Trace</div>';
+  body.appendChild(tracePanel);
+
+  const traceDelay = 6500 / d.tau.traceLines.length;
+  await typeLines(tracePanel, d.tau.traceLines, 300, Math.max(traceDelay, 60));
+
+  body.scrollTop = body.scrollHeight;
+
+  const verdict = document.getElementById('tauVerdict');
+  const span = document.createElement('span');
+  span.textContent = d.tau.verdictText;
+  verdict.appendChild(span);
+  verdict.classList.add(d.tau.verdictClass);
+  if (d.tau.pass) {
+    verdict.style.background = 'rgba(60,223,122,.12)';
+  } else {
+    verdict.style.background = 'rgba(255,60,80,.12)';
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   POST EFFECTS
+   ═══════════════════════════════════════════════════ */
+async function postEffects(d) {
+  await sleep(400);
+
+  if (d.dangerous) {
+    // Crack Python and AI verdicts if they wrongly passed
+    if (d.python.cracked) {
+      const pv = document.getElementById('pythonVerdict');
+      pv.classList.add('verdict-cracked');
+      const pc = pv.querySelector('.crack-lines');
+      if (pc) pc.classList.add('active');
+    }
+    if (d.ai.cracked) {
+      const av = document.getElementById('aiVerdict');
+      av.classList.add('verdict-cracked');
+      const ac = av.querySelector('.crack-lines');
+      if (ac) ac.classList.add('active');
+    }
+
+    await sleep(300);
+
+    // Shield animation
+    const shield = document.getElementById('shieldOverlay');
+    const path = document.getElementById('shieldPath');
+    const icon = document.getElementById('shieldIcon');
+    path.setAttribute('stroke', 'url(#shieldGradRed)');
+    icon.setAttribute('fill', '#ff4466');
+    icon.textContent = '\u2717';
+    shield.classList.remove('approved-shield');
+    shield.classList.add('active');
+
+    // Mark conflict rules
+    d.conflictRules.forEach(n => {
+      document.getElementById('rule' + n).classList.add('conflict');
+    });
+    if (d.protectedRule) {
+      setTimeout(() => {
+        document.getElementById('rule' + d.protectedRule).classList.add('protected');
+      }, 500);
+    }
+
+    // Update status
+    const status = document.getElementById('contractStatus');
+    status.className = 'contract-status danger';
+    status.textContent = 'UPDATE REJECTED \u2014 Invariant conflict detected';
+
+  } else {
+    // Approved — green shield
+    const shield = document.getElementById('shieldOverlay');
+    const path = document.getElementById('shieldPath');
+    const icon = document.getElementById('shieldIcon');
+    path.setAttribute('stroke', 'url(#shieldGradGreen)');
+    icon.setAttribute('fill', '#3cdf7a');
+    icon.textContent = '\u2713';
+    shield.classList.add('approved-shield');
+    shield.classList.add('active');
+
+    // All rules glow green
+    document.querySelectorAll('.rule-card').forEach(c => {
+      c.classList.add('safe-glow');
+    });
+    setTimeout(() => {
+      document.querySelectorAll('.rule-card').forEach(c => {
+        c.classList.remove('safe-glow');
+      });
+    }, 2000);
+
+    // Merge animation
+    const mergeEl = document.getElementById('mergeCard');
+    mergeEl.textContent = '\u2713 ' + d.name;
+    const contractRect = document.querySelector('.contract-panel').getBoundingClientRect();
+    mergeEl.style.left = (contractRect.left + 20) + 'px';
+    mergeEl.style.top = (contractRect.bottom - 80) + 'px';
+    mergeEl.classList.add('animating');
+    setTimeout(() => { mergeEl.classList.remove('animating'); }, 2500);
+
+    const status = document.getElementById('contractStatus');
+    status.className = 'contract-status approved';
+    status.textContent = 'UPDATE APPROVED \u2014 All invariants intact \u2713';
+  }
+
+  // Show comparison
+  await sleep(800);
+  const cp = document.getElementById('comparisonPanel');
+  document.getElementById('compPython').innerHTML = d.comparison.python;
+  document.getElementById('compAI').innerHTML = d.comparison.ai;
+  document.getElementById('compTau').innerHTML = d.comparison.tau;
+  document.getElementById('tagline').innerHTML = d.comparison.tagline;
+  cp.classList.add('visible');
+
+  // Scroll to comparison
+  setTimeout(() => {
+    cp.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 300);
+}
+
+/* ═══════════════════════════════════════════════════
+   UTILITY
+   ═══════════════════════════════════════════════════ */
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/* ═══════════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  // Auto-select Proposal A as default hint
+  // (don't select — let user choose)
+});
+</script>
+</body>
+</html>

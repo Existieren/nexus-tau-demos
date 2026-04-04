@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Do Your Rules Work Together? — Tau Formal Verification Demo</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0a1a;
+  --surface: rgba(255,255,255,0.04);
+  --glass: rgba(255,255,255,0.06);
+  --glass-border: rgba(255,255,255,0.1);
+  --text: #e8e8f0;
+  --text-dim: #8888aa;
+  --blue: #4a9eff;
+  --green: #34d399;
+  --purple: #a855f7;
+  --gold: #f59e0b;
+  --red: #ef4444;
+  --pink: #ec4899;
+}
+
+body {
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.55;
+}
+
+/* Ambient background */
+body::before {
+  content: '';
+  position: fixed;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(74,158,255,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(168,85,247,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(245,158,11,0.03) 0%, transparent 60%);
+  z-index: -1;
+  animation: ambientDrift 30s ease-in-out infinite alternate;
+}
+
+@keyframes ambientDrift {
+  0% { transform: translate(0,0) rotate(0deg); }
+  100% { transform: translate(-3%,-3%) rotate(3deg); }
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+
+/* ─────────── HEADER ─────────── */
+.header {
+  text-align: center;
+  padding: 48px 20px 28px;
+  position: relative;
+}
+
+.header h1 {
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  background: linear-gradient(135deg, #fff 0%, #c0c0dd 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 14px;
+}
+
+.header .subtitle {
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  color: var(--text-dim);
+  max-width: 700px;
+  margin: 0 auto 20px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 6px 20px;
+  background: rgba(168,85,247,0.12);
+  border: 1px solid rgba(168,85,247,0.28);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  color: var(--purple);
+  letter-spacing: 0.5px;
+}
+
+/* ─────────── RULE PICKER ─────────── */
+.picker-section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 20px 24px;
+}
+
+.picker-section h2 {
+  text-align: center;
+  font-size: 1.15rem;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  font-weight: 400;
+}
+
+.pick-count {
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  margin-bottom: 20px;
+}
+
+.pick-count .count-num {
+  color: var(--blue);
+  font-weight: 700;
+}
+
+.rules-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 26px;
+}
+
+.rule-card {
+  position: relative;
+  background: rgba(255,255,255,0.045);
+  border: 1.5px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 20px 16px 18px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.rule-card:hover {
+  border-color: rgba(74,158,255,0.3);
+  background: rgba(255,255,255,0.07);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.35);
+}
+
+.rule-card.selected {
+  border-color: rgba(74,158,255,0.6);
+  background: rgba(74,158,255,0.08);
+  box-shadow: 0 0 28px rgba(74,158,255,0.12), inset 0 0 20px rgba(74,158,255,0.04);
+  transform: translateY(-2px);
+}
+
+.rule-card.selected::after {
+  content: '\2713';
+  position: absolute;
+  top: 10px; right: 12px;
+  width: 24px; height: 24px;
+  background: var(--blue);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 24px;
+  text-align: center;
+}
+
+.rule-card .rule-icon {
+  font-size: 1.7rem;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.rule-card .rule-num {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 1.6px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.rule-card .rule-text {
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.rule-card.conflict-highlight {
+  border-color: rgba(239,68,68,0.7) !important;
+  box-shadow: 0 0 22px rgba(239,68,68,0.2), inset 0 0 18px rgba(239,68,68,0.05) !important;
+  animation: conflictPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes conflictPulse {
+  0%, 100% { box-shadow: 0 0 22px rgba(239,68,68,0.2), inset 0 0 18px rgba(239,68,68,0.05); }
+  50% { box-shadow: 0 0 38px rgba(239,68,68,0.35), inset 0 0 28px rgba(239,68,68,0.08); }
+}
+
+/* Buttons */
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.preset-btn {
+  padding: 10px 22px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  color: var(--text);
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.25s;
+  font-family: inherit;
+  backdrop-filter: blur(8px);
+}
+
+.preset-btn:hover {
+  border-color: rgba(255,255,255,0.22);
+  background: rgba(255,255,255,0.08);
+  transform: translateY(-1px);
+}
+
+.preset-btn .dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.preset-btn .dot.safe { background: var(--green); }
+.preset-btn .dot.warn { background: var(--gold); }
+.preset-btn .dot.danger { background: var(--red); }
+
+.run-btn {
+  padding: 16px 44px;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(135deg, var(--purple) 0%, var(--blue) 100%);
+  color: #fff;
+  font-size: 1.08rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: inherit;
+  letter-spacing: 0.4px;
+  animation: btnPulse 2.5s ease-in-out infinite;
+}
+
+.run-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 10px 35px rgba(168,85,247,0.35);
+}
+
+.run-btn:active { transform: translateY(0) scale(0.98); }
+
+.run-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  animation: none;
+  transform: none;
+}
+
+@keyframes btnPulse {
+  0%, 100% { box-shadow: 0 4px 20px rgba(168,85,247,0.2); }
+  50% { box-shadow: 0 4px 34px rgba(168,85,247,0.4); }
+}
+
+/* ─────────── THREE COLUMNS ─────────── */
+.columns-section {
+  max-width: 1440px;
+  margin: 32px auto 0;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  opacity: 0;
+  transform: translateY(24px);
+  transition: all 0.6s ease;
+}
+
+.columns-section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.col {
+  border-radius: 16px;
+  border: 1.5px solid;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 480px;
+}
+
+.col-python {
+  border-color: rgba(74,158,255,0.2);
+  background: linear-gradient(180deg, rgba(74,158,255,0.05) 0%, rgba(74,158,255,0.01) 100%);
+}
+
+.col-ai {
+  border-color: rgba(52,211,153,0.2);
+  background: linear-gradient(180deg, rgba(52,211,153,0.05) 0%, rgba(52,211,153,0.01) 100%);
+}
+
+.col-tau {
+  border-color: rgba(168,85,247,0.25);
+  background: linear-gradient(180deg, rgba(168,85,247,0.07) 0%, rgba(245,158,11,0.02) 100%);
+}
+
+.col-header {
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.col-header h3 {
+  font-size: 1.02rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.col-python .col-header h3 { color: var(--blue); }
+.col-ai .col-header h3 { color: var(--green); }
+.col-tau .col-header h3 { color: var(--purple); }
+
+.col-header .col-sub {
+  font-size: 0.76rem;
+  color: var(--text-dim);
+  margin-top: 3px;
+}
+
+.col-body {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  position: relative;
+}
+
+.col-body pre {
+  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+  font-size: 0.74rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-dim);
+}
+
+.col-body .line {
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: all 0.25s ease;
+}
+
+.col-body .line.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.line .pass { color: var(--green); }
+.line .fail { color: var(--red); }
+.line .warn { color: var(--gold); }
+.line .info { color: var(--blue); }
+.line .purple { color: var(--purple); }
+.line .dim { color: var(--text-dim); }
+.line .bold { color: var(--text); font-weight: 600; }
+
+/* Tau sub-panels */
+.tau-subpanel {
+  margin-bottom: 14px;
+  border: 1px solid rgba(168,85,247,0.15);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.tau-subpanel-header {
+  padding: 8px 12px;
+  background: rgba(168,85,247,0.08);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--purple);
+}
+
+.tau-subpanel-body { padding: 12px; }
+.tau-subpanel-body pre { font-size: 0.72rem; }
+
+/* Verdict bars */
+.verdict-bar {
+  padding: 18px 20px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  text-align: center;
+  opacity: 0;
+  transition: all 0.5s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.verdict-bar.visible { opacity: 1; }
+
+.verdict-bar .verdict-icon { font-size: 2.2rem; margin-bottom: 4px; }
+.verdict-bar .verdict-text { font-size: 1.02rem; font-weight: 700; }
+.verdict-bar .verdict-sub { font-size: 0.72rem; color: var(--text-dim); margin-top: 5px; }
+
+.verdict-pass { background: linear-gradient(180deg, rgba(52,211,153,0.08) 0%, transparent 100%); }
+.verdict-pass .verdict-icon { color: var(--green); }
+.verdict-pass .verdict-text { color: var(--green); }
+
+.verdict-fail { background: linear-gradient(180deg, rgba(239,68,68,0.1) 0%, transparent 100%); }
+.verdict-fail .verdict-icon { color: var(--red); }
+.verdict-fail .verdict-text { color: var(--red); }
+
+/* Shatter effect */
+.col.shattered .verdict-bar {
+  animation: shatterVerdict 0.6s ease forwards;
+}
+
+@keyframes shatterVerdict {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.04); }
+  50% { transform: scale(0.96); filter: blur(1px); }
+  100% { transform: scale(1); opacity: 0.45; }
+}
+
+.col.shattered .verdict-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(38deg, transparent 28%, rgba(239,68,68,0.1) 28.5%, rgba(239,68,68,0.1) 29.2%, transparent 29.7%),
+    linear-gradient(-25deg, transparent 55%, rgba(239,68,68,0.08) 55.5%, rgba(239,68,68,0.08) 56.2%, transparent 56.7%),
+    linear-gradient(72deg, transparent 70%, rgba(239,68,68,0.06) 70.5%, rgba(239,68,68,0.06) 71%, transparent 71.5%);
+  pointer-events: none;
+  animation: crackAppear 0.4s ease forwards;
+}
+
+@keyframes crackAppear { from { opacity: 0; } to { opacity: 1; } }
+
+/* Red shockwave */
+.shockwave {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 3px solid var(--red);
+  transform: translate(-50%, -50%);
+  animation: shockExpand 0.8s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes shockExpand {
+  0% { width: 20px; height: 20px; opacity: 1; }
+  100% { width: 700px; height: 700px; opacity: 0; }
+}
+
+/* ─────────── CONFLICT MAP ─────────── */
+.conflict-map-section {
+  max-width: 1000px;
+  margin: 44px auto;
+  padding: 0 20px;
+  opacity: 0;
+  transform: translateY(24px);
+  transition: all 0.8s ease;
+}
+
+.conflict-map-section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.conflict-map-section h2 {
+  text-align: center;
+  font-size: 1.3rem;
+  margin-bottom: 18px;
+  font-weight: 700;
+}
+
+.conflict-map-container {
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 16px;
+  padding: 20px;
+  position: relative;
+  min-height: 360px;
+}
+
+.conflict-map-container canvas {
+  width: 100%;
+  height: 360px;
+  display: block;
+}
+
+.conflict-tooltip {
+  position: absolute;
+  background: rgba(12,12,28,0.96);
+  border: 1px solid rgba(239,68,68,0.4);
+  border-radius: 10px;
+  padding: 14px 18px;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  max-width: 340px;
+  color: var(--text);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 10;
+  backdrop-filter: blur(14px);
+}
+
+.conflict-tooltip.show { opacity: 1; }
+
+.conflict-tooltip .ct-title {
+  font-weight: 700;
+  color: var(--red);
+  margin-bottom: 6px;
+  font-size: 0.88rem;
+}
+
+/* No conflict state message */
+.no-conflict-banner {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.no-conflict-banner .ncb-icon { font-size: 2.4rem; color: var(--green); margin-bottom: 10px; }
+.no-conflict-banner .ncb-text { font-size: 1.1rem; color: var(--green); font-weight: 600; }
+.no-conflict-banner .ncb-sub { font-size: 0.85rem; color: var(--text-dim); margin-top: 6px; }
+
+/* ─────────── COMPARISON TABLE ─────────── */
+.comparison-section {
+  max-width: 1120px;
+  margin: 44px auto 70px;
+  padding: 0 20px;
+  opacity: 0;
+  transform: translateY(24px);
+  transition: all 0.8s ease;
+}
+
+.comparison-section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.comparison-section h2 {
+  text-align: center;
+  font-size: 1.3rem;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+.comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border: 1.5px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.comp-col {
+  padding: 26px 22px;
+  border-right: 1px solid rgba(255,255,255,0.06);
+}
+
+.comp-col:last-child { border-right: none; }
+
+.comp-col h4 {
+  font-size: 1rem;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.comp-col.comp-python { background: rgba(74,158,255,0.035); }
+.comp-col.comp-python h4 { color: var(--blue); }
+
+.comp-col.comp-ai { background: rgba(52,211,153,0.035); }
+.comp-col.comp-ai h4 { color: var(--green); }
+
+.comp-col.comp-tau { background: rgba(168,85,247,0.04); }
+.comp-col.comp-tau h4 { color: var(--purple); }
+
+.comp-col p {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+  line-height: 1.55;
+}
+
+.comp-col p strong { color: var(--text); }
+
+.tagline {
+  text-align: center;
+  margin-top: 34px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.tagline .tg-py { color: var(--blue); }
+.tagline .tg-ai { color: var(--green); }
+.tagline .tg-tau { color: var(--purple); }
+
+/* ─────────── WAITING STATE ─────────── */
+.waiting-msg {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 70px 20px;
+  opacity: 0.45;
+}
+
+/* ─────────── SPINNER ─────────── */
+.spinner {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.12);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─────────── RESPONSIVE ─────────── */
+@media (max-width: 1100px) {
+  .rules-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 1000px) {
+  .columns-section { grid-template-columns: 1fr; gap: 20px; }
+  .col { min-height: 360px; }
+  .comparison-grid { grid-template-columns: 1fr; }
+  .comp-col { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .comp-col:last-child { border-bottom: none; }
+}
+
+@media (max-width: 500px) {
+  .rules-grid { grid-template-columns: 1fr; }
+  .header h1 { font-size: 1.5rem; }
+  .button-row { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header class="header">
+  <h1>DO YOUR RULES WORK TOGETHER?</h1>
+  <p class="subtitle">5 simple rules. Each one sounds perfect. Together, they break everything.</p>
+  <span class="badge">Powered by Tau Language v0.7 &nbsp;|&nbsp; tau.net</span>
+</header>
+
+<!-- ═══ RULE PICKER ═══ -->
+<section class="picker-section">
+  <h2>Pick your governance rules</h2>
+  <p class="pick-count"><span class="count-num" id="pickCount">0</span> / 8 rules selected</p>
+
+  <div class="rules-grid" id="rulesGrid"></div>
+
+  <div class="button-row">
+    <button class="preset-btn" onclick="applyPreset('safe')">
+      <span class="dot safe"></span>Safe Set
+    </button>
+    <button class="preset-btn" onclick="applyPreset('deadlock')">
+      <span class="dot warn"></span>Hidden Deadlock
+    </button>
+    <button class="preset-btn" onclick="applyPreset('triple')">
+      <span class="dot danger"></span>Triple Conflict
+    </button>
+  </div>
+
+  <div class="button-row" style="margin-top:8px;">
+    <button class="run-btn" id="runBtn" onclick="runAnalysis()" disabled>
+      &#9654;&ensp;CHECK COMPATIBILITY
+    </button>
+  </div>
+</section>
+
+<!-- ═══ THREE COLUMNS ═══ -->
+<section class="columns-section" id="columnsSection">
+  <div class="col col-python" id="colPython">
+    <div class="col-header">
+      <h3>&#x1F40D; PYTHON UNIT TESTS</h3>
+      <div class="col-sub">Testing each rule individually</div>
+    </div>
+    <div class="col-body" id="pythonBody">
+      <div class="waiting-msg">Select rules and click CHECK COMPATIBILITY</div>
+    </div>
+    <div class="verdict-bar" id="pythonVerdict"></div>
+  </div>
+
+  <div class="col col-ai" id="colAI">
+    <div class="col-header">
+      <h3>&#x1F916; AI REVIEW (ChatGPT-Style)</h3>
+      <div class="col-sub">Reading rules for red flags</div>
+    </div>
+    <div class="col-body" id="aiBody">
+      <div class="waiting-msg">Select rules and click CHECK COMPATIBILITY</div>
+    </div>
+    <div class="verdict-bar" id="aiVerdict"></div>
+  </div>
+
+  <div class="col col-tau" id="colTau">
+    <div class="col-header">
+      <h3>&#9883; TAU FORMAL VERIFICATION</h3>
+      <div class="col-sub">Checking ALL rule combinations mathematically</div>
+    </div>
+    <div class="col-body" id="tauBody">
+      <div class="waiting-msg">Select rules and click CHECK COMPATIBILITY</div>
+    </div>
+    <div class="verdict-bar" id="tauVerdict"></div>
+  </div>
+</section>
+
+<!-- ═══ CONFLICT MAP ═══ -->
+<section class="conflict-map-section" id="conflictMapSection">
+  <h2>Rule Interaction Map</h2>
+  <div class="conflict-map-container" id="mapContainer">
+    <canvas id="conflictCanvas"></canvas>
+    <div class="conflict-tooltip" id="conflictTooltip"></div>
+  </div>
+</section>
+
+<!-- ═══ COMPARISON TABLE ═══ -->
+<section class="comparison-section" id="comparisonSection">
+  <h2>WHY THE RESULTS DIFFER</h2>
+  <div class="comparison-grid">
+    <div class="comp-col comp-python">
+      <h4>&#x1F40D; Python</h4>
+      <p>Tested each rule <strong>alone</strong>.</p>
+      <p>All rules are individually valid, so all tests pass.</p>
+      <p>Unit tests check <strong>ONE thing at a time</strong>. They CANNOT check if rules interact.</p>
+      <p id="compPythonCombo"></p>
+    </div>
+    <div class="comp-col comp-ai">
+      <h4>&#x1F916; AI</h4>
+      <p>Read each rule and compared to <strong>governance best practices</strong>.</p>
+      <p>"Looks good" &mdash; because each rule individually follows known patterns.</p>
+      <p>AI has no logical engine. It <strong>reads and guesses</strong>. Hallucination risk on every analysis.</p>
+      <p>It would need to understand <strong>combinatorial logic</strong> to find these conflicts.</p>
+    </div>
+    <div class="comp-col comp-tau">
+      <h4>&#9883; Tau</h4>
+      <p id="compTauCombo"></p>
+      <p>Tau uses <strong>"sometimes"</strong> &mdash; a temporal operator that checks: "can this EVER happen?"</p>
+      <p>If <strong>sometimes(X) = false</strong>, then X is IMPOSSIBLE &mdash; not unlikely, not rare: <strong>IMPOSSIBLE</strong>.</p>
+      <p><strong>Mathematical certainty. No exceptions.</strong></p>
+    </div>
+  </div>
+  <p class="tagline">
+    <span class="tg-py">Python checks rules.</span>&ensp;
+    <span class="tg-ai">AI reads rules.</span>&ensp;
+    <span class="tg-tau">Tau PROVES rules.</span>
+  </p>
+</section>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════════════
+
+const RULES = [
+  { id: 1, icon: "\u{1F5F3}\uFE0F", text: "Any member can propose a rule change",
+    short: "propose", tml: 'rule(1 "propose" "any_member").',
+    testName: "test_rule_1_proposal_rights", testDetail: "Members can create proposals: True",
+    aiDesc: "Ensures democratic participation.", aiNote: "Standard for DAOs." },
+
+  { id: 2, icon: "\u23F0", text: "Proposals expire after 7 days with no action",
+    short: "expiry", tml: 'rule(2 "expiry" "7_days").',
+    testName: "test_rule_2_expiry_logic", testDetail: "Proposals expire after 7 days: True",
+    aiDesc: "Prevents stale proposals.", aiNote: "7-day window is reasonable." },
+
+  { id: 3, icon: "\u{1F4CA}", text: "Rule changes require 80% approval to pass",
+    short: "threshold", tml: 'rule(3 "threshold" "80_percent").',
+    testName: "test_rule_3_approval_threshold", testDetail: "80% threshold is valid (0 < 80 < 100): True",
+    aiDesc: "High threshold ensures strong consensus.", aiNote: "80% is ambitious but used in constitutional amendments." },
+
+  { id: 4, icon: "\u{1F512}", text: "No more than 1 proposal can be active at a time",
+    short: "max_active", tml: 'rule(4 "max_active" "1").',
+    testName: "test_rule_4_single_proposal", testDetail: "Proposal limit (1) is positive integer: True",
+    aiDesc: "Prevents proposal spam.", aiNote: "Keeps governance focused." },
+
+  { id: 5, icon: "\u{1F465}", text: "A quorum of 60% of members must vote for a vote to count",
+    short: "quorum", tml: 'rule(5 "quorum" "60_percent").',
+    testName: "test_rule_5_quorum_requirement", testDetail: "Quorum 60% is valid (0 < 60 < 100): True",
+    aiDesc: "Quorum prevents small groups from deciding.", aiNote: "60% is a strong quorum requirement." },
+
+  { id: 6, icon: "\u{1F6E1}\uFE0F", text: "The founder can veto any proposal",
+    short: "veto", tml: 'rule(6 "veto" "founder").',
+    testName: "test_rule_6_veto_rights", testDetail: "Veto role exists (founder): True",
+    aiDesc: "Provides executive oversight.", aiNote: "Common in early-stage organizations." },
+
+  { id: 7, icon: "\u{1F504}", text: "Vetoed proposals cannot be resubmitted for 30 days",
+    short: "cooldown", tml: 'rule(7 "cooldown" "30_days").',
+    testName: "test_rule_7_cooldown_period", testDetail: "Cooldown 30 days is positive: True",
+    aiDesc: "Prevents proposal harassment.", aiNote: "30-day cooldown is reasonable." },
+
+  { id: 8, icon: "\u2696\uFE0F", text: "Every member has equal voting power, no exceptions",
+    short: "equality", tml: 'rule(8 "equality" "absolute").',
+    testName: "test_rule_8_equality_check", testDetail: "All members flagged equal: True",
+    aiDesc: "Ensures fairness in governance.", aiNote: "Core democratic principle." },
+];
+
+const CONFLICTS = [
+  {
+    rules: [2, 3, 5],
+    title: "Quorum + Expiry Deadlock",
+    brief: "Rules 2 + 3 + 5 create a permanent governance deadlock.",
+    explanation:
+      "Rule 2: Proposals expire in 7 days\n" +
+      "Rule 3: Need 80% approval\n" +
+      "Rule 5: Need 60% quorum\n\n" +
+      "If fewer than 60% of members vote within 7 days:\n" +
+      "  \u2192 Quorum (Rule 5) is NOT met\n" +
+      "  \u2192 Vote does not count\n" +
+      "  \u2192 Proposal expires (Rule 2)\n" +
+      "  \u2192 No proposal can ever pass\n\n" +
+      "This is not a rare edge case. It is a LOGICAL\n" +
+      "IMPOSSIBILITY whenever member activity < 60%\n" +
+      "within any 7-day window.\n\n" +
+      "In Tau's temporal logic:\n" +
+      "  sometimes(proposal_passes) = FALSE\n\n" +
+      "Governance is PERMANENTLY DEADLOCKED\n" +
+      "under realistic activity assumptions.\n\n" +
+      "No simulation can find this because it is not a\n" +
+      "bug in execution \u2014 it is a bug in the RULES\n" +
+      "THEMSELVES. Only formal logic can detect\n" +
+      "contradictions in specifications.",
+    tauSpec:
+      "# Can a proposal EVER pass?\n" +
+      "sometimes (\n" +
+      "    proposal_created[t] != 0 &&\n" +
+      "    quorum_reached[t] != 0 &&\n" +
+      "    approval_reached[t] != 0 &&\n" +
+      "    not_expired[t] != 0\n" +
+      ").\n\n" +
+      "# Check: Can quorum + threshold be met\n" +
+      "# within the expiry window?\n" +
+      "always (\n" +
+      "    (active_voters_7day[t] < quorum) ->\n" +
+      "        (proposal_result[t] = \"expired\")\n" +
+      ")."
+  },
+  {
+    rules: [6, 8],
+    title: "Veto vs. Equality Contradiction",
+    brief: "Rules 6 + 8 directly contradict each other.",
+    explanation:
+      "Rule 6: The founder can veto any proposal\n" +
+      "Rule 8: Every member has equal voting power,\n" +
+      "        no exceptions\n\n" +
+      "The founder's veto power means they have MORE\n" +
+      "power than any other member. This directly\n" +
+      "violates the \"no exceptions\" clause in Rule 8.\n\n" +
+      "This is a LOGICAL CONTRADICTION:\n" +
+      "  equal_power(all_members) = TRUE\n" +
+      "  veto_power(founder) = TRUE\n" +
+      "  veto_power implies NOT equal_power\n\n" +
+      "  Therefore: TRUE AND FALSE = CONTRADICTION",
+    tauSpec:
+      "# Equality constraint\n" +
+      "always (\n" +
+      "    forall M1, M2 :\n" +
+      "    member(M1) && member(M2) ->\n" +
+      "    voting_power(M1) = voting_power(M2)\n" +
+      ").\n\n" +
+      "# Veto constraint\n" +
+      "always (\n" +
+      "    member(founder) &&\n" +
+      "    veto_power(founder) != 0\n" +
+      ").\n\n" +
+      "# Result: CONTRADICTION\n" +
+      "# veto_power > normal_power\n" +
+      "# violates equality."
+  },
+  {
+    rules: [2, 4, 7],
+    title: "Veto Freeze Deadlock",
+    brief: "Rules 2 + 4 + 7 freeze governance for 30 days after any veto.",
+    explanation:
+      "Rule 2: Proposals expire in 7 days\n" +
+      "Rule 4: Only 1 proposal can be active at a time\n" +
+      "Rule 7: Vetoed proposals cannot be resubmitted\n" +
+      "        for 30 days\n\n" +
+      "After a veto:\n" +
+      "  \u2192 The proposal is vetoed (removed as active)\n" +
+      "  \u2192 Rule 7: Cannot resubmit for 30 days\n" +
+      "  \u2192 Rule 4: Only 1 active proposal allowed\n" +
+      "  \u2192 The vetoed proposal's \"slot\" is\n" +
+      "     conceptually blocked by the cooldown\n" +
+      "  \u2192 New proposals on the SAME topic blocked\n" +
+      "  \u2192 Governance frozen on that topic for 30 days\n\n" +
+      "If the founder vetoes frequently, governance\n" +
+      "grinds to a halt.",
+    tauSpec:
+      "# Governance must not deadlock\n" +
+      "always (\n" +
+      "    governance_active[t] != 0 ->\n" +
+      "    sometimes (\n" +
+      "        proposal_resolved[t'] != 0 && t' > t\n" +
+      "    )\n" +
+      ").\n\n" +
+      "# Post-veto state check\n" +
+      "always (\n" +
+      "    vetoed[t] != 0 ->\n" +
+      "    (blocked_until[t + 30_days] != 0)\n" +
+      ").\n\n" +
+      "# Result: DEADLOCK for 30 days\n" +
+      "# after each veto event."
+  }
+];
+
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+
+let selectedRules = new Set();
+let isRunning = false;
+let mapAnimFrame = null;
+
+// ═══════════════════════════════════════════════════════
+//  UTILITIES
+// ═══════════════════════════════════════════════════════
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function escHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function addLine(container, html, extraClass) {
+  const div = document.createElement('div');
+  div.className = 'line';
+  if (extraClass) div.classList.add(extraClass);
+  div.innerHTML = html;
+  container.appendChild(div);
+  requestAnimationFrame(() => div.classList.add('visible'));
+  container.scrollTop = container.scrollHeight;
+  // Also scroll parent .col-body
+  const body = container.closest('.col-body');
+  if (body) body.scrollTop = body.scrollHeight;
+  return div;
+}
+
+function showVerdict(id, pass, text, sub) {
+  const el = document.getElementById(id);
+  el.className = 'verdict-bar ' + (pass ? 'verdict-pass' : 'verdict-fail');
+  el.innerHTML =
+    '<div class="verdict-icon">' + (pass ? '\u2713' : '\u2717') + '</div>' +
+    '<div class="verdict-text">' + text + '</div>' +
+    '<div class="verdict-sub">' + sub + '</div>';
+  requestAnimationFrame(() => el.classList.add('visible'));
+}
+
+// ═══════════════════════════════════════════════════════
+//  RULE CARDS
+// ═══════════════════════════════════════════════════════
+
+function buildRuleCards() {
+  const grid = document.getElementById('rulesGrid');
+  grid.innerHTML = '';
+  RULES.forEach(r => {
+    const card = document.createElement('div');
+    card.className = 'rule-card' + (selectedRules.has(r.id) ? ' selected' : '');
+    card.dataset.ruleId = r.id;
+    card.innerHTML =
+      '<span class="rule-icon">' + r.icon + '</span>' +
+      '<div class="rule-num">Rule ' + r.id + '</div>' +
+      '<div class="rule-text">' + r.text + '</div>';
+    card.addEventListener('click', () => {
+      if (isRunning) return;
+      if (selectedRules.has(r.id)) selectedRules.delete(r.id);
+      else selectedRules.add(r.id);
+      syncCards();
+    });
+    grid.appendChild(card);
+  });
+}
+
+function syncCards() {
+  document.querySelectorAll('.rule-card').forEach(c => {
+    const rid = parseInt(c.dataset.ruleId);
+    c.classList.toggle('selected', selectedRules.has(rid));
+    c.classList.remove('conflict-highlight');
+  });
+  document.getElementById('pickCount').textContent = selectedRules.size;
+  document.getElementById('runBtn').disabled = selectedRules.size < 2;
+}
+
+function applyPreset(name) {
+  if (isRunning) return;
+  selectedRules.clear();
+  const sets = { safe: [1,2,3,8], deadlock: [1,2,3,4,5], triple: [1,2,3,4,5,6,7,8] };
+  (sets[name] || []).forEach(id => selectedRules.add(id));
+  syncCards();
+}
+
+// ═══════════════════════════════════════════════════════
+//  CONFLICT DETECTION
+// ═══════════════════════════════════════════════════════
+
+function detectConflicts(sel) {
+  const s = new Set(sel);
+  return CONFLICTS.filter(c => c.rules.every(r => s.has(r)));
+}
+
+// ═══════════════════════════════════════════════════════
+//  PYTHON COLUMN
+// ═══════════════════════════════════════════════════════
+
+async function runPython(sorted) {
+  const body = document.getElementById('pythonBody');
+  body.innerHTML = '<pre></pre>';
+  const pre = body.querySelector('pre');
+
+  addLine(pre, '<span class="info">Running rule validation tests...</span>');
+  await sleep(500);
+  addLine(pre, '');
+
+  for (let i = 0; i < sorted.length; i++) {
+    const r = RULES.find(x => x.id === sorted[i]);
+    addLine(pre, '<span class="pass">' + r.testName + '... \u2713 PASS</span>');
+    await sleep(80);
+    addLine(pre, '  <span class="dim">' + r.testDetail + '</span>');
+    await sleep(280 + Math.random() * 220);
+    addLine(pre, '');
+  }
+
+  addLine(pre, '<span class="dim">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span>');
+  await sleep(150);
+  addLine(pre, '<span class="pass">' + sorted.length + '/' + sorted.length + ' tests passed</span>');
+  addLine(pre, '<span class="pass">All rules are valid \u2713</span>');
+
+  showVerdict('pythonVerdict', true, 'ALL TESTS PASS',
+    'Tested each rule in isolation. No combination testing.');
+}
+
+// ═══════════════════════════════════════════════════════
+//  AI COLUMN
+// ═══════════════════════════════════════════════════════
+
+async function runAI(sorted) {
+  const body = document.getElementById('aiBody');
+  body.innerHTML = '<pre></pre>';
+  const pre = body.querySelector('pre');
+
+  addLine(pre, '<span class="dim"><span class="spinner" style="border-top-color:var(--green)"></span> Analyzing governance rules...</span>');
+  await sleep(1400);
+  pre.innerHTML = '';
+
+  addLine(pre, '<span class="bold">I\'ve reviewed your ' + sorted.length + ' governance rules:</span>');
+  await sleep(350);
+  addLine(pre, '');
+
+  for (const rid of sorted) {
+    const r = RULES.find(x => x.id === rid);
+    addLine(pre, '<span class="pass">Rule ' + rid + ' \u2713</span> \u2014 ' + r.aiDesc);
+    await sleep(100);
+    addLine(pre, '  <span class="dim">' + r.aiNote + '</span>');
+    await sleep(450 + Math.random() * 300);
+    addLine(pre, '');
+  }
+
+  await sleep(500);
+  addLine(pre, '<span class="bold">Overall Assessment:</span>');
+  await sleep(300);
+  addLine(pre, '<span class="dim">These rules create a thoughtful governance framework</span>');
+  await sleep(180);
+  addLine(pre, '<span class="dim">with checks and balances. The high approval threshold</span>');
+  await sleep(180);
+  addLine(pre, '<span class="dim">combined with quorum requirements ensures legitimate</span>');
+  await sleep(180);
+  addLine(pre, '<span class="dim">decision-making.</span>');
+  await sleep(400);
+  addLine(pre, '');
+  addLine(pre, '<span class="pass">Rating: Well-Designed \u2713</span>');
+  addLine(pre, '<span class="pass">No conflicts detected.</span>');
+
+  showVerdict('aiVerdict', true, 'WELL-DESIGNED GOVERNANCE',
+    'Based on pattern matching against governance best practices.');
+}
+
+// ═══════════════════════════════════════════════════════
+//  TAU COLUMN
+// ═══════════════════════════════════════════════════════
+
+async function runTau(sorted, conflicts) {
+  const body = document.getElementById('tauBody');
+  body.innerHTML = '';
+
+  const n = sorted.length;
+  const totalStates = Math.pow(2, n);
+
+  // ── Sub-panel 1: TML + Tau Spec ──
+  const panel1 = document.createElement('div');
+  panel1.className = 'tau-subpanel';
+  panel1.innerHTML =
+    '<div class="tau-subpanel-header">TML Knowledge Base + Tau Spec</div>' +
+    '<div class="tau-subpanel-body"><pre></pre></div>';
+  body.appendChild(panel1);
+  const pre1 = panel1.querySelector('pre');
+
+  addLine(pre1, '<span class="purple"># \u2500\u2500\u2500 TML Knowledge Base \u2500\u2500\u2500</span>');
+  addLine(pre1, '<span class="purple"># Rules encoded as formal relations</span>');
+  addLine(pre1, '');
+
+  for (const rid of sorted) {
+    const r = RULES.find(x => x.id === rid);
+    addLine(pre1, '<span class="dim">' + escHtml(r.tml) + '</span>');
+    await sleep(110);
+  }
+
+  await sleep(500);
+  addLine(pre1, '');
+  addLine(pre1, '<span class="purple"># \u2500\u2500\u2500 Tau Temporal Specification \u2500\u2500\u2500</span>');
+  addLine(pre1, '<span class="purple"># Checking if governance can function</span>');
+  await sleep(200);
+
+  // Show the spec for the first conflict, or a generic one
+  const specText = conflicts.length > 0 ? conflicts[0].tauSpec :
+    "# Can a proposal EVER pass?\n" +
+    "sometimes (\n" +
+    "    proposal_created[t] != 0 &&\n" +
+    "    proposal_resolved[t] != 0\n" +
+    ").\n\n" +
+    "# Governance must not deadlock\n" +
+    "always (\n" +
+    "    governance_active[t] != 0 ->\n" +
+    "    sometimes (\n" +
+    "        proposal_resolved[t'] != 0 && t' > t\n" +
+    "    )\n" +
+    ").";
+
+  for (const line of specText.split('\n')) {
+    const colored = line.startsWith('#')
+      ? '<span class="purple">' + escHtml(line) + '</span>'
+      : '<span class="dim">' + escHtml(line) + '</span>';
+    addLine(pre1, colored);
+    await sleep(55);
+  }
+
+  await sleep(800);
+
+  // ── Sub-panel 2: Verification Trace ──
+  const panel2 = document.createElement('div');
+  panel2.className = 'tau-subpanel';
+  panel2.innerHTML =
+    '<div class="tau-subpanel-header">Verification Trace</div>' +
+    '<div class="tau-subpanel-body"><pre></pre></div>';
+  body.appendChild(panel2);
+  const pre2 = panel2.querySelector('pre');
+
+  addLine(pre2, '<span class="info">[TAU v0.7] Combinatorial rule analysis</span>');
+  await sleep(300);
+  addLine(pre2, '<span class="dim">Encoding ' + n + ' rules as formal constraints...</span>');
+  await sleep(400);
+  addLine(pre2, '<span class="dim">Checking 2^' + n + ' = ' + totalStates + ' possible interaction states</span>');
+  await sleep(600);
+  addLine(pre2, '');
+
+  // Build sets for fast lookup
+  const pairConflicts = conflicts.filter(c => c.rules.length === 2);
+  const tripleConflicts = conflicts.filter(c => c.rules.length === 3);
+
+  function isPairConflict(a, b) {
+    return pairConflicts.some(c => {
+      const s = new Set(c.rules);
+      return s.has(a) && s.has(b) && c.rules.length === 2;
+    });
+  }
+
+  function isExactTripleConflict(a, b, c2) {
+    return tripleConflicts.some(c => {
+      const s = [...c.rules].sort((x,y)=>x-y);
+      const t = [a,b,c2].sort((x,y)=>x-y);
+      return s.length === 3 && s[0]===t[0] && s[1]===t[1] && s[2]===t[2];
+    });
+  }
+
+  function getTripleConflict(a, b, c2) {
+    return tripleConflicts.find(c => {
+      const s = [...c.rules].sort((x,y)=>x-y);
+      const t = [a,b,c2].sort((x,y)=>x-y);
+      return s.length === 3 && s[0]===t[0] && s[1]===t[1] && s[2]===t[2];
+    });
+  }
+
+  // ── Pairwise checks ──
+  addLine(pre2, '<span class="bold">Pairwise compatibility:</span>');
+  await sleep(200);
+
+  for (let i = 0; i < sorted.length; i++) {
+    for (let j = i + 1; j < sorted.length; j++) {
+      const r1 = sorted[i], r2 = sorted[j];
+      if (isPairConflict(r1, r2)) {
+        addLine(pre2, '  <span class="fail">Rule ' + r1 + ' \u2227 Rule ' + r2 + ': \u2717 UNSATISFIABLE</span>');
+      } else {
+        addLine(pre2, '  <span class="pass">Rule ' + r1 + ' \u2227 Rule ' + r2 + ': satisfiable \u2713</span>');
+      }
+      await sleep(100);
+    }
+  }
+
+  // Show pair conflict details
+  for (const pc of pairConflicts) {
+    await sleep(400);
+    addLine(pre2, '');
+    addLine(pre2, '  <span class="fail">\u2717 CONTRADICTION DETECTED</span>');
+    addLine(pre2, '  <span class="fail">\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500</span>');
+    for (const line of pc.explanation.split('\n')) {
+      addLine(pre2, '  <span class="dim">' + escHtml(line) + '</span>');
+      await sleep(40);
+    }
+  }
+
+  // ── Three-way checks (if >= 3 rules) ──
+  if (sorted.length >= 3) {
+    await sleep(500);
+    addLine(pre2, '');
+    addLine(pre2, '<span class="bold">Three-way compatibility:</span>');
+    await sleep(300);
+
+    for (let i = 0; i < sorted.length; i++) {
+      for (let j = i + 1; j < sorted.length; j++) {
+        for (let k = j + 1; k < sorted.length; k++) {
+          const a = sorted[i], b = sorted[j], c2 = sorted[k];
+          const tc = getTripleConflict(a, b, c2);
+          if (tc) {
+            addLine(pre2, '  <span class="fail">Rule ' + a + ' \u2227 Rule ' + b + ' \u2227 Rule ' + c2 + ': \u2717 UNSATISFIABLE</span>');
+            await sleep(400);
+            addLine(pre2, '');
+            addLine(pre2, '  <span class="fail">\u2717 DEADLOCK DETECTED</span>');
+            addLine(pre2, '  <span class="fail">\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500</span>');
+            for (const line of tc.explanation.split('\n')) {
+              addLine(pre2, '  <span class="dim">' + escHtml(line) + '</span>');
+              await sleep(35);
+            }
+            addLine(pre2, '');
+          } else {
+            addLine(pre2, '  <span class="pass">Rule ' + a + ' \u2227 Rule ' + b + ' \u2227 Rule ' + c2 + ': satisfiable \u2713</span>');
+          }
+          await sleep(70);
+        }
+      }
+    }
+  }
+
+  // ── Final verdict ──
+  await sleep(500);
+  addLine(pre2, '');
+  addLine(pre2, '<span class="dim">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span>');
+  addLine(pre2, '');
+
+  if (conflicts.length === 0) {
+    addLine(pre2, '<span class="pass">All rule combinations are satisfiable.</span>');
+    addLine(pre2, '<span class="pass">No deadlocks, no contradictions.</span>');
+    addLine(pre2, '');
+    addLine(pre2, '<span class="pass">VERDICT: ALL RULES ARE COMPATIBLE \u2713</span>');
+    addLine(pre2, '<span class="pass">0 conflicts found across ' + totalStates + ' states.</span>');
+
+    showVerdict('tauVerdict', true, 'ALL RULES COMPATIBLE',
+      'Verified all ' + totalStates + ' interaction states. No deadlocks.');
+  } else {
+    addLine(pre2, '<span class="dim">No simulation can find this because it is not a</span>');
+    addLine(pre2, '<span class="dim">bug in execution \u2014 it is a bug in the RULES</span>');
+    addLine(pre2, '<span class="dim">THEMSELVES. Only formal logic can detect</span>');
+    addLine(pre2, '<span class="dim">contradictions in specifications.</span>');
+    await sleep(300);
+    addLine(pre2, '');
+    addLine(pre2, '<span class="fail">VERDICT: RULES ARE INCOMPATIBLE \u2717</span>');
+    addLine(pre2, '<span class="fail">' + conflicts.length + ' conflict' + (conflicts.length > 1 ? 's' : '') + ' found in rule interactions</span>');
+
+    // Shockwave
+    const sw = document.createElement('div');
+    sw.className = 'shockwave';
+    body.appendChild(sw);
+    setTimeout(() => sw.remove(), 900);
+
+    const desc = conflicts.map(c => 'Rules ' + c.rules.join('+')).join(', ');
+    showVerdict('tauVerdict', false, 'DEADLOCK FOUND', desc + ' are incompatible');
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  CONFLICT MAP (Canvas)
+// ═══════════════════════════════════════════════════════
+
+function drawConflictMap(sorted, conflicts) {
+  const section = document.getElementById('conflictMapSection');
+  section.classList.add('visible');
+
+  if (conflicts.length === 0) {
+    // Show a "no conflicts" banner instead of the canvas
+    const container = document.getElementById('mapContainer');
+    container.innerHTML =
+      '<div class="no-conflict-banner">' +
+      '<div class="ncb-icon">\u2713</div>' +
+      '<div class="ncb-text">All Rules Are Compatible</div>' +
+      '<div class="ncb-sub">No conflicting interactions detected between the selected rules.</div>' +
+      '</div>';
+    return;
+  }
+
+  // Restore canvas if needed
+  const container = document.getElementById('mapContainer');
+  if (!container.querySelector('canvas')) {
+    container.innerHTML =
+      '<canvas id="conflictCanvas"></canvas>' +
+      '<div class="conflict-tooltip" id="conflictTooltip"></div>';
+  }
+
+  const canvas = document.getElementById('conflictCanvas');
+  const tooltip = document.getElementById('conflictTooltip');
+  const dpr = window.devicePixelRatio || 1;
+  const W = container.clientWidth - 40;
+  const H = 360;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const n = sorted.length;
+  const cx = W / 2;
+  const cy = H / 2;
+  const radius = Math.min(W, H) * 0.34;
+
+  // Node positions
+  const nodes = {};
+  sorted.forEach((rid, i) => {
+    const angle = -Math.PI / 2 + (2 * Math.PI * i) / n;
+    nodes[rid] = { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle), id: rid };
+  });
+
+  // Conflict pairs set
+  const conflictEdges = new Set();
+  conflicts.forEach(c => {
+    for (let i = 0; i < c.rules.length; i++)
+      for (let j = i + 1; j < c.rules.length; j++) {
+        const a = Math.min(c.rules[i], c.rules[j]);
+        const b = Math.max(c.rules[i], c.rules[j]);
+        conflictEdges.add(a + '-' + b);
+      }
+  });
+
+  const conflictRuleSet = new Set(conflicts.flatMap(c => c.rules));
+
+  // Tooltip hover
+  canvas.onmousemove = function(e) {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    let found = null;
+    for (const c of conflicts) {
+      let ax = 0, ay = 0, cnt = 0;
+      c.rules.forEach(rid => {
+        if (nodes[rid]) { ax += nodes[rid].x; ay += nodes[rid].y; cnt++; }
+      });
+      if (cnt === 0) continue;
+      ax /= cnt; ay /= cnt;
+      if (Math.hypot(mx - ax, my - ay) < 45) { found = c; break; }
+    }
+    if (found) {
+      tooltip.innerHTML = '<div class="ct-title">' + found.title + '</div>' + escHtml(found.brief);
+      tooltip.style.left = Math.min(mx + 16, W - 350) + 'px';
+      tooltip.style.top = Math.max(my - 60, 10) + 'px';
+      tooltip.classList.add('show');
+    } else {
+      tooltip.classList.remove('show');
+    }
+  };
+  canvas.onmouseleave = () => tooltip.classList.remove('show');
+
+  let t = 0;
+
+  function frame() {
+    t += 0.018;
+    ctx.clearRect(0, 0, W, H);
+
+    // Draw edges
+    for (let i = 0; i < sorted.length; i++) {
+      for (let j = i + 1; j < sorted.length; j++) {
+        const r1 = sorted[i], r2 = sorted[j];
+        const n1 = nodes[r1], n2 = nodes[r2];
+        const key = Math.min(r1,r2) + '-' + Math.max(r1,r2);
+        const isConf = conflictEdges.has(key);
+
+        ctx.beginPath();
+        ctx.moveTo(n1.x, n1.y);
+        ctx.lineTo(n2.x, n2.y);
+
+        if (isConf) {
+          const pulse = 0.5 + 0.5 * Math.sin(t * 3);
+          ctx.strokeStyle = 'rgba(239,68,68,' + (0.35 + pulse * 0.55) + ')';
+          ctx.lineWidth = 2 + pulse * 2.5;
+          ctx.setLineDash([]);
+        } else {
+          ctx.strokeStyle = 'rgba(52,211,153,0.15)';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([5, 5]);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    }
+
+    // Conflict zone fills
+    conflicts.forEach(c => {
+      const pts = c.rules.filter(r => nodes[r]).map(r => nodes[r]);
+      if (pts.length >= 3) {
+        const pulse = 0.3 + 0.3 * Math.sin(t * 2.5);
+        ctx.beginPath();
+        pts.forEach((p, idx) => idx === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(239,68,68,' + (0.03 + pulse * 0.06) + ')';
+        ctx.fill();
+      }
+    });
+
+    // Nodes
+    sorted.forEach(rid => {
+      const nd = nodes[rid];
+      const isConf = conflictRuleSet.has(rid);
+      const pulse = 0.5 + 0.5 * Math.sin(t * 3);
+
+      // Glow
+      if (isConf) {
+        const grad = ctx.createRadialGradient(nd.x, nd.y, 0, nd.x, nd.y, 38);
+        grad.addColorStop(0, 'rgba(239,68,68,' + (0.12 + pulse * 0.15) + ')');
+        grad.addColorStop(1, 'rgba(239,68,68,0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(nd.x, nd.y, 38, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Circle
+      ctx.beginPath();
+      ctx.arc(nd.x, nd.y, 24, 0, Math.PI * 2);
+      ctx.fillStyle = isConf ? 'rgba(239,68,68,0.12)' : 'rgba(74,158,255,0.08)';
+      ctx.fill();
+      ctx.strokeStyle = isConf ? 'rgba(239,68,68,0.55)' : 'rgba(74,158,255,0.3)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Label
+      ctx.fillStyle = isConf ? '#ef4444' : '#e8e8f0';
+      ctx.font = '600 13px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('R' + rid, nd.x, nd.y);
+    });
+
+    mapAnimFrame = requestAnimationFrame(frame);
+  }
+
+  if (mapAnimFrame) cancelAnimationFrame(mapAnimFrame);
+  frame();
+}
+
+// ═══════════════════════════════════════════════════════
+//  MAIN ANALYSIS RUNNER
+// ═══════════════════════════════════════════════════════
+
+async function runAnalysis() {
+  if (isRunning || selectedRules.size < 2) return;
+  isRunning = true;
+
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner" style="border-top-color:#fff"></span> ANALYZING...';
+
+  // Reset state
+  ['colPython', 'colAI'].forEach(id => document.getElementById(id).classList.remove('shattered'));
+  ['pythonVerdict', 'aiVerdict', 'tauVerdict'].forEach(id => {
+    const el = document.getElementById(id);
+    el.className = 'verdict-bar';
+    el.innerHTML = '';
+  });
+  document.getElementById('conflictMapSection').classList.remove('visible');
+  document.getElementById('comparisonSection').classList.remove('visible');
+  document.querySelectorAll('.rule-card').forEach(c => c.classList.remove('conflict-highlight'));
+  if (mapAnimFrame) { cancelAnimationFrame(mapAnimFrame); mapAnimFrame = null; }
+
+  // Show columns
+  const colSection = document.getElementById('columnsSection');
+  colSection.classList.add('visible');
+  await sleep(100);
+  colSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  const sorted = [...selectedRules].sort((a,b) => a - b);
+  const conflicts = detectConflicts(sorted);
+
+  // Run all three columns with staggered starts
+  const pPython = runPython(sorted);
+  await sleep(700);
+  const pAI = runAI(sorted);
+  await sleep(1400);
+  const pTau = runTau(sorted, conflicts);
+
+  await Promise.all([pPython, pAI, pTau]);
+
+  // Post-analysis effects
+  if (conflicts.length > 0) {
+    await sleep(500);
+    document.getElementById('colPython').classList.add('shattered');
+    document.getElementById('colAI').classList.add('shattered');
+
+    const conflictIds = new Set(conflicts.flatMap(c => c.rules));
+    document.querySelectorAll('.rule-card').forEach(c => {
+      if (conflictIds.has(parseInt(c.dataset.ruleId))) {
+        c.classList.add('conflict-highlight');
+      }
+    });
+    await sleep(300);
+  }
+
+  // Conflict map
+  await sleep(200);
+  drawConflictMap(sorted, conflicts);
+
+  // Comparison section
+  const n = sorted.length;
+  const pairs = n * (n - 1) / 2;
+  const triples = n >= 3 ? Math.round(n * (n-1) * (n-2) / 6) : 0;
+  const totalStates = Math.pow(2, n);
+
+  document.getElementById('compPythonCombo').innerHTML =
+    '<strong>' + n + ' rules = ' + pairs + ' pairs, ' + triples + ' triples.</strong> Too many for manual tests.';
+
+  document.getElementById('compTauCombo').innerHTML = conflicts.length > 0
+    ? 'Checked ALL <strong>2^' + n + ' = ' + totalStates + '</strong> possible combinations. Found <strong>' + conflicts.length + ' conflict' + (conflicts.length > 1 ? 's' : '') + '</strong>.'
+    : 'Checked ALL <strong>2^' + n + ' = ' + totalStates + '</strong> possible combinations. <strong>All compatible.</strong>';
+
+  await sleep(500);
+  const compSection = document.getElementById('comparisonSection');
+  compSection.classList.add('visible');
+
+  setTimeout(() => {
+    compSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 200);
+
+  btn.innerHTML = '&#9654;&ensp;CHECK COMPATIBILITY';
+  btn.disabled = false;
+  isRunning = false;
+}
+
+// ═══════════════════════════════════════════════════════
+//  WINDOW RESIZE HANDLER
+// ═══════════════════════════════════════════════════════
+
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    if (document.getElementById('conflictMapSection').classList.contains('visible')) {
+      const sorted = [...selectedRules].sort((a,b) => a - b);
+      const conflicts = detectConflicts(sorted);
+      if (conflicts.length > 0) drawConflictMap(sorted, conflicts);
+    }
+  }, 250);
+});
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+
+buildRuleCards();
+</script>
+</body>
+</html>
